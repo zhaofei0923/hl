@@ -13,7 +13,6 @@
           class="profile-header__avatar"
         />
         <h2 class="profile-header__name">{{ userStore.userInfo?.nickname || '用户' }}</h2>
-        <p class="profile-header__id">ID: {{ userStore.userInfo?.id || '--' }}</p>
 
         <!-- 资料完成度 -->
         <div class="profile-progress">
@@ -200,7 +199,7 @@ onMounted(() => {
 .profile-progress {
   width: calc(100% - 64px);
   margin-top: 16px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.85);
   border-radius: var(--hl-radius-sm);
   padding: 12px 16px;
 }
@@ -209,7 +208,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #fff;
+  color: var(--hl-primary-color);
   margin-bottom: 8px;
 }
 

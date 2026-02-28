@@ -47,6 +47,7 @@ services:
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-2h}
       - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
       - CLIENT_URL=${CLIENT_URL:-https://hl.easudata.com}
+      - TEST_SMS_CODE=${TEST_SMS_CODE:-}
     depends_on:
       mysql:
         condition: service_healthy

@@ -1,5 +1,5 @@
 <template>
-  <div class="page page--with-tabbar home-page">
+  <div class="page page--with-tabbar home-page" style="padding-bottom: calc(100px + env(safe-area-inset-bottom));">
     <section class="home-hero" data-testid="home-hero">
       <div class="home-hero__mask"></div>
       <div class="home-hero__top">
@@ -647,7 +647,7 @@ function handleSayHi(item) {
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(54px + env(safe-area-inset-bottom));
+  bottom: calc(58px + env(safe-area-inset-bottom));
   z-index: 4;
   display: grid;
   grid-template-columns: 1fr 1fr;

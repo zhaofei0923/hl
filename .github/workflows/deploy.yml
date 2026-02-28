@@ -1,0 +1,56 @@
+name: Deploy to Tencent Cloud
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  PROJECT_DIR: /opt/hl
+  COMPOSE_FILE: docker-compose.prod.yml
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+            echo "========== Pulling latest code =========="
+            cd ${{ env.PROJECT_DIR }}
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "========== Building Docker images =========="
+            docker compose -f ${{ env.COMPOSE_FILE }} --env-file .env.prod build --no-cache
+
+            echo "========== Starting services =========="
+            docker compose -f ${{ env.COMPOSE_FILE }} --env-file .env.prod up -d
+
+            echo "========== Cleaning up old images =========="
+            docker image prune -f
+
+            echo "========== Waiting for services =========="
+            sleep 10
+
+            echo "========== Health check =========="
+            # Check nginx is responding
+            curl -sf -o /dev/null http://localhost/health && echo "✅ Nginx OK" || echo "❌ Nginx failed"
+
+            # Check API is responding
+            curl -sf -o /dev/null http://localhost/api/health 2>/dev/null && echo "✅ API OK" || echo "⚠️  API health endpoint not available (non-critical)"
+
+            echo "========== Container status =========="
+            docker compose -f ${{ env.COMPOSE_FILE }} ps
+
+            echo "========== Deploy complete! =========="

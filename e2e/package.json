@@ -1,0 +1,22 @@
+{
+  "name": "hl-e2e-tests",
+  "version": "1.0.0",
+  "description": "婚恋平台 E2E 测试套件",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:auth": "npx playwright test tests/auth.spec.js",
+    "test:user": "npx playwright test tests/user-home.spec.js tests/user-profile.spec.js",
+    "test:matchmaker": "npx playwright test tests/matchmaker.spec.js",
+    "test:match": "npx playwright test tests/match.spec.js",
+    "test:message": "npx playwright test tests/message.spec.js",
+    "test:wallet": "npx playwright test tests/wallet.spec.js",
+    "test:salon": "npx playwright test tests/salon.spec.js",
+    "report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

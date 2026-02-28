@@ -1,0 +1,77 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC',
+    'Microsoft YaHei', 'Segoe UI', sans-serif;
+  color: var(--hl-text-primary);
+  background-color: var(--hl-bg-color);
+  background-image:
+    radial-gradient(circle at 15% 12%, rgba(201, 164, 106, 0.13), transparent 38%),
+    radial-gradient(circle at 80% 0%, rgba(140, 106, 67, 0.1), transparent 36%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 页面容器 */
+.page {
+  min-height: 100vh;
+  background-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 有底部 TabBar 的页面 */
+.page--with-tabbar {
+  padding-bottom: calc(50px + env(safe-area-inset-bottom));
+}
+
+/* 卡片样式 */
+.card {
+  background: var(--hl-card-bg);
+  border-radius: var(--hl-radius-md);
+  margin: 12px 16px;
+  padding: 16px;
+  box-shadow: var(--hl-shadow-card);
+}
+
+/* Vant 主题覆盖 */
+:root:root {
+  --van-primary-color: var(--hl-primary-color);
+  --van-button-primary-background: var(--hl-primary-color);
+  --van-button-primary-border-color: var(--hl-primary-color);
+  --van-tab-active-text-color: var(--hl-primary-color);
+  --van-tabs-bottom-bar-color: var(--hl-primary-color);
+  --van-tabbar-item-active-color: var(--hl-accent-color);
+  --van-text-color: var(--hl-text-primary);
+  --van-text-color-2: var(--hl-text-secondary);
+  --van-background-2: var(--hl-bg-soft);
+  --van-border-color: var(--hl-border-color);
+}
+
+h1, h2, h3 {
+  font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  letter-spacing: 0.01em;
+}
+
+/* 安全区域 */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}

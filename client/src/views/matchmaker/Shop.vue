@@ -1,0 +1,130 @@
+<template>
+  <div class="page">
+    <!-- 导航栏 -->
+    <van-nav-bar title="我的商城" left-arrow @click-left="$router.back()" />
+
+    <!-- 分类标签 -->
+    <van-tabs v-model:active="categoryTab" @change="handleCategoryChange">
+      <van-tab title="全部" name="all" />
+      <van-tab title="服务包" name="service" />
+      <van-tab title="礼品" name="gift" />
+    </van-tabs>
+
+    <!-- 商品列表 -->
+    <div class="product-grid">
+      <div
+        v-for="item in productList"
+        :key="item.id"
+        class="product-card"
+        @click="handleProduct(item)"
+      >
+        <van-image
+          :src="item.imageUrl"
+          width="100%"
+          height="140"
+          fit="cover"
+          :radius="8"
+          class="product-card__image"
+        >
+          <template #error>
+            <div class="product-card__image-fallback">
+              <van-icon name="shopping-cart-o" size="32" color="#ddd" />
+            </div>
+          </template>
+        </van-image>
+        <div class="product-card__body">
+          <div class="product-card__name">{{ item.name }}</div>
+          <div class="product-card__bottom">
+            <span class="product-card__price">
+              <em>¥</em>{{ formatMoney(item.price) }}
+            </span>
+            <span class="product-card__sales">已售{{ item.salesCount || 0 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 空状态 -->
+    <EmptyState v-if="productList.length === 0" text="商城即将上线" />
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { showToast } from 'vant'
+import { formatMoney } from '@/utils/format'
+import EmptyState from '@/components/common/EmptyState.vue'
+
+const categoryTab = ref('all')
+const productList = ref([])
+
+function handleCategoryChange() {
+  // 商城API暂未对接
+}
+
+function handleProduct(item) {
+  showToast('商城即将上线，敬请期待')
+}
+</script>
+
+<style scoped>
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.product-card {
+  background: var(--hl-card-bg);
+  border-radius: var(--hl-radius-md);
+  overflow: hidden;
+}
+
+.product-card__image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 140px;
+  background: var(--hl-bg-color);
+}
+
+.product-card__body {
+  padding: 10px 10px 12px;
+}
+
+.product-card__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--hl-text-primary);
+  line-height: 1.3;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.product-card__price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hl-accent-color);
+}
+
+.product-card__price em {
+  font-size: 12px;
+  font-style: normal;
+}
+
+.product-card__sales {
+  font-size: 11px;
+  color: var(--hl-text-placeholder);
+}
+</style>

@@ -1,0 +1,37 @@
+:root {
+  /* 婚介高端棕金主题 */
+  --hl-primary-color: #8c6a43;
+  --hl-primary-light: #f3e8db;
+  --hl-accent-color: #c9a46a;
+  --hl-accent-light: #f8f1e4;
+
+  /* 金色特权 */
+  --hl-gold-start: #a78350;
+  --hl-gold-end: #d7ba83;
+
+  /* 钱包红色（保留给红娘端） */
+  --hl-wallet-start: #b04d3f;
+  --hl-wallet-end: #cf7363;
+
+  /* 背景色 */
+  --hl-bg-color: #f6f3ee;
+  --hl-bg-soft: #f0ebe3;
+  --hl-card-bg: #ffffff;
+
+  /* 文字色 */
+  --hl-text-primary: #2e2a26;
+  --hl-text-secondary: #5a524a;
+  --hl-text-placeholder: #8a8178;
+
+  /* 边框 */
+  --hl-border-color: #e6ddd2;
+
+  /* 圆角（10/14/20） */
+  --hl-radius-sm: 10px;
+  --hl-radius-md: 14px;
+  --hl-radius-lg: 20px;
+
+  /* 阴影 */
+  --hl-shadow-soft: 0 8px 24px rgba(44, 34, 21, 0.08);
+  --hl-shadow-card: 0 4px 14px rgba(45, 35, 22, 0.06);
+}

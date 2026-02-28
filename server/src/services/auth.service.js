@@ -44,6 +44,11 @@ const authService = {
    * Verify an SMS code
    */
   async verifySmsCode(phone, code, type) {
+    // 测试万能验证码（通过环境变量控制）
+    if (process.env.TEST_SMS_CODE && code === process.env.TEST_SMS_CODE) {
+      return true;
+    }
+
     const smsCode = await SmsCode.findOne({
       where: {
         phone,

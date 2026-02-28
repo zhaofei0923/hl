@@ -9,17 +9,17 @@
       <p class="login-header__subtitle">遇见对的人，从这里开始</p>
     </div>
 
-    <!-- 根据上下文显示邀请提示 -->
-    <van-notice-bar
-      v-if="$route.query.inviteCode"
-      left-icon="volume-o"
-      text="您正在通过邀请链接注册，注册后将自动成为红娘会员"
-      color="#1989fa"
-      background="#ecf9ff"
-    />
-
     <!-- 登录/注册表单 -->
     <div class="login-form-wrapper">
+      <!-- 邀请提示 -->
+      <van-notice-bar
+        v-if="$route.query.inviteCode"
+        left-icon="volume-o"
+        text="您正在通过邀请链接注册，注册后将自动成为红娘会员"
+        color="#1989fa"
+        background="#ecf9ff"
+        style="margin: -8px -16px 12px; border-radius: var(--hl-radius-sm);"
+      />
       <van-tabs v-model:active="activeTab" shrink animated>
         <!-- Tab 1: 短信验证码登录 -->
         <van-tab title="短信登录">

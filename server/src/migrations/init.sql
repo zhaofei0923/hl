@@ -7,6 +7,7 @@ USE hl_matchmaking;
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(32) UNIQUE COMMENT '用户名，用于账号密码登录',
   phone VARCHAR(20) UNIQUE,
   password_hash VARCHAR(255),
   wechat_openid VARCHAR(128) UNIQUE,

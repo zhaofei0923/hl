@@ -1,17 +1,17 @@
 #!/bin/bash
 # ==========================================
-# 婚恋平台 - 腾讯云 CVM 一键初始化脚本
-# 适用于 Ubuntu 22.04 / Debian 12
-# 以 root 用户运行: bash deploy/setup-server.sh
+# 婚恋平台 - 腾讯云 CVM 初始化脚本
+# 适用于已有 nginx + Docker 的服务器（与其他项目共存）
+# 以 root 用户运行: sudo bash deploy/setup-server.sh
 # ==========================================
 
 set -e
 
 # ---------- 配置项 ----------
 PROJECT_DIR="/opt/hl"
-DEPLOY_USER="deploy"
-SSL_DIR="$PROJECT_DIR/ssl"
-GITHUB_REPO="https://github.com/zhaofei0923/hl.git"  # GitHub 仓库地址
+DEPLOY_USER="ubuntu"  # 使用服务器现有用户
+SSL_DIR="/etc/nginx/ssl/hl.easudata.com"
+GITHUB_REPO="https://github.com/zhaofei0923/hl.git"
 
 # ---------- 颜色输出 ----------
 RED='\033[0;31m'
@@ -29,134 +29,122 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 echo "=========================================="
-echo "  婚恋平台 - 腾讯云服务器初始化"
+echo "  婚恋平台 - 服务器初始化（共存模式）"
 echo "=========================================="
 echo ""
 
 # ===========================================
-# 1. 系统更新 & 基础工具
+# 1. 检查 Docker 和 Nginx
 # ===========================================
-info "1/7 更新系统包..."
-apt-get update -qq
-apt-get upgrade -y -qq
-apt-get install -y -qq curl wget git ufw apt-transport-https ca-certificates gnupg lsb-release
-
-# ===========================================
-# 2. 安装 Docker
-# ===========================================
+info "1/6 检查 Docker..."
 if ! command -v docker &>/dev/null; then
-  info "2/7 安装 Docker..."
-  curl -fsSL https://get.docker.com | sh
-  systemctl enable docker
-  systemctl start docker
-  info "Docker 已安装: $(docker --version)"
-else
-  info "2/7 Docker 已存在: $(docker --version)"
+  error "Docker 未安装，请先安装 Docker"
 fi
+info "Docker: $(docker --version)"
 
-# 确保 Docker Compose V2 可用
-if ! docker compose version &>/dev/null; then
-  info "安装 Docker Compose 插件..."
-  apt-get install -y -qq docker-compose-plugin
+if ! command -v nginx &>/dev/null; then
+  error "Nginx 未安装"
 fi
-info "Docker Compose: $(docker compose version)"
+info "Nginx: $(nginx -v 2>&1)"
+
+# 确保部署用户在 docker 组
+usermod -aG docker "$DEPLOY_USER" 2>/dev/null || true
 
 # ===========================================
-# 3. 创建部署用户
+# 2. 创建项目目录
 # ===========================================
-if ! id "$DEPLOY_USER" &>/dev/null; then
-  info "3/7 创建部署用户: $DEPLOY_USER"
-  useradd -m -s /bin/bash "$DEPLOY_USER"
-  usermod -aG docker "$DEPLOY_USER"
-  info "用户 $DEPLOY_USER 已创建并加入 docker 组"
-else
-  info "3/7 用户 $DEPLOY_USER 已存在"
-  usermod -aG docker "$DEPLOY_USER"
-fi
-
-# 配置 SSH 密钥 (用于 GitHub Actions)
-DEPLOY_SSH_DIR="/home/$DEPLOY_USER/.ssh"
-if [ ! -f "$DEPLOY_SSH_DIR/authorized_keys" ]; then
-  mkdir -p "$DEPLOY_SSH_DIR"
-  touch "$DEPLOY_SSH_DIR/authorized_keys"
-  chmod 700 "$DEPLOY_SSH_DIR"
-  chmod 600 "$DEPLOY_SSH_DIR/authorized_keys"
-  chown -R "$DEPLOY_USER:$DEPLOY_USER" "$DEPLOY_SSH_DIR"
-  warn "请将 GitHub Actions 的 SSH 公钥追加到: $DEPLOY_SSH_DIR/authorized_keys"
-fi
-
-# ===========================================
-# 4. 创建项目目录
-# ===========================================
-info "4/7 创建项目目录..."
+info "2/6 创建项目目录..."
 mkdir -p "$PROJECT_DIR"
 mkdir -p "$SSL_DIR"
 chown -R "$DEPLOY_USER:$DEPLOY_USER" "$PROJECT_DIR"
 
 # ===========================================
-# 5. 配置防火墙
+# 3. 克隆仓库
 # ===========================================
-info "5/7 配置防火墙..."
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP
-ufw allow 443/tcp   # HTTPS
-ufw --force enable
-info "防火墙已启用: SSH(22), HTTP(80), HTTPS(443)"
-
-# ===========================================
-# 6. 克隆仓库
-# ===========================================
-info "6/7 准备项目仓库..."
-if [ -n "$GITHUB_REPO" ]; then
-  if [ ! -d "$PROJECT_DIR/.git" ]; then
-    su - "$DEPLOY_USER" -c "git clone $GITHUB_REPO $PROJECT_DIR"
-    info "仓库已克隆到 $PROJECT_DIR"
-  else
-    info "仓库已存在，跳过克隆"
-  fi
+info "3/6 克隆代码仓库..."
+if [ ! -d "$PROJECT_DIR/.git" ]; then
+  su - "$DEPLOY_USER" -c "git clone $GITHUB_REPO $PROJECT_DIR"
+  info "仓库已克隆到 $PROJECT_DIR"
 else
-  warn "GITHUB_REPO 未设置，请手动克隆仓库到 $PROJECT_DIR"
+  info "仓库已存在，拉取最新代码..."
+  su - "$DEPLOY_USER" -c "cd $PROJECT_DIR && git pull origin main"
 fi
 
 # ===========================================
-# 7. 输出后续步骤
+# 4. 配置 Nginx 站点
 # ===========================================
-info "7/7 初始化完成！"
+info "4/6 配置 Nginx 站点..."
+cp "$PROJECT_DIR/deploy/nginx-hl.conf" /etc/nginx/sites-available/hl
+
+if [ ! -L /etc/nginx/sites-enabled/hl ]; then
+  ln -s /etc/nginx/sites-available/hl /etc/nginx/sites-enabled/hl
+  info "已启用 hl.easudata.com 站点"
+else
+  info "站点已启用"
+fi
+
+# 检查 SSL 证书是否存在
+if [ ! -f "$SSL_DIR/fullchain.pem" ] || [ ! -f "$SSL_DIR/privkey.pem" ]; then
+  warn "SSL 证书未找到！请先上传证书后再重启 nginx："
+  warn "  $SSL_DIR/fullchain.pem"
+  warn "  $SSL_DIR/privkey.pem"
+  warn "暂不重载 nginx，等证书就绪后运行: sudo nginx -t && sudo systemctl reload nginx"
+else
+  nginx -t && systemctl reload nginx
+  info "Nginx 配置已重载"
+fi
+
+# ===========================================
+# 5. 配置 GitHub Actions SSH 密钥
+# ===========================================
+info "5/6 配置 SSH 密钥..."
+DEPLOY_SSH_DIR="/home/$DEPLOY_USER/.ssh"
+mkdir -p "$DEPLOY_SSH_DIR"
+
+if [ ! -f "$DEPLOY_SSH_DIR/github_deploy" ]; then
+  su - "$DEPLOY_USER" -c "ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N '' -q"
+  cat "$DEPLOY_SSH_DIR/github_deploy.pub" >> "$DEPLOY_SSH_DIR/authorized_keys"
+  chmod 600 "$DEPLOY_SSH_DIR/authorized_keys"
+  info "SSH 密钥已生成"
+else
+  info "SSH 密钥已存在"
+fi
+
+# ===========================================
+# 6. 输出后续步骤
+# ===========================================
+info "6/6 初始化完成！"
 echo ""
 echo "=========================================="
 echo "  后续手动操作步骤"
 echo "=========================================="
 echo ""
-echo "1. 上传 SSL 证书:"
-echo "   scp fullchain.pem root@<SERVER_IP>:$SSL_DIR/fullchain.pem"
-echo "   scp privkey.pem   root@<SERVER_IP>:$SSL_DIR/privkey.pem"
+echo "1. 上传 SSL 证书（腾讯云下载 Nginx 格式）:"
+echo "   scp your_domain.pem  root@152.136.160.173:$SSL_DIR/fullchain.pem"
+echo "   scp your_domain.key  root@152.136.160.173:$SSL_DIR/privkey.pem"
+echo "   然后运行: sudo nginx -t && sudo systemctl reload nginx"
 echo ""
-echo "2. 配置环境变量:"
-echo "   cp $PROJECT_DIR/.env.prod.example $PROJECT_DIR/.env.prod"
-echo "   nano $PROJECT_DIR/.env.prod  # 填入实际密码和密钥"
+echo "2. 配置 .env.prod:"
+echo "   cd $PROJECT_DIR"
+echo "   cp .env.prod.example .env.prod"
+echo "   nano .env.prod  # 修改密码和密钥 (openssl rand -hex 32 生成)"
 echo ""
-echo "3. 配置 GitHub Actions SSH 密钥:"
-echo "   a) 在此服务器上生成密钥对:"
-echo "      su - $DEPLOY_USER -c 'ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N \"\"'"
-echo "   b) 添加公钥到 authorized_keys:"
-echo "      cat /home/$DEPLOY_USER/.ssh/github_deploy.pub >> /home/$DEPLOY_USER/.ssh/authorized_keys"
-echo "   c) 在 GitHub 仓库 Settings → Secrets → Actions 中添加:"
-echo "      SSH_HOST       = 服务器公网 IP"
-echo "      SSH_USER       = $DEPLOY_USER"
-echo "      SSH_PRIVATE_KEY = /home/$DEPLOY_USER/.ssh/github_deploy 私钥内容"
-echo "      SSH_PORT        = 22"
-echo ""
-echo "4. DNS 配置:"
-echo "   将 hl.easudata.com A 记录指向此服务器 IP"
-echo ""
-echo "5. 首次部署 (手动):"
+echo "3. 首次启动:"
 echo "   cd $PROJECT_DIR"
 echo "   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d"
 echo ""
-echo "6. 导入测试数据 (可选):"
+echo "4. 配置 GitHub Actions Secrets (https://github.com/zhaofei0923/hl/settings/secrets/actions):"
+echo "   SSH_HOST       = 152.136.160.173"
+echo "   SSH_USER       = $DEPLOY_USER"
+echo "   SSH_PORT        = 22"
+echo "   SSH_PRIVATE_KEY = 以下内容:"
+echo "   ---"
+cat "$DEPLOY_SSH_DIR/github_deploy"
+echo "   ---"
+echo ""
+echo "5. DNS: hl.easudata.com A 记录 → 152.136.160.173"
+echo ""
+echo "6. 导入测试数据（可选）:"
 echo "   docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm seed"
 echo ""
 echo "=========================================="

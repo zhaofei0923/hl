@@ -44,8 +44,8 @@ jobs:
             sleep 10
 
             echo "========== Health check =========="
-            # Check nginx is responding
-            curl -sf -o /dev/null http://localhost/health && echo "✅ Nginx OK" || echo "❌ Nginx failed"
+            # Check container nginx is responding (port 8080)
+            curl -sf -o /dev/null http://localhost:8080/health && echo "✅ App OK" || echo "❌ App failed"
 
             # Check API is responding
             curl -sf -o /dev/null http://localhost/api/health 2>/dev/null && echo "✅ API OK" || echo "⚠️  API health endpoint not available (non-critical)"

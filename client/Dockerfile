@@ -34,9 +34,6 @@ COPY --from=build-admin /app/admin/dist /usr/share/nginx/admin
 # Copy nginx configuration
 COPY client/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create SSL cert directory (certs mounted via volume)
-RUN mkdir -p /etc/nginx/ssl
-
-EXPOSE 80 443
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

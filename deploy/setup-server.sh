@@ -11,7 +11,7 @@ set -e
 PROJECT_DIR="/opt/hl"
 DEPLOY_USER="deploy"
 SSL_DIR="$PROJECT_DIR/ssl"
-GITHUB_REPO=""  # 填入 GitHub 仓库地址，如 git@github.com:username/hl.git
+GITHUB_REPO="https://github.com/zhaofei0923/hl.git"  # GitHub 仓库地址
 
 # ---------- 颜色输出 ----------
 RED='\033[0;31m'

@@ -88,6 +88,13 @@
       </van-button>
     </div>
 
+    <!-- 申请成为红娘 -->
+    <div v-else class="profile-switch">
+      <van-button block round type="primary" plain @click="handleApplyMatchmaker">
+        申请成为红娘
+      </van-button>
+    </div>
+
     <!-- 底部 TabBar -->
     <TabBar />
   </div>
@@ -98,6 +105,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useMessageStore } from '@/stores/message'
+import { matchmakerApi } from '@/api/matchmaker'
+import { showConfirmDialog, showSuccessToast, showFailToast } from 'vant'
 import TabBar from '@/components/common/TabBar.vue'
 
 const router = useRouter()
@@ -120,6 +129,23 @@ async function handleSwitchToMatchmaker() {
     router.replace('/matchmaker/profile')
   } catch (err) {
     // handled by interceptor
+  }
+}
+
+async function handleApplyMatchmaker() {
+  try {
+    await showConfirmDialog({
+      title: '申请成为红娘',
+      message: '成为红娘后，您可以管理会员、撮合匹配并获取收益。确认申请吗？',
+    })
+    await matchmakerApi.apply({})
+    showSuccessToast('申请成功')
+    // 切换到红娘角色
+    await userStore.switchRole('matchmaker')
+    router.replace('/matchmaker/profile')
+  } catch (err) {
+    if (err === 'cancel' || err?.message === 'cancel') return
+    showFailToast(err?.response?.data?.message || '申请失败，请稍后重试')
   }
 }
 

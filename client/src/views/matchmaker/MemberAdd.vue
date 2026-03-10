@@ -11,7 +11,6 @@
           name="realName"
           label="姓名"
           placeholder="请输入真实姓名"
-          :rules="[{ required: true, message: '请填写姓名' }]"
         />
         <van-field
           v-model="form.phone"
@@ -19,12 +18,8 @@
           label="手机号"
           type="tel"
           placeholder="请输入手机号"
-          :rules="[
-            { required: true, message: '请填写手机号' },
-            { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }
-          ]"
         />
-        <van-field name="gender" label="性别" :rules="[{ required: true, message: '请选择性别' }]">
+        <van-field name="gender" label="性别">
           <template #input>
             <van-radio-group v-model="form.gender" direction="horizontal">
               <van-radio :name="1">男</van-radio>
@@ -36,21 +31,28 @@
           v-model="form.age"
           name="age"
           label="年龄"
-          type="number"
-          placeholder="请输入年龄"
+          is-link
+          readonly
+          placeholder="请选择年龄"
+          @click="showAgePicker = true"
         />
         <van-field
           v-model="form.constellation"
           name="constellation"
           label="星座"
-          placeholder="如：双鱼座"
+          is-link
+          readonly
+          placeholder="请选择星座"
+          @click="showConstellationPicker = true"
         />
         <van-field
           v-model="form.height"
           name="height"
           label="身高(cm)"
-          type="number"
-          placeholder="如：178"
+          is-link
+          readonly
+          placeholder="请选择身高"
+          @click="showHeightPicker = true"
         />
         <van-field
           v-model="form.education"
@@ -203,6 +205,36 @@
       </div>
     </van-form>
 
+    <!-- 年龄选择器 -->
+    <van-popup v-model:show="showAgePicker" position="bottom" round>
+      <van-picker
+        :columns="ageOptions"
+        @confirm="onAgeConfirm"
+        @cancel="showAgePicker = false"
+        title="选择年龄"
+      />
+    </van-popup>
+
+    <!-- 星座选择器 -->
+    <van-popup v-model:show="showConstellationPicker" position="bottom" round>
+      <van-picker
+        :columns="constellationOptions"
+        @confirm="onConstellationConfirm"
+        @cancel="showConstellationPicker = false"
+        title="选择星座"
+      />
+    </van-popup>
+
+    <!-- 身高选择器 -->
+    <van-popup v-model:show="showHeightPicker" position="bottom" round>
+      <van-picker
+        :columns="heightOptions"
+        @confirm="onHeightConfirm"
+        @cancel="showHeightPicker = false"
+        title="选择身高"
+      />
+    </van-popup>
+
     <!-- 学历选择器 -->
     <van-popup v-model:show="showEducationPicker" position="bottom" round>
       <van-picker
@@ -276,6 +308,9 @@ const formRef = ref(null)
 const submitting = ref(false)
 const fileList = ref([])
 
+const showAgePicker = ref(false)
+const showConstellationPicker = ref(false)
+const showHeightPicker = ref(false)
 const showEducationPicker = ref(false)
 const showIncomePicker = ref(false)
 const showMaritalPicker = ref(false)
@@ -305,6 +340,31 @@ const form = reactive({
   memberTypeLabel: '无消费',
   remark: ''
 })
+
+const ageOptions = Array.from({ length: 63 }, (_, i) => ({
+  text: `${i + 18}岁`,
+  value: String(i + 18)
+}))
+
+const constellationOptions = [
+  { text: '白羊', value: '白羊' },
+  { text: '金牛', value: '金牛' },
+  { text: '双子', value: '双子' },
+  { text: '巨蟹', value: '巨蟹' },
+  { text: '狮子', value: '狮子' },
+  { text: '处女', value: '处女' },
+  { text: '天秤', value: '天秤' },
+  { text: '天蝎', value: '天蝎' },
+  { text: '射手', value: '射手' },
+  { text: '摩羯', value: '摩羯' },
+  { text: '水瓶', value: '水瓶' },
+  { text: '双鱼', value: '双鱼' }
+]
+
+const heightOptions = Array.from({ length: 61 }, (_, i) => ({
+  text: `${i + 140}cm`,
+  value: String(i + 140)
+}))
 
 const educationOptions = [
   { text: '高中及以下', value: '高中及以下' },
@@ -346,6 +406,24 @@ const memberTypeOptions = [
   { text: '会员', value: 'member' },
   { text: '人工牵线', value: 'manual_match' }
 ]
+
+function onAgeConfirm({ selectedOptions }) {
+  const opt = selectedOptions[0]
+  form.age = opt?.value || ''
+  showAgePicker.value = false
+}
+
+function onConstellationConfirm({ selectedOptions }) {
+  const opt = selectedOptions[0]
+  form.constellation = opt?.value || ''
+  showConstellationPicker.value = false
+}
+
+function onHeightConfirm({ selectedOptions }) {
+  const opt = selectedOptions[0]
+  form.height = opt?.value || ''
+  showHeightPicker.value = false
+}
 
 function onEducationConfirm({ selectedOptions }) {
   const opt = selectedOptions[0]

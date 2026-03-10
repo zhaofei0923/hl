@@ -390,8 +390,36 @@ const memberController = {
         pageSize
       });
 
+      // Flatten nested user/profile data for frontend consumption (same as list)
+      const flatList = result.list.map(row => {
+        const m = row.toJSON ? row.toJSON() : row;
+        const user = m.user || {};
+        const profile = user.profile || {};
+        return {
+          ...m,
+          nickname: user.nickname,
+          phone: user.phone,
+          avatarUrl: user.avatarUrl,
+          gender: user.gender,
+          isVerified: user.isVerified,
+          realName: profile.realName,
+          name: profile.realName || user.nickname,
+          age: profile.age,
+          height: profile.height,
+          education: profile.education,
+          occupation: profile.occupation,
+          incomeRange: profile.incomeRange,
+          income: profile.incomeRange,
+          city: profile.city,
+          province: profile.province,
+          nativePlace: profile.nativePlace,
+          maritalStatus: profile.maritalStatus,
+          photos: profile.photos,
+        };
+      });
+
       return paginate(res, {
-        list: result.list,
+        list: flatList,
         total: result.total,
         page: result.page,
         pageSize: result.pageSize

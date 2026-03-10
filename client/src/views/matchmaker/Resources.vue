@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <!-- 导航栏 -->
-    <van-nav-bar title="全部资源" left-arrow @click-left="$router.back()">
+    <van-nav-bar :title="`全部资源 (${totalCount})`" left-arrow @click-left="$router.back()">
       <template #right>
         <van-icon name="search" size="20" @click="showSearch = true" />
       </template>
@@ -40,7 +40,7 @@
               />
             </div>
             <div class="resource-card__info">
-              <span v-if="item.birthDate">{{ calcAge(item.birthDate) }}岁</span>
+              <span v-if="item.age">{{ item.age }}岁</span>
               <span v-if="item.city">{{ item.city }}</span>
               <span v-if="item.height">{{ item.height }}cm</span>
             </div>
@@ -163,7 +163,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { memberApi } from '@/api/member'
-import { calcAge } from '@/utils/format'
 import EmptyState from '@/components/common/EmptyState.vue'
 
 const router = useRouter()
@@ -177,6 +176,7 @@ const listLoading = ref(false)
 const finished = ref(false)
 const page = ref(1)
 const resourceList = ref([])
+const totalCount = ref(0)
 
 const showRecommendPopup = ref(false)
 const recommendTarget = ref(null)
@@ -197,6 +197,9 @@ async function fetchResources(isRefresh = false) {
     }
     const res = await memberApi.search(params)
     const list = res.data?.list || []
+    if (isRefresh || page.value === 1) {
+      totalCount.value = res.data?.total || 0
+    }
 
     if (isRefresh) {
       resourceList.value = list

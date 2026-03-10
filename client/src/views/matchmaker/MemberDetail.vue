@@ -23,7 +23,7 @@
           />
         </div>
         <div class="member-header__name-row">
-          <span class="member-header__name">{{ member.name || member.realName || member.nickname || '未填写' }}</span>
+          <span class="member-header__name">{{ member.realName || member.nickname || '未填写' }}</span>
           <van-icon
             v-if="member.gender"
             :name="member.gender === 1 ? 'friends-o' : 'friends-o'"
@@ -53,37 +53,65 @@
         <div class="info-card__title">基本资料</div>
         <div class="info-card__grid">
           <div class="info-row">
-            <span class="info-row__label">出生日期</span>
-            <span class="info-row__value">{{ formatDate(member.birthDate) || '未填写' }}</span>
+            <span class="info-row__label">姓名</span>
+            <span class="info-row__value">{{ member.realName || member.nickname || '未填写' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">性别</span>
+            <span class="info-row__value">{{ member.gender === 1 ? '男' : member.gender === 2 ? '女' : '未填写' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">年龄</span>
+            <span class="info-row__value">{{ member.age ? member.age + '岁' : (member.birthDate ? calcAge(member.birthDate) + '岁' : '未填写') }}</span>
+          </div>
+          <div v-if="constellation" class="info-row">
+            <span class="info-row__label">星座</span>
+            <span class="info-row__value">{{ constellation }}</span>
           </div>
           <div class="info-row">
             <span class="info-row__label">身高</span>
             <span class="info-row__value">{{ member.height ? member.height + 'cm' : '未填写' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-row__label">婚姻状况</span>
-            <span class="info-row__value">{{ member.maritalStatus || '未填写' }}</span>
+            <span class="info-row__label">学历</span>
+            <span class="info-row__value">{{ member.education || '未填写' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">常住地/工作地</span>
+            <span class="info-row__value">{{ member.city || '未填写' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">籍贯</span>
+            <span class="info-row__value">{{ member.hometown || member.nativePlace || '未填写' }}</span>
           </div>
           <div class="info-row">
             <span class="info-row__label">职业</span>
             <span class="info-row__value">{{ member.occupation || '未填写' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-row__label">体重</span>
-            <span class="info-row__value">{{ member.weight ? member.weight + 'kg' : '未填写' }}</span>
+            <span class="info-row__label">收入</span>
+            <span class="info-row__value">{{ member.income || member.incomeRange || '未填写' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-row__label">年收入</span>
-            <span class="info-row__value">{{ member.income || '未填写' }}</span>
+            <span class="info-row__label">婚姻情况</span>
+            <span class="info-row__value">{{ member.maritalStatus || '未填写' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-row__label">籍贯</span>
-            <span class="info-row__value">{{ member.hometown || '未填写' }}</span>
+            <span class="info-row__label">是否有房</span>
+            <span class="info-row__value">{{ member.houseStatus || '未填写' }}</span>
           </div>
           <div class="info-row">
-            <span class="info-row__label">现居地</span>
-            <span class="info-row__value">{{ member.city || '未填写' }}</span>
+            <span class="info-row__label">是否有车</span>
+            <span class="info-row__value">{{ member.carStatus || '未填写' }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- 自我介绍 -->
+      <div v-if="member.selfIntro" class="info-card">
+        <div class="info-card__title">自我介绍</div>
+        <div class="info-card__content info-card__content--pre">
+          {{ member.selfIntro }}
         </div>
       </div>
 
@@ -163,7 +191,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast, showImagePreview } from 'vant'
 import { memberApi } from '@/api/member'
@@ -179,6 +207,13 @@ const loading = ref(true)
 const member = ref(null)
 const showPreview = ref(false)
 const previewIndex = ref(0)
+
+// Extract constellation from member remark (format: "星座：xxx" or "星座：xxx | ...")
+const constellation = computed(() => {
+  const remark = member.value?.remark || ''
+  const match = remark.match(/星座[：:]\s*([^\s|]+)/)
+  return match ? match[1] : ''
+})
 
 function previewImage(index) {
   if (member.value?.photos?.length) {
@@ -305,9 +340,13 @@ onMounted(async () => {
 }
 
 .info-card__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card__content--pre {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .info-row {

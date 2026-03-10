@@ -10,14 +10,17 @@
       />
       <div class="member-card__info">
         <div class="member-card__name-row">
-          <span class="member-card__name">{{ member.nickname || member.realName }}</span>
+          <span class="member-card__name">{{ member.realName || member.nickname }}</span>
           <van-icon v-if="member.isVerified" name="shield-o" color="#1989fa" size="16" />
           <van-icon name="phone-o" color="var(--hl-accent-color)" size="16" @click.stop="$emit('call', member)" />
         </div>
         <div class="member-card__detail">手机号: {{ member.phone }}</div>
         <div class="member-card__detail">({{ formatDate(member.createdAt, 'YYYY-MM-DD HH:mm:ss') }}注册)</div>
         <div class="member-card__tags">
-          {{ member.city || '未知' }} · {{ member.age || '?'  }}岁 · {{ member.incomeRange || '未填写' }}元
+          {{ member.gender === 1 ? '男' : member.gender === 2 ? '女' : '未知' }} · {{ member.age || '?'  }}岁 · {{ member.city || '未知' }}
+        </div>
+        <div v-if="member.occupation || member.education || member.incomeRange" class="member-card__tags">
+          {{ [member.occupation, member.education, member.incomeRange].filter(Boolean).join(' · ') }}
         </div>
       </div>
     </div>

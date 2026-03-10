@@ -1,8 +1,20 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
 const memberController = require('../controllers/member.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/role.middleware');
+
+// Multer configuration for member photo uploads
+const upload = multer({
+  dest: path.join(__dirname, '../../uploads/photos'),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpg|jpeg|png|webp/;
+    cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));
+  }
+});
 
 // All routes require authentication and matchmaker role
 router.use(authMiddleware);
@@ -28,6 +40,9 @@ router.get('/stats', memberController.getStats);
 
 // Recommend own member to a resource (cross-matchmaker)
 router.post('/recommend', memberController.recommend);
+
+// Upload member photos
+router.post('/upload-photo', upload.single('photo'), memberController.uploadPhoto);
 
 // Get member detail (must be after /list, /search, /stats to avoid path conflicts)
 router.get('/:id', memberController.getDetail);

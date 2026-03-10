@@ -26,6 +26,11 @@ export const memberApi = {
     return request.post('/member/add-manual', data)
   },
 
+  // 上传会员照片
+  uploadPhoto(formData) {
+    return request.post('/member/upload-photo', formData)
+  },
+
   // 编辑会员资料
   updateProfile(id, data) {
     return request.put(`/member/${id}/profile`, data)

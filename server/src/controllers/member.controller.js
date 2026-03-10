@@ -103,6 +103,10 @@ const memberController = {
           province: profile.province,
           nativePlace: profile.nativePlace,
           maritalStatus: profile.maritalStatus,
+          houseStatus: profile.houseStatus,
+          carStatus: profile.carStatus,
+          selfIntro: profile.selfIntro,
+          partnerRequirement: profile.partnerRequirement,
           photos: profile.photos,
         };
       });
@@ -218,7 +222,8 @@ const memberController = {
         height, education, city, nativePlace, occupation,
         incomeRange, maritalStatus, houseStatus, carStatus,
         familySituation, selfIntro, partnerRequirement,
-        memberType = 'no_consumption', serviceLevel = 1, remark
+        memberType = 'no_consumption', serviceLevel = 1, remark,
+        photos
       } = req.body;
 
       if (!phone) {
@@ -258,14 +263,11 @@ const memberController = {
       const existingMember = await Member.findOne({
         where: { matchmakerId: matchmaker.id, userId: user.id }
       });
-      if (existingMember) {
-        return error(res, '该用户已是您的会员', 40001);
-      }
 
       // Build self intro combining family situation
       const fullSelfIntro = [
-        familySituation ? `《家庭情况》${familySituation}` : null,
-        selfIntro ? `《自我介绝》${selfIntro}` : null
+        familySituation ? `【家庭情况】${familySituation}` : null,
+        selfIntro ? `【自我介绍】${selfIntro}` : null
       ].filter(Boolean).join('\n\n') || selfIntro || null;
 
       // Upsert profile
@@ -284,6 +286,9 @@ const memberController = {
         selfIntro: fullSelfIntro,
         partnerRequirement: partnerRequirement || null
       };
+      if (Array.isArray(photos)) {
+        profileData.photos = photos;
+      }
 
       const [profile, profileCreated] = await UserProfile.findOrCreate({
         where: { userId: user.id },
@@ -291,7 +296,21 @@ const memberController = {
       });
 
       if (!profileCreated) {
-        await profile.update(profileData);
+        // Only update fields that have values (don't overwrite existing data with null)
+        const updateFields = {};
+        for (const [key, val] of Object.entries(profileData)) {
+          if (val !== null && val !== undefined) {
+            updateFields[key] = val;
+          }
+        }
+        if (Object.keys(updateFields).length) {
+          await profile.update(updateFields);
+        }
+      }
+
+      // Always update user nickname to realName if realName is provided
+      if (realName) {
+        await user.update({ nickname: realName, gender: Number(gender) });
       }
 
       if (isNewUser) {
@@ -301,18 +320,32 @@ const memberController = {
         });
       }
 
-      const member = await Member.create({
-        matchmakerId: matchmaker.id,
-        userId: user.id,
-        memberType,
-        serviceLevel,
-        remark: [
-          constellation ? `星座：${constellation}` : null,
-          remark || null
-        ].filter(Boolean).join(' | ') || null
-      });
+      const memberRemark = [
+        constellation ? `星座：${constellation}` : null,
+        remark || null
+      ].filter(Boolean).join(' | ') || null;
 
-      logger.info(`Matchmaker ${matchmaker.id} manually added member userId=${user.id} (new=${isNewUser})`);
+      let member;
+      if (existingMember) {
+        // Update existing member record
+        const memberUpdates = {};
+        if (memberType) memberUpdates.memberType = memberType;
+        if (memberRemark) memberUpdates.remark = memberRemark;
+        if (Object.keys(memberUpdates).length) {
+          await existingMember.update(memberUpdates);
+        }
+        member = existingMember;
+      } else {
+        member = await Member.create({
+          matchmakerId: matchmaker.id,
+          userId: user.id,
+          memberType,
+          serviceLevel,
+          remark: memberRemark
+        });
+      }
+
+      logger.info(`Matchmaker ${matchmaker.id} manually added/updated member userId=${user.id} (new=${isNewUser}, existingMember=${!!existingMember})`);
 
       return success(res, {
         member,
@@ -439,6 +472,22 @@ const memberController = {
       };
 
       return success(res, flatMember);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * Upload a photo for a member
+   * POST /api/member/upload-photo
+   */
+  async uploadPhoto(req, res, next) {
+    try {
+      if (!req.file) {
+        return error(res, '请选择要上传的图片', 40001);
+      }
+      const photoUrl = `/uploads/photos/${req.file.filename}`;
+      return success(res, { url: photoUrl }, '上传成功');
     } catch (err) {
       next(err);
     }

@@ -149,6 +149,23 @@
         />
       </van-cell-group>
 
+      <!-- 会员照片 -->
+      <div class="section-title">会员照片</div>
+      <van-cell-group inset>
+        <van-field name="photos" label="上传照片">
+          <template #input>
+            <van-uploader
+              v-model="fileList"
+              :after-read="afterReadPhoto"
+              :max-count="9"
+              :max-size="5 * 1024 * 1024"
+              @oversize="onOversize"
+              multiple
+            />
+          </template>
+        </van-field>
+      </van-cell-group>
+
       <!-- 会员设置 -->
       <div class="section-title">会员设置</div>
       <van-cell-group inset>
@@ -251,12 +268,13 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { showSuccessToast, showFailToast } from 'vant'
+import { showSuccessToast, showFailToast, showToast } from 'vant'
 import { memberApi } from '@/api/member'
 
 const router = useRouter()
 const formRef = ref(null)
 const submitting = ref(false)
+const fileList = ref([])
 
 const showEducationPicker = ref(false)
 const showIncomePicker = ref(false)
@@ -366,6 +384,29 @@ function onMemberTypeConfirm({ selectedOptions }) {
   showMemberTypePicker.value = false
 }
 
+async function afterReadPhoto(file) {
+  const files = Array.isArray(file) ? file : [file]
+  for (const f of files) {
+    f.status = 'uploading'
+    f.message = '上传中...'
+    try {
+      const formData = new FormData()
+      formData.append('photo', f.file)
+      const res = await memberApi.uploadPhoto(formData)
+      f.status = 'done'
+      f.message = ''
+      f.url = res.data?.url || res.url
+    } catch {
+      f.status = 'failed'
+      f.message = '上传失败'
+    }
+  }
+}
+
+function onOversize() {
+  showToast('图片大小不能超过 5MB')
+}
+
 async function handleSubmit() {
   submitting.value = true
   try {
@@ -388,7 +429,10 @@ async function handleSubmit() {
       selfIntro: form.selfIntro || undefined,
       partnerRequirement: form.partnerRequirement || undefined,
       memberType: form.memberType,
-      remark: form.remark || undefined
+      remark: form.remark || undefined,
+      photos: fileList.value
+        .filter(f => f.status === 'done' && f.url)
+        .map(f => f.url)
     }
     await memberApi.addManual(payload)
     showSuccessToast('会员录入成功')

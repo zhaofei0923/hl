@@ -50,7 +50,7 @@ const memberController = {
         attributes: ['id', 'phone', 'nickname', 'avatarUrl', 'gender'],
         include: [{
           association: 'profile',
-          attributes: ['realName', 'age', 'height', 'education', 'occupation', 'province', 'city', 'maritalStatus', 'photos']
+          attributes: ['realName', 'age', 'height', 'education', 'occupation', 'incomeRange', 'province', 'city', 'nativePlace', 'maritalStatus', 'photos']
         }]
       };
 
@@ -79,8 +79,36 @@ const memberController = {
         distinct: true
       });
 
+      // Flatten nested user/profile data for frontend consumption
+      const flatList = rows.map(row => {
+        const m = row.toJSON();
+        const user = m.user || {};
+        const profile = user.profile || {};
+        return {
+          ...m,
+          // User fields
+          nickname: user.nickname,
+          phone: user.phone,
+          avatarUrl: user.avatarUrl,
+          gender: user.gender,
+          isVerified: user.isVerified,
+          // Profile fields
+          realName: profile.realName,
+          age: profile.age,
+          height: profile.height,
+          education: profile.education,
+          occupation: profile.occupation,
+          incomeRange: profile.incomeRange,
+          city: profile.city,
+          province: profile.province,
+          nativePlace: profile.nativePlace,
+          maritalStatus: profile.maritalStatus,
+          photos: profile.photos,
+        };
+      });
+
       return paginate(res, {
-        list: rows,
+        list: flatList,
         total: count,
         page: Number(page),
         pageSize: Number(pageSize)
@@ -363,7 +391,7 @@ const memberController = {
         return error(res, '红娘信息不存在', 40400, 404);
       }
 
-      const member = await Member.findOne({
+      const memberRow = await Member.findOne({
         where: { id, matchmakerId: matchmaker.id },
         include: [{
           association: 'user',
@@ -372,11 +400,45 @@ const memberController = {
         }]
       });
 
-      if (!member) {
+      if (!memberRow) {
         return error(res, '会员不存在', 40400, 404);
       }
 
-      return success(res, member);
+      // Flatten nested user/profile data
+      const m = memberRow.toJSON();
+      const user = m.user || {};
+      const profile = user.profile || {};
+      const flatMember = {
+        ...m,
+        nickname: user.nickname,
+        realName: profile.realName,
+        name: profile.realName || user.nickname,
+        phone: user.phone,
+        avatarUrl: user.avatarUrl,
+        gender: user.gender,
+        isVerified: user.isVerified,
+        birthDate: profile.birthDate,
+        age: profile.age,
+        height: profile.height,
+        weight: profile.weight,
+        education: profile.education,
+        occupation: profile.occupation,
+        income: profile.incomeRange,
+        incomeRange: profile.incomeRange,
+        city: profile.city,
+        province: profile.province,
+        nativePlace: profile.nativePlace,
+        hometown: profile.nativePlace,
+        maritalStatus: profile.maritalStatus,
+        houseStatus: profile.houseStatus,
+        carStatus: profile.carStatus,
+        selfIntro: profile.selfIntro,
+        partnerRequirement: profile.partnerRequirement,
+        photos: profile.photos,
+        tags: profile.tags,
+      };
+
+      return success(res, flatMember);
     } catch (err) {
       next(err);
     }

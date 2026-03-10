@@ -23,7 +23,7 @@
           />
         </div>
         <div class="member-header__name-row">
-          <span class="member-header__name">{{ member.name || '未填写' }}</span>
+          <span class="member-header__name">{{ member.name || member.realName || member.nickname || '未填写' }}</span>
           <van-icon
             v-if="member.gender"
             :name="member.gender === 1 ? 'friends-o' : 'friends-o'"
@@ -33,8 +33,8 @@
         </div>
         <div class="member-header__phone">{{ maskPhone(member.phone) }}</div>
         <div class="member-header__tags">
-          <van-tag v-if="member.birthDate" round type="primary" plain>
-            {{ calcAge(member.birthDate) }}岁
+          <van-tag v-if="member.age || member.birthDate" round type="primary" plain>
+            {{ member.age || calcAge(member.birthDate) }}岁
           </van-tag>
           <van-tag v-if="member.city" round color="#f0f0f0" text-color="#666">
             {{ member.city }}

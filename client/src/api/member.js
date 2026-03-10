@@ -16,9 +16,14 @@ export const memberApi = {
     return request.get(`/member/${id}`)
   },
 
-  // 添加会员
+  // 添加会员（邀请链接方式）
   add(data) {
     return request.post('/member/add', data)
+  },
+
+  // 手动录入会员（完整信息）
+  addManual(data) {
+    return request.post('/member/add-manual', data)
   },
 
   // 编辑会员资料

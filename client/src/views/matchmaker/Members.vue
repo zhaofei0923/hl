@@ -61,12 +61,12 @@
       发展会员
     </van-button>
 
-    <!-- 邀请会员弹窗 -->
+    <!-- 发展会员弹窗 -->
     <van-popup
       v-model:show="showAddMember"
       position="bottom"
       round
-      :style="{ maxHeight: '60vh' }"
+      :style="{ maxHeight: '70vh' }"
     >
       <div class="popup-form">
         <div class="popup-form__header">
@@ -74,7 +74,35 @@
           <van-icon name="cross" size="18" @click="showAddMember = false" />
         </div>
 
-        <div class="invite-link-card">
+        <!-- 方式选项 -->
+        <div class="add-options">
+          <!-- 手动录入 -->
+          <div class="add-option-card" @click="handleManualAdd">
+            <div class="add-option-card__icon">
+              <van-icon name="edit" size="28" color="var(--hl-primary-color)" />
+            </div>
+            <div class="add-option-card__content">
+              <div class="add-option-card__title">手动录入</div>
+              <div class="add-option-card__desc">填写会员详细资料，适合线下获客</div>
+            </div>
+            <van-icon name="arrow" color="#ccc" />
+          </div>
+
+          <!-- 邀请链接 -->
+          <div class="add-option-card" @click="handleShowInviteLink">
+            <div class="add-option-card__icon">
+              <van-icon name="share-o" size="28" color="var(--hl-primary-color)" />
+            </div>
+            <div class="add-option-card__content">
+              <div class="add-option-card__title">邀请链接</div>
+              <div class="add-option-card__desc">分享链接，用户注册后自动绑定</div>
+            </div>
+            <van-icon name="arrow" color="#ccc" />
+          </div>
+        </div>
+
+        <!-- 邀请链接区域（展开时显示） -->
+        <div v-if="showInviteLink" class="invite-link-card">
           <div class="invite-link-card__desc">
             将以下链接分享给用户，用户在微信中打开并注册后，将自动成为您名下的会员
           </div>
@@ -126,6 +154,7 @@ const page = ref(1)
 const memberList = ref([])
 
 const showAddMember = ref(false)
+const showInviteLink = ref(false)
 const inviteUrl = ref('')
 
 const stats = reactive({
@@ -242,8 +271,21 @@ function handleCall(member) {
   }
 }
 
+function handleManualAdd() {
+  showAddMember.value = false
+  router.push('/matchmaker/member/add')
+}
+
+function handleShowInviteLink() {
+  showInviteLink.value = true
+}
+
 watch(showAddMember, async (val) => {
-  if (val && !inviteUrl.value) {
+  if (!val) {
+    showInviteLink.value = false
+    return
+  }
+  if (!inviteUrl.value) {
     try {
       const res = await memberApi.getInviteCode()
       const code = res.data?.code
@@ -345,8 +387,57 @@ onMounted(() => {
   padding: 20px 16px 0;
 }
 
+.add-options {
+  padding: 8px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-option-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  background: var(--hl-bg-color);
+  border-radius: var(--hl-radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.add-option-card:active {
+  background: #f0ece8;
+}
+
+.add-option-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(var(--hl-primary-rgb, 180, 120, 60), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.add-option-card__content {
+  flex: 1;
+}
+
+.add-option-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hl-text-primary);
+  margin-bottom: 2px;
+}
+
+.add-option-card__desc {
+  font-size: 12px;
+  color: var(--hl-text-secondary);
+}
+
 .invite-link-card {
-  padding: 20px 16px;
+  padding: 0 16px 20px;
 }
 
 .invite-link-card__desc {

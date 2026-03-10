@@ -34,6 +34,12 @@ const routes = [
         meta: { requiresAuth: true, role: 'matchmaker', title: '我的会员' }
       },
       {
+        path: 'member/add',
+        name: 'MemberAdd',
+        component: () => import('@/views/matchmaker/MemberAdd.vue'),
+        meta: { requiresAuth: true, role: 'matchmaker', title: '手动录入会员' }
+      },
+      {
         path: 'member/:id',
         name: 'MemberDetail',
         component: () => import('@/views/matchmaker/MemberDetail.vue'),

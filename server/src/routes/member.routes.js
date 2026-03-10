@@ -17,6 +17,9 @@ router.get('/list', memberController.list);
 // Add a new member
 router.post('/add', memberController.add);
 
+// Manually add a member with full profile info
+router.post('/add-manual', memberController.addManual);
+
 // Search members
 router.get('/search', memberController.search);
 

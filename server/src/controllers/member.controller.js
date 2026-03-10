@@ -179,6 +179,124 @@ const memberController = {
   },
 
   /**
+   * Manually add a member with full profile information
+   * POST /api/member/add-manual
+   */
+  async addManual(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const {
+        phone, realName, gender, age, constellation,
+        height, education, city, nativePlace, occupation,
+        incomeRange, maritalStatus, houseStatus, carStatus,
+        familySituation, selfIntro, partnerRequirement,
+        memberType = 'no_consumption', serviceLevel = 1, remark
+      } = req.body;
+
+      if (!phone) {
+        return error(res, '手机号不能为空', 40001);
+      }
+      if (!realName) {
+        return error(res, '姓名不能为空', 40001);
+      }
+      if (!gender) {
+        return error(res, '请选择性别', 40001);
+      }
+
+      const matchmaker = await Matchmaker.findOne({ where: { userId } });
+      if (!matchmaker) {
+        return error(res, '红娘信息不存在', 40400, 404);
+      }
+
+      const [user, isNewUser] = await User.findOrCreate({
+        where: { phone },
+        defaults: {
+          phone,
+          nickname: realName,
+          gender: Number(gender),
+          currentRole: 'user',
+          status: 1
+        }
+      });
+
+      if (!isNewUser) {
+        // Update nickname and gender for existing user if missing
+        const updates = {};
+        if (!user.nickname || user.nickname === user.phone) updates.nickname = realName;
+        if (!user.gender) updates.gender = Number(gender);
+        if (Object.keys(updates).length) await user.update(updates);
+      }
+
+      const existingMember = await Member.findOne({
+        where: { matchmakerId: matchmaker.id, userId: user.id }
+      });
+      if (existingMember) {
+        return error(res, '该用户已是您的会员', 40001);
+      }
+
+      // Build self intro combining family situation
+      const fullSelfIntro = [
+        familySituation ? `《家庭情况》${familySituation}` : null,
+        selfIntro ? `《自我介绝》${selfIntro}` : null
+      ].filter(Boolean).join('\n\n') || selfIntro || null;
+
+      // Upsert profile
+      const profileData = {
+        realName: realName || null,
+        age: age ? Number(age) : null,
+        height: height ? Number(height) : null,
+        education: education || null,
+        city: city || null,
+        nativePlace: nativePlace || null,
+        occupation: occupation || null,
+        incomeRange: incomeRange || null,
+        maritalStatus: maritalStatus || null,
+        houseStatus: houseStatus || null,
+        carStatus: carStatus || null,
+        selfIntro: fullSelfIntro,
+        partnerRequirement: partnerRequirement || null
+      };
+
+      const [profile, profileCreated] = await UserProfile.findOrCreate({
+        where: { userId: user.id },
+        defaults: { userId: user.id, ...profileData }
+      });
+
+      if (!profileCreated) {
+        await profile.update(profileData);
+      }
+
+      if (isNewUser) {
+        await Wallet.findOrCreate({
+          where: { userId: user.id },
+          defaults: { userId: user.id, availableAmount: 0, frozenAmount: 0, totalEarned: 0, totalWithdrawn: 0, xiCoins: 0 }
+        });
+      }
+
+      const member = await Member.create({
+        matchmakerId: matchmaker.id,
+        userId: user.id,
+        memberType,
+        serviceLevel,
+        remark: [
+          constellation ? `星座：${constellation}` : null,
+          remark || null
+        ].filter(Boolean).join(' | ') || null
+      });
+
+      logger.info(`Matchmaker ${matchmaker.id} manually added member userId=${user.id} (new=${isNewUser})`);
+
+      return success(res, {
+        member,
+        user: { id: user.id, nickname: user.nickname, phone: user.phone, gender: user.gender },
+        isNewUser
+      }, '会员录入成功');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
    * Search members by keyword and filters
    * GET /api/member/search
    */

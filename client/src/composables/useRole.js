@@ -19,7 +19,7 @@ export function useRole() {
         { icon: 'gold-coin-o', text: '我的钱包', path: '/matchmaker/wallet' },
         { icon: 'chart-trending-o', text: '业绩订单', path: '/matchmaker/orders' },
         { icon: 'manager-o', text: '婚介团', path: '/matchmaker/team' },
-        { icon: 'apps-o', text: '全部资源', path: '/matchmaker/resources' },
+        { icon: 'apps-o', text: '会员展示', path: '/matchmaker/resources' },
         { icon: 'shop-o', text: '门店信息', path: '/matchmaker/store' },
         { icon: 'share-o', text: '邀请好友', path: '/matchmaker/invite' },
         { icon: 'qr', text: '收款码', path: '/matchmaker/qrcode' },

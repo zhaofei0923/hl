@@ -73,7 +73,7 @@ const routes = [
         path: 'resources',
         name: 'MatchmakerResources',
         component: () => import('@/views/matchmaker/Resources.vue'),
-        meta: { requiresAuth: true, role: 'matchmaker', title: '全部资源' }
+        meta: { requiresAuth: true, role: 'matchmaker', title: '会员展示' }
       },
       {
         path: 'orders',

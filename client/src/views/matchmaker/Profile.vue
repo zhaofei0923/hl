@@ -115,7 +115,7 @@ const statsItems = computed(() => [
 const quickActions = [
   { icon: 'balance-o', label: '我的钱包', color: '#E84D5F', route: '/matchmaker/wallet' },
   { icon: 'friends-o', label: '我的会员', color: '#FF7D41', route: '/matchmaker/members' },
-  { icon: 'apps-o', label: '全部资源', color: '#1989fa', route: '/matchmaker/resources' },
+  { icon: 'apps-o', label: '会员展示', color: '#1989fa', route: '/matchmaker/resources' },
   { icon: 'cluster-o', label: '婚介团', color: '#07c160', route: '/matchmaker/team' }
 ]
 

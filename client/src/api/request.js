@@ -5,10 +5,7 @@ import router from '@/router'
 
 const request = axios.create({
   baseURL: '/api',
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  timeout: 15000
 })
 
 // 请求拦截器
@@ -17,10 +14,6 @@ request.interceptors.request.use(
     const userStore = useUserStore()
     if (userStore.token) {
       config.headers.Authorization = `Bearer ${userStore.token}`
-    }
-    // FormData 上传时让浏览器自动设置 Content-Type（含 boundary）
-    if (config.data instanceof FormData) {
-      delete config.headers['Content-Type']
     }
     return config
   },

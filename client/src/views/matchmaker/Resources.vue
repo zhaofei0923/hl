@@ -198,7 +198,7 @@ async function fetchResources(isRefresh = false) {
     const res = await memberApi.search(params)
     const list = res.data?.list || []
     if (isRefresh || page.value === 1) {
-      totalCount.value = res.data?.total || 0
+      totalCount.value = res.data?.pagination?.total || 0
     }
 
     if (isRefresh) {

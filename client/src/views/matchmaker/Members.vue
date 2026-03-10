@@ -3,7 +3,12 @@
     <!-- 导航栏 -->
     <van-nav-bar :title="`我的会员 (${stats.total})`" left-arrow @click-left="$router.back()">
       <template #right>
-        <van-icon name="search" size="20" @click="showSearch = true" />
+        <div style="display:flex;align-items:center;gap:14px;">
+          <van-badge :content="activeFilterCount || ''" color="var(--hl-primary-color)">
+            <van-icon name="filter-o" size="20" @click="showFilter = true" />
+          </van-badge>
+          <van-icon name="search" size="20" @click="showSearch = true" />
+        </div>
       </template>
     </van-nav-bar>
 
@@ -122,11 +127,84 @@
         />
       </div>
     </van-popup>
+
+    <!-- 筛选面板 -->
+    <van-popup v-model:show="showFilter" position="bottom" round :style="{ maxHeight: '80vh' }">
+      <div class="popup-form">
+        <div class="popup-form__header">
+          <span class="popup-form__title">筛选条件</span>
+          <van-icon name="cross" size="18" @click="showFilter = false" />
+        </div>
+        <div class="filter-section">
+          <div class="filter-section__label">性别</div>
+          <van-radio-group v-model="filterForm.gender" direction="horizontal">
+            <van-radio name="">不限</van-radio>
+            <van-radio name="1">男</van-radio>
+            <van-radio name="2">女</van-radio>
+          </van-radio-group>
+        </div>
+        <div class="filter-section">
+          <div class="filter-section__label">年龄段</div>
+          <van-radio-group v-model="filterForm.ageRange" direction="horizontal" style="flex-wrap:wrap;gap:8px;">
+            <van-radio name="">不限</van-radio>
+            <van-radio name="20-25">20-25岁</van-radio>
+            <van-radio name="26-30">26-30岁</van-radio>
+            <van-radio name="31-35">31-35岁</van-radio>
+            <van-radio name="36-40">36-40岁</van-radio>
+            <van-radio name="41-99">40岁以上</van-radio>
+          </van-radio-group>
+        </div>
+        <div class="filter-section">
+          <div class="filter-section__label">学历</div>
+          <van-radio-group v-model="filterForm.education" direction="horizontal" style="flex-wrap:wrap;gap:8px;">
+            <van-radio name="">不限</van-radio>
+            <van-radio name="高中及以下">高中及以下</van-radio>
+            <van-radio name="专科">专科</van-radio>
+            <van-radio name="本科">本科</van-radio>
+            <van-radio name="硕士">硕士</van-radio>
+            <van-radio name="博士">博士</van-radio>
+          </van-radio-group>
+        </div>
+        <div class="filter-section">
+          <div class="filter-section__label">婚姻状况</div>
+          <van-radio-group v-model="filterForm.maritalStatus" direction="horizontal" style="flex-wrap:wrap;gap:8px;">
+            <van-radio name="">不限</van-radio>
+            <van-radio name="未婚">未婚</van-radio>
+            <van-radio name="离异">离异</van-radio>
+            <van-radio name="丧偶">丧偶</van-radio>
+          </van-radio-group>
+        </div>
+        <div class="filter-section">
+          <div class="filter-section__label">收入范围</div>
+          <van-radio-group v-model="filterForm.incomeRange" direction="horizontal" style="flex-wrap:wrap;gap:8px;">
+            <van-radio name="">不限</van-radio>
+            <van-radio name="5万以下">5万以下</van-radio>
+            <van-radio name="5-10万">5-10万</van-radio>
+            <van-radio name="10-20万">10-20万</van-radio>
+            <van-radio name="20-50万">20-50万</van-radio>
+            <van-radio name="50-100万">50-100万</van-radio>
+          </van-radio-group>
+        </div>
+        <div class="filter-section">
+          <div class="filter-section__label">城市</div>
+          <van-field
+            v-model="filterForm.city"
+            placeholder="输入城市名称"
+            clearable
+            style="background:var(--hl-bg-color);border-radius:8px;"
+          />
+        </div>
+        <div class="filter-footer">
+          <van-button block plain round @click="resetFilter">重置</van-button>
+          <van-button block type="primary" round @click="applyFilter">确认筛选</van-button>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { memberApi } from '@/api/member'
@@ -137,12 +215,37 @@ const router = useRouter()
 
 const memberType = ref('all')
 const showSearch = ref(false)
+const showFilter = ref(false)
 const searchKeyword = ref('')
 const refreshing = ref(false)
 const listLoading = ref(false)
 const finished = ref(false)
 const page = ref(1)
 const memberList = ref([])
+
+// 筛选表单状态
+const filterForm = reactive({
+  gender: '',
+  ageRange: '',
+  education: '',
+  maritalStatus: '',
+  incomeRange: '',
+  city: ''
+})
+
+// 当前生效的筛选条件
+const activeFilters = reactive({
+  gender: '',
+  ageRange: '',
+  education: '',
+  maritalStatus: '',
+  incomeRange: '',
+  city: ''
+})
+
+const activeFilterCount = computed(() =>
+  Object.values(activeFilters).filter(v => v !== '').length
+)
 
 const showAddMember = ref(false)
 const showInviteLink = ref(false)
@@ -177,11 +280,26 @@ async function loadMembers(isRefresh = false) {
   }
 
   try {
+    // 解析年龄段
+    let ageMin, ageMax
+    if (activeFilters.ageRange) {
+      const [min, max] = activeFilters.ageRange.split('-')
+      ageMin = min
+      ageMax = max
+    }
+
     const params = {
       page: page.value,
       pageSize: 10,
       type: memberType.value === 'all' ? undefined : memberType.value,
-      keyword: searchKeyword.value || undefined
+      keyword: searchKeyword.value || undefined,
+      gender: activeFilters.gender || undefined,
+      ageMin: ageMin || undefined,
+      ageMax: ageMax || undefined,
+      education: activeFilters.education || undefined,
+      maritalStatus: activeFilters.maritalStatus || undefined,
+      incomeRange: activeFilters.incomeRange || undefined,
+      city: activeFilters.city || undefined
     }
     const res = await memberApi.getList(params)
     const list = res.data?.list || []
@@ -220,6 +338,21 @@ watch(memberType, () => {
 
 function handleSearch() {
   showSearch.value = false
+  memberList.value = []
+  loadMembers(true)
+}
+
+function applyFilter() {
+  Object.assign(activeFilters, { ...filterForm })
+  showFilter.value = false
+  memberList.value = []
+  loadMembers(true)
+}
+
+function resetFilter() {
+  Object.assign(filterForm, { gender: '', ageRange: '', education: '', maritalStatus: '', incomeRange: '', city: '' })
+  Object.assign(activeFilters, { gender: '', ageRange: '', education: '', maritalStatus: '', incomeRange: '', city: '' })
+  showFilter.value = false
   memberList.value = []
   loadMembers(true)
 }
@@ -330,6 +463,24 @@ onMounted(() => {
 
 .search-popup {
   padding-bottom: 8px;
+}
+
+.filter-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--hl-border-color);
+}
+
+.filter-section__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hl-text-secondary);
+  margin-bottom: 10px;
+}
+
+.filter-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 16px 24px;
 }
 
 .fab-add {

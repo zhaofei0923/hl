@@ -31,7 +31,8 @@ const memberController = {
   async list(req, res, next) {
     try {
       const { userId } = req.user;
-      const { page = 1, pageSize = 20, keyword, gender, memberType, status } = req.query;
+      const { page = 1, pageSize = 20, keyword, gender, memberType, status,
+              ageMin, ageMax, education, maritalStatus, incomeRange, city } = req.query;
 
       // Get matchmaker record
       const matchmaker = await Matchmaker.findOne({ where: { userId } });
@@ -44,14 +45,29 @@ const memberController = {
       if (memberType) memberWhere.memberType = memberType;
       if (status !== undefined) memberWhere.status = Number(status);
 
+      // Build profile include with optional filters
+      const profileWhere = {};
+      if (ageMin || ageMax) {
+        profileWhere.age = {};
+        if (ageMin) profileWhere.age[Op.gte] = Number(ageMin);
+        if (ageMax) profileWhere.age[Op.lte] = Number(ageMax);
+      }
+      if (education) profileWhere.education = education;
+      if (maritalStatus) profileWhere.maritalStatus = maritalStatus;
+      if (incomeRange) profileWhere.incomeRange = incomeRange;
+      if (city) profileWhere.city = { [Op.like]: `%${city}%` };
+
+      const profileInclude = {
+        association: 'profile',
+        attributes: ['realName', 'age', 'height', 'education', 'occupation', 'incomeRange', 'province', 'city', 'nativePlace', 'maritalStatus', 'photos'],
+        ...(Object.keys(profileWhere).length > 0 ? { where: profileWhere } : {})
+      };
+
       // Build user include with optional filters
       const userInclude = {
         association: 'user',
         attributes: ['id', 'phone', 'nickname', 'avatarUrl', 'gender'],
-        include: [{
-          association: 'profile',
-          attributes: ['realName', 'age', 'height', 'education', 'occupation', 'incomeRange', 'province', 'city', 'nativePlace', 'maritalStatus', 'photos']
-        }]
+        include: [profileInclude]
       };
 
       // Gender filter on user

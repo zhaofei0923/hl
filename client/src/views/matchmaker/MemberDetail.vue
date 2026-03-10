@@ -147,39 +147,7 @@
     <EmptyState v-if="!loading && !member" text="会员不存在" />
 
     <!-- 底部操作栏 -->
-    <div v-if="member" class="action-bar">
-      <van-button
-        class="action-bar__btn"
-        icon="chat-o"
-        type="primary"
-        plain
-        round
-        size="small"
-        @click="handleGreet"
-      >
-        打招呼
-      </van-button>
-      <van-button
-        class="action-bar__btn"
-        icon="fire-o"
-        color="var(--hl-accent-color)"
-        round
-        size="small"
-        @click="handleSpeedMatch"
-      >
-        速配
-      </van-button>
-      <van-button
-        class="action-bar__btn"
-        icon="phone-o"
-        color="var(--hl-primary-color)"
-        round
-        size="small"
-        @click="handleCall"
-      >
-        拨打电话
-      </van-button>
-    </div>
+
 
     <!-- 图片预览 -->
     <van-image-preview

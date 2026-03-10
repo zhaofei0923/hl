@@ -25,10 +25,8 @@
       </div>
     </div>
     <div class="member-card__actions">
-      <van-button size="small" round type="danger" plain @click.stop="$emit('speedMatch', member)">速配</van-button>
       <van-button size="small" round plain @click.stop="$emit('editProfile', member)">编辑资料</van-button>
-      <van-button size="small" round plain @click.stop="$emit('editRights', member)">编辑权益</van-button>
-      <van-button size="small" round type="danger" plain hairline @click.stop="$emit('greet', member)">打招呼</van-button>
+      <van-button size="small" round type="danger" plain @click.stop="$emit('delete', member)">删除</van-button>
     </div>
   </div>
 </template>
@@ -45,7 +43,7 @@ defineProps({
   }
 })
 
-defineEmits(['click', 'call', 'speedMatch', 'editProfile', 'editRights', 'greet'])
+defineEmits(['click', 'call', 'editProfile', 'delete'])
 </script>
 
 <style scoped>

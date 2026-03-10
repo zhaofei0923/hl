@@ -59,4 +59,7 @@ router.post('/:id/speed-match', memberController.speedMatch);
 // Send greeting message to member
 router.post('/:id/greet', memberController.greet);
 
+// Delete member
+router.delete('/:id', memberController.deleteMember);
+
 module.exports = router;

@@ -64,5 +64,10 @@ export const memberApi = {
   // 推荐自己的会员给资源方（资源互推）
   recommend(data) {
     return request.post('/member/recommend', data)
+  },
+
+  // 删除会员
+  deleteMember(id) {
+    return request.delete(`/member/${id}`)
   }
 }

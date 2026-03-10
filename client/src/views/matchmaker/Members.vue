@@ -39,10 +39,8 @@
           :key="item.id"
           :member="item"
           @click="handleMemberClick"
-          @speed-match="handleSpeedMatch"
           @edit-profile="handleEditProfile"
-          @edit-rights="handleEditRights"
-          @greet="handleGreet"
+          @delete="handleDelete"
           @call="handleCall"
         />
 
@@ -136,7 +134,7 @@
 <script setup>
 import { ref, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import { memberApi } from '@/api/member'
 import MemberCard from '@/components/matchmaker/MemberCard.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -245,23 +243,20 @@ function handleMemberClick(member) {
   router.push(`/matchmaker/member/${member.id}`)
 }
 
-function handleSpeedMatch(member) {
-  memberApi.speedMatch(member.id).then(() => {
-    showToast('已发起速配')
-  }).catch(() => {})
-}
-
 function handleEditProfile(member) {
-  router.push(`/matchmaker/member/${member.id}`)
+  router.push(`/matchmaker/member/${member.id}/edit`)
 }
 
-function handleEditRights(member) {
-  router.push(`/matchmaker/member/${member.id}`)
-}
-
-function handleGreet(member) {
-  memberApi.greet(member.id).then(() => {
-    showToast('打招呼成功')
+function handleDelete(member) {
+  showConfirmDialog({
+    title: '确认删除',
+    message: `确定要删除会员「${member.realName || member.nickname || ''}」吗？此操作不可撤销。`
+  }).then(() => {
+    memberApi.deleteMember(member.id).then(() => {
+      showToast('删除成功')
+      memberList.value = memberList.value.filter(m => m.id !== member.id)
+      fetchStats()
+    }).catch(() => {})
   }).catch(() => {})
 }
 

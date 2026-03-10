@@ -229,12 +229,6 @@ const memberController = {
       if (!phone) {
         return error(res, '手机号不能为空', 40001);
       }
-      if (!realName) {
-        return error(res, '姓名不能为空', 40001);
-      }
-      if (!gender) {
-        return error(res, '请选择性别', 40001);
-      }
 
       const matchmaker = await Matchmaker.findOne({ where: { userId } });
       if (!matchmaker) {
@@ -515,8 +509,26 @@ const memberController = {
         return error(res, '会员不存在', 40400, 404);
       }
 
+      const {
+        realName, gender, constellation, memberType, remark: memberRemark,
+        ...profileData
+      } = req.body;
+
+      // Update user-level fields
+      if (realName !== undefined || gender !== undefined) {
+        const user = await User.findByPk(member.userId);
+        if (user) {
+          const userUpdates = {};
+          if (realName !== undefined) { userUpdates.nickname = realName; }
+          if (gender !== undefined) { userUpdates.gender = Number(gender); }
+          if (Object.keys(userUpdates).length) await user.update(userUpdates);
+        }
+      }
+
+      // Include realName in profile data
+      if (realName !== undefined) profileData.realName = realName;
+
       // Update or create the member's user profile
-      const profileData = req.body;
       const [profile, created] = await UserProfile.findOrCreate({
         where: { userId: member.userId },
         defaults: { userId: member.userId, ...profileData }
@@ -524,6 +536,23 @@ const memberController = {
 
       if (!created) {
         await profile.update(profileData);
+      }
+
+      // Update member-level fields (constellation in remark, memberType)
+      const memberUpdates = {};
+      if (memberType !== undefined) memberUpdates.memberType = memberType;
+      // Build remark with constellation
+      const remarkParts = [];
+      if (constellation) remarkParts.push(`星座：${constellation}`);
+      if (memberRemark) remarkParts.push(memberRemark);
+      if (remarkParts.length) {
+        memberUpdates.remark = remarkParts.join(' | ');
+      } else if (constellation === '' || memberRemark === '') {
+        // Explicitly clearing
+        memberUpdates.remark = remarkParts.join(' | ') || null;
+      }
+      if (Object.keys(memberUpdates).length) {
+        await member.update(memberUpdates);
       }
 
       return success(res, profile, '资料更新成功');
@@ -770,6 +799,37 @@ const memberController = {
       logger.info(`Matchmaker ${matchmaker.id} recommended member ${myMemberId} to user ${resourceUserId}`);
 
       return success(res, { matchRecord, message: msg }, '互推成功，已通知对方');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * Delete a member
+   * DELETE /api/member/:id
+   */
+  async deleteMember(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { userId } = req.user;
+
+      const matchmaker = await Matchmaker.findOne({ where: { userId } });
+      if (!matchmaker) {
+        return error(res, '红娘信息不存在', 40400, 404);
+      }
+
+      const member = await Member.findOne({
+        where: { id, matchmakerId: matchmaker.id }
+      });
+
+      if (!member) {
+        return error(res, '会员不存在', 40400, 404);
+      }
+
+      await member.destroy();
+      logger.info(`Matchmaker ${matchmaker.id} deleted member ${id}`);
+
+      return success(res, null, '删除成功');
     } catch (err) {
       next(err);
     }

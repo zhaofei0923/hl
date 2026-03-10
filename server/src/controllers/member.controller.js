@@ -230,7 +230,7 @@ const memberController = {
         incomeRange, maritalStatus, houseStatus, carStatus,
         familySituation, selfIntro, partnerRequirement,
         memberType = 'no_consumption', serviceLevel = 1, remark,
-        photos
+        photos, avatarUrl
       } = req.body;
 
       const matchmaker = await Matchmaker.findOne({ where: { userId } });
@@ -247,6 +247,7 @@ const memberController = {
             phone,
             nickname: realName,
             gender: Number(gender),
+            avatarUrl: avatarUrl || null,
             currentRole: 'user',
             status: 1
           }
@@ -255,6 +256,7 @@ const memberController = {
         user = await User.create({
           nickname: realName || '待补充',
           gender: Number(gender) || 0,
+          avatarUrl: avatarUrl || null,
           currentRole: 'user',
           status: 1
         });
@@ -266,6 +268,7 @@ const memberController = {
         const updates = {};
         if (!user.nickname || user.nickname === user.phone) updates.nickname = realName;
         if (!user.gender) updates.gender = Number(gender);
+        if (avatarUrl) updates.avatarUrl = avatarUrl;
         if (Object.keys(updates).length) await user.update(updates);
       }
 
@@ -487,6 +490,22 @@ const memberController = {
   },
 
   /**
+   * Upload an avatar for a member
+   * POST /api/member/upload-avatar
+   */
+  async uploadAvatar(req, res, next) {
+    try {
+      if (!req.file) {
+        return error(res, '请选择要上传的图片', 40001);
+      }
+      const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+      return success(res, { url: avatarUrl }, '上传成功');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
    * Upload a photo for a member
    * POST /api/member/upload-photo
    */
@@ -525,17 +544,18 @@ const memberController = {
       }
 
       const {
-        realName, gender, constellation, memberType, remark: memberRemark,
+        realName, gender, constellation, memberType, remark: memberRemark, avatarUrl,
         ...profileData
       } = req.body;
 
       // Update user-level fields
-      if (realName !== undefined || gender !== undefined) {
+      if (realName !== undefined || gender !== undefined || avatarUrl !== undefined) {
         const user = await User.findByPk(member.userId);
         if (user) {
           const userUpdates = {};
           if (realName !== undefined) { userUpdates.nickname = realName; }
           if (gender !== undefined) { userUpdates.gender = Number(gender); }
+          if (avatarUrl !== undefined) { userUpdates.avatarUrl = avatarUrl; }
           if (Object.keys(userUpdates).length) await user.update(userUpdates);
         }
       }

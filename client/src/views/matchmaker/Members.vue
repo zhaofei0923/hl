@@ -1,17 +1,11 @@
 <template>
   <div class="page">
     <!-- 导航栏 -->
-    <van-nav-bar title="我的会员" left-arrow @click-left="$router.back()">
+    <van-nav-bar :title="`我的会员 (${stats.total})`" left-arrow @click-left="$router.back()">
       <template #right>
         <van-icon name="search" size="20" @click="showSearch = true" />
       </template>
     </van-nav-bar>
-
-    <!-- 性别筛选 -->
-    <van-tabs v-model:active="genderTab" @change="handleGenderChange">
-      <van-tab :title="`男 (${stats.maleCount})`" name="male" />
-      <van-tab :title="`女 (${stats.femaleCount})`" name="female" />
-    </van-tabs>
 
     <!-- 类型筛选 -->
     <div class="filter-bar">
@@ -141,7 +135,6 @@ import EmptyState from '@/components/common/EmptyState.vue'
 
 const router = useRouter()
 
-const genderTab = ref('male')
 const memberType = ref('all')
 const showSearch = ref(false)
 const searchKeyword = ref('')
@@ -156,8 +149,7 @@ const showInviteLink = ref(false)
 const inviteUrl = ref('')
 
 const stats = reactive({
-  maleCount: 0,
-  femaleCount: 0
+  total: 0
 })
 
 const filterOptions = [
@@ -171,8 +163,7 @@ async function fetchStats() {
   try {
     const res = await memberApi.getStats()
     if (res.data) {
-      stats.maleCount = res.data.maleCount || 0
-      stats.femaleCount = res.data.femaleCount || 0
+      stats.total = res.data.total || 0
     }
   } catch (err) {
     // handled by interceptor
@@ -189,7 +180,6 @@ async function loadMembers(isRefresh = false) {
     const params = {
       page: page.value,
       pageSize: 10,
-      gender: genderTab.value === 'male' ? 1 : 2,
       type: memberType.value === 'all' ? undefined : memberType.value,
       keyword: searchKeyword.value || undefined
     }
@@ -220,11 +210,6 @@ function loadMore() {
 }
 
 function onRefresh() {
-  loadMembers(true)
-}
-
-function handleGenderChange() {
-  memberList.value = []
   loadMembers(true)
 }
 

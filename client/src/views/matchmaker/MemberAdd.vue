@@ -154,7 +154,18 @@
       <!-- 会员照片 -->
       <div class="section-title">会员照片</div>
       <van-cell-group inset>
-        <van-field name="photos" label="上传照片">
+        <van-field name="avatar" label="头像">
+          <template #input>
+            <van-uploader
+              v-model="avatarList"
+              :after-read="afterReadAvatar"
+              :max-count="1"
+              :max-size="5 * 1024 * 1024"
+              @oversize="onAvatarOversize"
+            />
+          </template>
+        </van-field>
+        <van-field name="photos" label="生活照">
           <template #input>
             <van-uploader
               v-model="fileList"
@@ -307,6 +318,7 @@ const router = useRouter()
 const formRef = ref(null)
 const submitting = ref(false)
 const fileList = ref([])
+const avatarList = ref([])
 
 const showAgePicker = ref(false)
 const showConstellationPicker = ref(false)
@@ -462,6 +474,27 @@ function onMemberTypeConfirm({ selectedOptions }) {
   showMemberTypePicker.value = false
 }
 
+async function afterReadAvatar(file) {
+  const f = Array.isArray(file) ? file[0] : file
+  f.status = 'uploading'
+  f.message = '上传中...'
+  try {
+    const formData = new FormData()
+    formData.append('avatar', f.file)
+    const res = await memberApi.uploadAvatar(formData)
+    f.status = 'done'
+    f.message = ''
+    f.url = res.data?.url || res.url
+  } catch {
+    f.status = 'failed'
+    f.message = '上传失败'
+  }
+}
+
+function onAvatarOversize() {
+  showToast('头像大小不能超过 5MB')
+}
+
 async function afterReadPhoto(file) {
   const files = Array.isArray(file) ? file : [file]
   for (const f of files) {
@@ -482,7 +515,7 @@ async function afterReadPhoto(file) {
 }
 
 function onOversize() {
-  showToast('图片大小不能超过 20MB')
+  showToast('生活照大小不能超过 20MB')
 }
 
 async function handleSubmit() {
@@ -508,6 +541,7 @@ async function handleSubmit() {
       partnerRequirement: form.partnerRequirement || undefined,
       memberType: form.memberType,
       remark: form.remark || undefined,
+      avatarUrl: avatarList.value.find(f => f.status === 'done' && f.url)?.url || undefined,
       photos: fileList.value
         .filter(f => f.status === 'done' && f.url)
         .map(f => f.url)

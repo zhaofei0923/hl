@@ -7,12 +7,6 @@
       </template>
     </van-nav-bar>
 
-    <!-- 性别筛选 -->
-    <van-tabs v-model:active="genderTab" @change="handleGenderChange">
-      <van-tab title="男" name="male" />
-      <van-tab title="女" name="female" />
-    </van-tabs>
-
     <!-- 资源列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
@@ -176,7 +170,6 @@ const router = useRouter()
 
 const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIzMiIgZmlsbD0iI0UwRTBFMCIvPjxwYXRoIGQ9Ik0zMiAyMGE4IDggMCAxIDAgMCAxNiA4IDggMCAwIDAgMC0xNnptMCAyMGMtOC44NCAwLTE2IDMuNTgtMTYgOHYyaDMydi0yYzAtNC40Mi03LjE2LTgtMTYtOHoiIGZpbGw9IiNBMEEwQTAiLz48L3N2Zz4='
 
-const genderTab = ref('male')
 const showSearch = ref(false)
 const searchKeyword = ref('')
 const refreshing = ref(false)
@@ -200,7 +193,6 @@ async function fetchResources(isRefresh = false) {
     const params = {
       page: page.value,
       pageSize: 15,
-      gender: genderTab.value === 'male' ? 1 : 2,
       keyword: searchKeyword.value || undefined
     }
     const res = await memberApi.search(params)
@@ -230,11 +222,6 @@ function loadMore() {
 }
 
 function onRefresh() {
-  fetchResources(true)
-}
-
-function handleGenderChange() {
-  resourceList.value = []
   fetchResources(true)
 }
 

@@ -9,7 +9,7 @@ const { requireRole } = require('../middleware/role.middleware');
 // Multer configuration for member photo uploads
 const upload = multer({
   dest: path.join(__dirname, '../../uploads/photos'),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = /jpg|jpeg|png|webp/;
     cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));

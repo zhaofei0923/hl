@@ -159,8 +159,8 @@
             <van-uploader
               v-model="fileList"
               :after-read="afterReadPhoto"
-              :max-count="9"
-              :max-size="5 * 1024 * 1024"
+              :max-count="3"
+              :max-size="20 * 1024 * 1024"
               @oversize="onOversize"
               multiple
             />
@@ -482,7 +482,7 @@ async function afterReadPhoto(file) {
 }
 
 function onOversize() {
-  showToast('图片大小不能超过 5MB')
+  showToast('图片大小不能超过 20MB')
 }
 
 async function handleSubmit() {

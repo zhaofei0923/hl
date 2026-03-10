@@ -133,26 +133,33 @@ const memberController = {
       const { userId } = req.user;
       const { name, phone, gender, age, city, memberType = 'no_consumption', serviceLevel = 1, remark } = req.body;
 
-      if (!phone) {
-        return error(res, '手机号不能为空', 40001);
-      }
-
       const matchmaker = await Matchmaker.findOne({ where: { userId } });
       if (!matchmaker) {
         return error(res, '红娘信息不存在', 40400, 404);
       }
 
-      // Find or create user by phone
-      const [user, isNewUser] = await User.findOrCreate({
-        where: { phone },
-        defaults: {
-          phone,
-          nickname: name || phone,
+      // Find or create user by phone (phone is optional)
+      let user, isNewUser;
+      if (phone) {
+        [user, isNewUser] = await User.findOrCreate({
+          where: { phone },
+          defaults: {
+            phone,
+            nickname: name || phone,
+            gender: gender || 0,
+            currentRole: 'user',
+            status: 1
+          }
+        });
+      } else {
+        user = await User.create({
+          nickname: name || '待补充',
           gender: gender || 0,
           currentRole: 'user',
           status: 1
-        }
-      });
+        });
+        isNewUser = true;
+      }
 
       // Check if already this matchmaker's member
       const existingMember = await Member.findOne({
@@ -226,25 +233,33 @@ const memberController = {
         photos
       } = req.body;
 
-      if (!phone) {
-        return error(res, '手机号不能为空', 40001);
-      }
-
       const matchmaker = await Matchmaker.findOne({ where: { userId } });
       if (!matchmaker) {
         return error(res, '红娘信息不存在', 40400, 404);
       }
 
-      const [user, isNewUser] = await User.findOrCreate({
-        where: { phone },
-        defaults: {
-          phone,
-          nickname: realName,
-          gender: Number(gender),
+      // Find or create user by phone (phone is optional)
+      let user, isNewUser;
+      if (phone) {
+        [user, isNewUser] = await User.findOrCreate({
+          where: { phone },
+          defaults: {
+            phone,
+            nickname: realName,
+            gender: Number(gender),
+            currentRole: 'user',
+            status: 1
+          }
+        });
+      } else {
+        user = await User.create({
+          nickname: realName || '待补充',
+          gender: Number(gender) || 0,
           currentRole: 'user',
           status: 1
-        }
-      });
+        });
+        isNewUser = true;
+      }
 
       if (!isNewUser) {
         // Update nickname and gender for existing user if missing

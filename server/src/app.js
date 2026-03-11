@@ -11,6 +11,9 @@ const logger = require('./utils/logger');
 
 const app = express();
 
+// Trust the first proxy (nginx) - required for express-rate-limit and correct IP logging behind reverse proxy
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }

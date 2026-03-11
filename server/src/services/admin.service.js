@@ -4,7 +4,7 @@
 const { Op, fn, col, literal } = require('sequelize');
 const sequelize = require('../config/database');
 const {
-  User, UserProfile, Matchmaker, MatchmakerStore,
+  User, UserProfile, UserCertification, Matchmaker, MatchmakerStore,
   Wallet, WithdrawRecord, Order, SalonEvent,
   SalonRegistration, MatchRecord, Member, Team,
   EarningRecord
@@ -95,11 +95,12 @@ const adminService = {
 
   // ==================== User Management ====================
 
-  async getUsers({ page = 1, pageSize = 20, keyword, gender, status, role } = {}) {
+  async getUsers({ page = 1, pageSize = 20, keyword, gender, status, role, certificationStatus } = {}) {
     const where = {};
     if (gender !== undefined && gender !== '') where.gender = Number(gender);
     if (status !== undefined && status !== '') where.status = Number(status);
     if (role) where.currentRole = role;
+    if (certificationStatus) where.certificationStatus = certificationStatus;
     if (keyword) {
       where[Op.or] = [
         { nickname: { [Op.like]: `%${keyword}%` } },
@@ -125,7 +126,8 @@ const adminService = {
       attributes: { exclude: ['passwordHash'] },
       include: [
         { association: 'profile' },
-        { association: 'wallet', attributes: ['availableAmount', 'frozenAmount', 'totalEarned', 'xiCoins'] }
+        { association: 'wallet', attributes: ['availableAmount', 'frozenAmount', 'totalEarned', 'xiCoins'] },
+        { association: 'certification' }
       ]
     });
     return user;
@@ -336,6 +338,51 @@ const adminService = {
     await event.update({ status });
     logger.info(`Admin updated salon ${salonId} status to ${status}`);
     return event;
+  },
+
+  // ==================== User Certification Management ====================
+
+  async getCertifications({ status, page = 1, pageSize = 20 } = {}) {
+    const where = {};
+    if (status) where.status = status;
+
+    const { count, rows } = await UserCertification.findAndCountAll({
+      where,
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'nickname', 'phone', 'avatarUrl']
+      }],
+      order: [['submitted_at', 'DESC']],
+      limit: Number(pageSize),
+      offset: (Number(page) - 1) * Number(pageSize),
+      distinct: true
+    });
+
+    return { total: count, list: rows, page: Number(page), pageSize: Number(pageSize) };
+  },
+
+  async reviewCertification(certId, action, rejectReason, reviewerUserId) {
+    const cert = await UserCertification.findByPk(certId);
+    if (!cert) return null;
+
+    const now = new Date();
+    if (action === 'approve') {
+      await cert.update({ status: 'approved', reviewedAt: now, reviewerId: reviewerUserId, rejectReason: null });
+      await User.update(
+        { certificationStatus: 'approved', isVerified: 1 },
+        { where: { id: cert.userId } }
+      );
+    } else {
+      await cert.update({ status: 'rejected', rejectReason, reviewedAt: now, reviewerId: reviewerUserId });
+      await User.update(
+        { certificationStatus: 'rejected' },
+        { where: { id: cert.userId } }
+      );
+    }
+
+    logger.info(`Admin ${reviewerUserId} ${action}d certification ${certId} for user ${cert.userId}`);
+    return cert;
   }
 };
 

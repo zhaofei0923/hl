@@ -1,4 +1,4 @@
-const { User, UserProfile, Matchmaker } = require('../models');
+const { User, UserProfile, Matchmaker, UserCertification } = require('../models');
 const userService = require('../services/user.service');
 const authService = require('../services/auth.service');
 const { success, error } = require('../utils/response');
@@ -212,22 +212,20 @@ const userController = {
     try {
       const { userId } = req.user;
 
-      const user = await User.findByPk(userId, {
-        attributes: ['id', 'certificationStatus']
-      });
-
-      if (!user) {
-        return error(res, '用户不存在', 40400, 404);
+      const cert = await UserCertification.findOne({ where: { userId } });
+      if (!cert) {
+        return success(res, { status: 'uncertified' });
       }
 
-      const profile = await UserProfile.findOne({
-        where: { userId },
-        attributes: ['realName']
-      });
-
+      const statusMap = { pending: 'pending', approved: 'certified', rejected: 'rejected' };
       return success(res, {
-        certificationStatus: user.certificationStatus || 'none',
-        realName: profile ? profile.realName : null
+        status: statusMap[cert.status] || 'uncertified',
+        realName: cert.realName,
+        idCard: cert.idCard,
+        submittedAt: cert.submittedAt,
+        reviewedAt: cert.reviewedAt,
+        rejectReason: cert.rejectReason,
+        certifiedAt: cert.status === 'approved' ? cert.reviewedAt : null
       });
     } catch (err) {
       next(err);
@@ -241,9 +239,9 @@ const userController = {
   async submitCertification(req, res, next) {
     try {
       const { userId } = req.user;
-      const { realName, idCard, idCardFront, idCardBack } = req.body;
+      const { realName, idCard, idFrontPhoto, idBackPhoto } = req.body;
 
-      if (!realName || !idCard || !idCardFront || !idCardBack) {
+      if (!realName || !idCard || !idFrontPhoto || !idBackPhoto) {
         return error(res, '请填写完整的认证信息', 40001);
       }
 
@@ -252,17 +250,27 @@ const userController = {
         return error(res, '用户不存在', 40400, 404);
       }
 
-      // Update or create user profile with realName
-      await userService.upsertProfile(userId, { realName });
+      // Find or create certification record
+      const [cert, created] = await UserCertification.findOrCreate({
+        where: { userId },
+        defaults: { userId, realName, idCard, idFrontPhoto, idBackPhoto, status: 'pending', submittedAt: new Date() }
+      });
 
-      // Set certification status to pending
+      if (!created) {
+        if (cert.status === 'approved') {
+          return error(res, '您已完成实名认证', 40001);
+        }
+        // Re-submission for pending/rejected
+        await cert.update({ realName, idCard, idFrontPhoto, idBackPhoto, status: 'pending', submittedAt: new Date(), rejectReason: null });
+      }
+
+      // Sync profile realName and user certification_status
+      await userService.upsertProfile(userId, { realName });
       await user.update({ certificationStatus: 'pending' });
 
       logger.info(`User ${userId} submitted certification, realName: ${realName}`);
 
-      return success(res, {
-        certificationStatus: 'pending'
-      }, '认证申请已提交');
+      return success(res, { status: 'pending' }, '认证申请已提交');
     } catch (err) {
       next(err);
     }

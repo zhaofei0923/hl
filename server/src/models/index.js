@@ -1,6 +1,7 @@
 const sequelize = require('../config/database');
 const User = require('./User');
 const UserProfile = require('./UserProfile');
+const UserCertification = require('./UserCertification');
 const SmsCode = require('./SmsCode');
 const Matchmaker = require('./Matchmaker');
 const MatchmakerStore = require('./MatchmakerStore');
@@ -23,6 +24,10 @@ const SalonRegistration = require('./SalonRegistration');
 // User <-> UserProfile (one-to-one)
 User.hasOne(UserProfile, { foreignKey: 'userId', as: 'profile' });
 UserProfile.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// User <-> UserCertification (one-to-one)
+User.hasOne(UserCertification, { foreignKey: 'userId', as: 'certification' });
+UserCertification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 // User <-> Matchmaker (one-to-one)
 User.hasOne(Matchmaker, { foreignKey: 'userId', as: 'matchmaker' });
@@ -121,6 +126,7 @@ module.exports = {
   sequelize,
   User,
   UserProfile,
+  UserCertification,
   SmsCode,
   Matchmaker,
   MatchmakerStore,

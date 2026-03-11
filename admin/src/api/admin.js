@@ -34,3 +34,7 @@ export const getSalonDetail = (id) => request.get(`/admin/salons/${id}`)
 export const createSalon = (data) => request.post('/admin/salons', data)
 export const updateSalon = (id, data) => request.put(`/admin/salons/${id}`, data)
 export const updateSalonStatus = (id, status) => request.put(`/admin/salons/${id}/status`, { status })
+
+// User Certifications
+export const getCertifications = (params) => request.get('/admin/certifications', { params })
+export const reviewCertification = (id, action, rejectReason) => request.put(`/admin/certifications/${id}/review`, { action, rejectReason })

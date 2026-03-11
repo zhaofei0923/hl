@@ -38,4 +38,8 @@ router.post('/salons', adminController.createSalon);
 router.put('/salons/:id', adminController.updateSalon);
 router.put('/salons/:id/status', adminController.updateSalonStatus);
 
+// User Certification Management
+router.get('/certifications', adminController.getCertifications);
+router.put('/certifications/:id/review', adminController.reviewCertification);
+
 module.exports = router;

@@ -52,6 +52,11 @@ const User = sequelize.define('User', {
     type: DataTypes.TINYINT,
     defaultValue: 0
   },
+  certificationStatus: {
+    type: DataTypes.ENUM('none', 'pending', 'approved', 'rejected'),
+    defaultValue: 'none',
+    comment: '实名认证状态'
+  },
   profileCompletion: {
     type: DataTypes.TINYINT,
     defaultValue: 0,

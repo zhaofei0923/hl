@@ -28,6 +28,14 @@
             <el-option label="红娘" value="matchmaker" />
           </el-select>
         </el-form-item>
+        <el-form-item label="认证状态">
+          <el-select v-model="filters.certificationStatus" placeholder="全部" clearable>
+            <el-option label="未认证" value="none" />
+            <el-option label="审核中" value="pending" />
+            <el-option label="已认证" value="approved" />
+            <el-option label="已拒绝" value="rejected" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="search">搜索</el-button>
           <el-button icon="RefreshRight" @click="resetFilters">重置</el-button>
@@ -69,6 +77,14 @@
             <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
               {{ row.status === 1 ? '正常' : '禁用' }}
             </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="实名认证" width="100">
+          <template #default="{ row }">
+            <el-tag
+              :type="certTagType(row.certificationStatus)"
+              size="small"
+            >{{ certTagLabel(row.certificationStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="注册时间" width="170">
@@ -136,14 +152,77 @@
           <el-descriptions-item label="喜币">{{ currentUser.wallet.xiCoins }}</el-descriptions-item>
         </el-descriptions>
         <el-empty v-else description="暂无钱包数据" />
+
+        <h4 style="margin: 20px 0 10px;">实名认证</h4>
+        <template v-if="currentUser.certification">
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="真实姓名">{{ currentUser.certification.realName || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="身份证号">{{ currentUser.certification.idCard || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="提交时间">{{ formatDate(currentUser.certification.submittedAt) }}</el-descriptions-item>
+            <el-descriptions-item label="审核状态">
+              <el-tag :type="certTagType(currentUser.certification.status)" size="small">
+                {{ certTagLabel(currentUser.certification.status) }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item v-if="currentUser.certification.rejectReason" label="拒绝原因">
+              <span style="color: #EE0A24;">{{ currentUser.certification.rejectReason }}</span>
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <div v-if="currentUser.certification.idFrontPhoto || currentUser.certification.idBackPhoto" style="margin-top: 12px;">
+            <div style="margin-bottom: 6px; font-size: 13px; color: #666;">证件照片</div>
+            <div style="display: flex; gap: 12px;">
+              <div v-if="currentUser.certification.idFrontPhoto">
+                <div style="font-size: 12px; color: #999; margin-bottom: 4px;">正面（人像面）</div>
+                <el-image
+                  :src="currentUser.certification.idFrontPhoto"
+                  style="width: 140px; height: 90px; border-radius: 4px;"
+                  fit="cover"
+                  :preview-src-list="[currentUser.certification.idFrontPhoto, currentUser.certification.idBackPhoto].filter(Boolean)"
+                />
+              </div>
+              <div v-if="currentUser.certification.idBackPhoto">
+                <div style="font-size: 12px; color: #999; margin-bottom: 4px;">反面（国徽面）</div>
+                <el-image
+                  :src="currentUser.certification.idBackPhoto"
+                  style="width: 140px; height: 90px; border-radius: 4px;"
+                  fit="cover"
+                  :preview-src-list="[currentUser.certification.idFrontPhoto, currentUser.certification.idBackPhoto].filter(Boolean)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div v-if="currentUser.certification.status === 'pending'" style="margin-top: 16px; display: flex; gap: 10px;">
+            <el-button type="success" @click="handleReview('approve')">通过认证</el-button>
+            <el-button type="danger" @click="showRejectDialog = true">拒绝</el-button>
+          </div>
+        </template>
+        <el-empty v-else description="用户暂未提交认证申请" />
       </template>
     </el-drawer>
+
+    <!-- Reject Reason Dialog -->
+    <el-dialog v-model="showRejectDialog" title="填写拒绝原因" width="400px">
+      <el-input
+        v-model="rejectReason"
+        type="textarea"
+        :rows="3"
+        placeholder="请填写拒绝原因，将展示给用户"
+        maxlength="100"
+        show-word-limit
+      />
+      <template #footer>
+        <el-button @click="showRejectDialog = false">取消</el-button>
+        <el-button type="danger" :disabled="!rejectReason.trim()" @click="handleReview('reject')">确认拒绝</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getUsers, getUserDetail, updateUserStatus } from '../api/admin'
+import { getUsers, getUserDetail, updateUserStatus, reviewCertification } from '../api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 
@@ -154,12 +233,15 @@ const page = ref(1)
 const pageSize = ref(20)
 const showDetail = ref(false)
 const currentUser = ref(null)
+const showRejectDialog = ref(false)
+const rejectReason = ref('')
 
 const filters = reactive({
   keyword: '',
   gender: '',
   status: '',
-  role: ''
+  role: '',
+  certificationStatus: ''
 })
 
 const formatDate = (d) => d ? dayjs(d).format('YYYY-MM-DD HH:mm') : '-'
@@ -181,7 +263,7 @@ const search = () => {
 }
 
 const resetFilters = () => {
-  Object.assign(filters, { keyword: '', gender: '', status: '', role: '' })
+  Object.assign(filters, { keyword: '', gender: '', status: '', role: '', certificationStatus: '' })
   search()
 }
 
@@ -197,6 +279,33 @@ const toggleStatus = async (row, status) => {
   await updateUserStatus(row.id, status)
   ElMessage.success(`已${action}`)
   loadData()
+}
+
+const certTagType = (status) => {
+  const map = { none: 'info', pending: 'warning', approved: 'success', rejected: 'danger' }
+  return map[status] || 'info'
+}
+
+const certTagLabel = (status) => {
+  const map = { none: '未认证', pending: '审核中', approved: '已认证', rejected: '已拒绝' }
+  return map[status] || '未认证'
+}
+
+const handleReview = async (action) => {
+  if (action === 'reject' && !rejectReason.value.trim()) return
+  try {
+    const certId = currentUser.value.certification.id
+    await reviewCertification(certId, action, rejectReason.value.trim() || undefined)
+    ElMessage.success(action === 'approve' ? '已通过认证' : '已拒绝认证')
+    showRejectDialog.value = false
+    rejectReason.value = ''
+    // Refresh detail
+    const res = await getUserDetail(currentUser.value.id)
+    currentUser.value = res.data
+    loadData()
+  } catch (err) {
+    // handled by interceptor
+  }
 }
 
 onMounted(() => loadData())

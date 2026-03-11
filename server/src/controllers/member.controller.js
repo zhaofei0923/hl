@@ -375,6 +375,12 @@ const memberController = {
 
       logger.info(`Matchmaker ${matchmaker.id} manually added/updated member userId=${user.id} (new=${isNewUser}, existingMember=${!!existingMember})`);
 
+      // Mark user as certified (matchmaker has verified identity offline, skip review)
+      await User.update(
+        { certificationStatus: 'approved', isVerified: 1 },
+        { where: { id: user.id } }
+      );
+
       return success(res, {
         member,
         user: { id: user.id, nickname: user.nickname, phone: user.phone, gender: user.gender },

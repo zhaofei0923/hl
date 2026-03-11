@@ -179,6 +179,26 @@ const adminController = {
       if (!salon) return error(res, '沙龙不存在', 40400, 404);
       return success(res, salon, '状态更新成功');
     } catch (err) { next(err); }
+  },
+
+  // ==================== User Certification Management ====================
+
+  async getCertifications(req, res, next) {
+    try {
+      const result = await adminService.getCertifications(req.query);
+      return paginate(res, result);
+    } catch (err) { next(err); }
+  },
+
+  async reviewCertification(req, res, next) {
+    try {
+      const { action, rejectReason } = req.body;
+      if (!['approve', 'reject'].includes(action)) return error(res, '操作类型不正确', 40001);
+      if (action === 'reject' && !rejectReason) return error(res, '请填写拒绝原因', 40001);
+      const result = await adminService.reviewCertification(req.params.id, action, rejectReason, req.user.userId);
+      if (!result) return error(res, '认证申请不存在', 40400, 404);
+      return success(res, result, action === 'approve' ? '已通过认证' : '已拒绝认证');
+    } catch (err) { next(err); }
   }
 };
 

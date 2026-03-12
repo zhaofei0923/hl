@@ -308,6 +308,7 @@ onMounted(() => {
   background: transparent;
   color: var(--ifu-text-strong);
   cursor: pointer;
+  text-align: left;
 }
 
 .profile-menu__item:last-child {

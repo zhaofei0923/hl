@@ -1,9 +1,24 @@
 <template>
-  <div class="page">
-    <van-nav-bar title="手动录入会员" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page utility-page--form">
+    <van-nav-bar title="手动录入会员" left-arrow :border="false" @click-left="$router.back()" />
+
+    <section class="card utility-hero" data-testid="matchmaker-member-add-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">ADD MEMBER</span>
+          <h1>把手动录入做成可持续经营的会员建档流程</h1>
+          <p>先补全基础资料，再整理详细介绍和相册，确保后续推荐、互推和跟进时有足够信息支撑。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">新建档案</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">基础资料</span>
+        <span class="brand-chip">详细介绍</span>
+        <span class="brand-chip">相册上传</span>
+      </div>
+    </section>
 
     <van-form ref="formRef" @submit="handleSubmit">
-      <!-- 基础信息 -->
       <div class="section-title">基本信息</div>
       <van-cell-group inset>
         <van-field
@@ -119,7 +134,6 @@
         />
       </van-cell-group>
 
-      <!-- 详细信息 -->
       <div class="section-title">详细介绍</div>
       <van-cell-group inset>
         <van-field

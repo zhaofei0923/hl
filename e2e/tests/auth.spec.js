@@ -14,8 +14,10 @@ test.describe('认证模块', () => {
   test('登录页面正确渲染', async ({ page }) => {
     await page.goto('/login');
 
-    await expect(page.locator('.login-header__title')).toHaveText('婚恋平台');
-    await expect(page.locator('.login-header__subtitle')).toHaveText('遇见对的人，从这里开始');
+    await expect(page.locator('[data-testid="login-brand-panel"]')).toBeVisible();
+    await expect(page.locator('.login-header__title')).toHaveText('IFU');
+    await expect(page.locator('.login-header__subtitle')).toHaveText('严选匹配 / 红娘协作 / 真实认证');
+    await expect(page.locator('[data-testid="login-brand-pill"]')).toHaveCount(3);
 
     const tabs = page.locator('.van-tab');
     await expect(tabs).toHaveCount(3);

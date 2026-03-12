@@ -1,67 +1,69 @@
 <template>
-  <div class="page">
+  <div class="page salon-detail-page">
     <van-nav-bar title="活动详情" left-arrow @click-left="$router.back()" />
 
     <div v-if="event" class="detail-content">
-      <!-- 封面 -->
-      <van-image
-        v-if="event.coverImage"
-        :src="event.coverImage"
-        width="100%"
-        height="200"
-        fit="cover"
-      />
+      <section class="salon-detail-hero card" data-testid="salon-detail-hero">
+        <div class="salon-detail-hero__banner" :style="heroCoverStyle"></div>
+        <div class="salon-detail-hero__body">
+          <div class="salon-detail-hero__header">
+            <div>
+              <span class="brand-label">SALON DETAIL</span>
+              <h1>{{ event.title }}</h1>
+            </div>
+            <span class="salon-detail-hero__badge">{{ statusText(event.status) }}</span>
+          </div>
+          <p class="salon-detail-hero__desc">{{ salonSummary }}</p>
+          <div class="salon-detail-hero__meta">
+            <article>
+              <span>时间</span>
+              <strong>{{ formatDate(event.eventDate, 'YYYY-MM-DD HH:mm') }}</strong>
+            </article>
+            <article>
+              <span>地点</span>
+              <strong>{{ event.location || '待定' }}</strong>
+            </article>
+            <article>
+              <span>报名</span>
+              <strong>{{ event.currentParticipants || 0 }}{{ event.maxParticipants ? `/${event.maxParticipants}` : '' }}</strong>
+            </article>
+          </div>
+        </div>
+      </section>
 
-      <!-- 基本信息 -->
-      <div class="info-card">
-        <div class="info-card__header">
-          <h2 class="info-card__title">{{ event.title }}</h2>
-          <van-tag round size="large" :type="statusType(event.status)">
-            {{ statusText(event.status) }}
-          </van-tag>
+      <section class="salon-detail-section card">
+        <div class="salon-detail-section__title">
+          <van-icon name="notes-o" size="16" />
+          <h3>活动介绍</h3>
         </div>
+        <p class="salon-detail-paragraph">{{ event.description || '这是一个适合轻松交流、降低线下见面压力的活动场景，方便红娘观察互动氛围并给出更自然的后续建议。' }}</p>
+      </section>
 
-        <div class="info-row">
-          <van-icon name="clock-o" size="18" color="var(--hl-primary-color)" />
-          <span>{{ formatDate(event.eventDate, 'YYYY-MM-DD HH:mm') }}</span>
+      <section class="salon-detail-section card" data-testid="salon-detail-flow">
+        <div class="salon-detail-section__title">
+          <van-icon name="todo-list-o" size="16" />
+          <h3>活动流程</h3>
         </div>
-        <div class="info-row">
-          <van-icon name="location-o" size="18" color="var(--hl-primary-color)" />
-          <span>{{ event.location || '待定' }}</span>
-        </div>
-        <div class="info-row">
-          <van-icon name="friends-o" size="18" color="var(--hl-primary-color)" />
-          <span>{{ event.currentParticipants || 0 }}{{ event.maxParticipants ? `/${event.maxParticipants}` : '' }} 人报名</span>
-        </div>
-        <div class="info-row" v-if="event.price > 0">
-          <van-icon name="gold-coin-o" size="18" color="var(--hl-accent-color)" />
-          <span class="price">¥{{ Number(event.price).toFixed(2) }}</span>
-        </div>
-        <div class="info-row" v-else>
-          <van-icon name="gold-coin-o" size="18" color="#67c23a" />
-          <span style="color: #67c23a; font-weight: 600">免费</span>
-        </div>
-        <div class="info-row" v-if="event.organizer">
-          <van-icon name="manager-o" size="18" color="var(--hl-primary-color)" />
-          <span>组织者: {{ event.organizer.nickname }}</span>
-        </div>
-      </div>
+        <article v-for="item in salonFlow" :key="item.time" class="flow-item">
+          <div class="flow-item__time">{{ item.time }}</div>
+          <div>
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.desc }}</p>
+          </div>
+        </article>
+      </section>
 
-      <!-- 描述 -->
-      <div v-if="event.description" class="desc-card">
-        <div class="section-title">活动介绍</div>
-        <div class="desc-text">{{ event.description }}</div>
-      </div>
-
-      <!-- 报名人员 -->
-      <div class="member-card">
-        <div class="section-title">报名人员 ({{ registrations.length }})</div>
+      <section class="salon-detail-section card">
+        <div class="salon-detail-section__title">
+          <van-icon name="friends-o" size="16" />
+          <h3>报名人员 ({{ registrations.length }})</h3>
+        </div>
         <div v-if="registrations.length > 0" class="member-list">
           <div v-for="reg in registrations" :key="reg.id" class="member-item">
             <van-image
               round
-              width="36"
-              height="36"
+              width="40"
+              height="40"
               :src="reg.user?.avatarUrl"
               fit="cover"
             >
@@ -87,10 +89,21 @@
           </div>
         </div>
         <van-empty v-else image="search" description="暂无报名" :image-size="60" />
-      </div>
+      </section>
+
+      <section class="salon-detail-booking card" data-testid="salon-detail-booking">
+        <div>
+          <span class="brand-label">BOOKING</span>
+          <h3>{{ bookingTitle }}</h3>
+          <p>{{ bookingHint }}</p>
+        </div>
+        <div class="salon-detail-booking__tags">
+          <span class="brand-chip">红娘可协助安排</span>
+          <span class="brand-chip brand-chip--active">{{ event.price > 0 ? `¥${Number(event.price).toFixed(2)}` : '免费活动' }}</span>
+        </div>
+      </section>
     </div>
 
-    <!-- 底部按钮 -->
     <div v-if="event && event.status === 'upcoming'" class="bottom-bar">
       <van-button
         v-if="isRegistered"
@@ -137,9 +150,49 @@ const isRegistered = computed(() =>
   registrations.value.some(r => r.userId === userStore.userInfo?.id)
 )
 
-function statusType(s) {
-  return { upcoming: 'primary', ongoing: 'success', ended: 'default', cancelled: 'danger' }[s] || 'default'
-}
+const salonSummary = computed(() => {
+  if (!event.value) return ''
+  const location = event.value.location || '城市会客空间'
+  return `在 ${location} 进行的轻社交活动，适合把线上沟通过渡到更自然的线下认识，降低第一次见面的压力。`
+})
+
+const salonFlow = computed(() => {
+  if (!event.value) return []
+  return [
+    { time: '签到前 20 分钟', title: '入场与分组', desc: '红娘会根据报名资料协助安排更自然的交流座位。' },
+    { time: '活动开始', title: '轻话题破冰', desc: '先从低压力的开放话题开始，避免直接进入强社交状态。' },
+    { time: '自由交流', title: '继续沟通', desc: '保留足够的一对一聊天时间，方便后续判断是否继续了解。' }
+  ]
+})
+
+const bookingTitle = computed(() => {
+  if (!event.value) return ''
+  if (isRegistered.value) return '你已完成报名'
+  return event.value.maxParticipants && event.value.currentParticipants >= event.value.maxParticipants
+    ? '当前名额已满'
+    : '现在适合报名'
+})
+
+const bookingHint = computed(() => {
+  if (!event.value) return ''
+  if (isRegistered.value) return '活动开始前仍可取消报名，建议保留时间并提前和红娘沟通你的参与预期。'
+  if (event.value.maxParticipants && event.value.currentParticipants >= event.value.maxParticipants) {
+    return '名额已满时建议先联系红娘，确认是否有候补席位或更适合的活动。'
+  }
+  return '如果你正处于从线上沟通过渡到线下认识的阶段，这类活动通常比直接单独见面更自然。'
+})
+
+const heroCoverStyle = computed(() => {
+  if (event.value?.coverImage) {
+    return {
+      backgroundImage: `linear-gradient(180deg, rgba(25, 19, 15, 0.12), rgba(25, 19, 15, 0.28)), url(${event.value.coverImage})`
+    }
+  }
+  return {
+    backgroundImage: 'linear-gradient(135deg, #7f6548, #b08b61 68%, #d9bc91)'
+  }
+})
+
 function statusText(s) {
   return { upcoming: '即将开始', ongoing: '进行中', ended: '已结束', cancelled: '已取消' }[s] || s
 }
@@ -192,89 +245,150 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.salon-detail-page {
+  padding-bottom: 96px;
+}
+
 .detail-content {
-  padding-bottom: 80px;
+  padding-bottom: 12px;
 }
 
-.info-card {
-  padding: 16px;
-  background: var(--hl-card-bg);
-  margin: 12px 16px;
-  border-radius: var(--hl-radius-md);
+.salon-detail-hero {
+  overflow: hidden;
+  padding: 0;
 }
 
-.info-card__header {
+.salon-detail-hero__banner {
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+}
+
+.salon-detail-hero__body {
+  padding: 18px;
+}
+
+.salon-detail-hero__header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  gap: 12px;
+  align-items: start;
 }
 
-.info-card__title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--hl-text-primary);
-  flex: 1;
-  margin: 0;
-  line-height: 1.3;
+.salon-detail-hero__header h1 {
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1.18;
 }
 
-.info-row {
-  display: flex;
+.salon-detail-hero__badge {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 0;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.salon-detail-hero__desc,
+.salon-detail-paragraph,
+.flow-item p,
+.salon-detail-booking p {
+  margin-top: 12px;
   font-size: 14px;
-  color: var(--hl-text-primary);
+  line-height: 1.75;
+  color: var(--ifu-text);
 }
 
-.info-row .price {
-  color: var(--hl-accent-color);
-  font-weight: 600;
-  font-size: 16px;
+.salon-detail-hero__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.desc-card {
-  margin: 0 16px 12px;
-  padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+.salon-detail-hero__meta article {
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffaf3, #f8eedf);
 }
 
-.section-title {
+.salon-detail-hero__meta span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 12px;
+}
+
+.salon-detail-hero__meta strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
   font-size: 15px;
-  font-weight: 600;
-  color: var(--hl-text-primary);
-  margin-bottom: 10px;
 }
 
-.desc-text {
-  font-size: 14px;
-  color: var(--hl-text-secondary);
-  line-height: 1.6;
-  white-space: pre-wrap;
+.salon-detail-section {
+  margin-top: 12px;
 }
 
-.member-card {
-  margin: 0 16px 12px;
-  padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+.salon-detail-section__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ifu-gold-700);
+}
+
+.salon-detail-section__title h3,
+.salon-detail-booking h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--ifu-text-strong);
+}
+
+.flow-item {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(233, 221, 204, 0.72);
+}
+
+.flow-item:first-of-type {
+  margin-top: 14px;
+}
+
+.flow-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.flow-item__time {
+  color: var(--ifu-gold-700);
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 15px;
+}
+
+.flow-item strong {
+  display: block;
+  font-size: 16px;
+  color: var(--ifu-text-strong);
 }
 
 .member-list {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-top: 14px;
 }
 
 .member-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 4px;
-  background: var(--hl-bg-color);
-  border-radius: 20px;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  background: linear-gradient(180deg, #fffaf3, #f8eedf);
+  border-radius: 999px;
 }
 
 .member-info {
@@ -285,18 +399,32 @@ onMounted(() => {
 
 .member-name {
   font-size: 13px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
+}
+
+.salon-detail-booking {
+  margin-top: 12px;
+  background: linear-gradient(180deg, #fffaf3, #f7eddc);
+}
+
+.salon-detail-booking__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .bottom-bar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 16px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  background: var(--hl-card-bg);
-  box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.06);
+  left: 12px;
+  right: 12px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  padding: 10px;
+  border-radius: 24px;
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  background: rgba(251, 247, 241, 0.94);
+  box-shadow: var(--ifu-shadow-float);
+  backdrop-filter: blur(18px);
   z-index: 100;
 }
 

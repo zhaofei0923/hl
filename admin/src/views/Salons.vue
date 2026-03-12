@@ -1,12 +1,27 @@
 <template>
-  <div class="page-container">
-    <div class="page-header">
-      <h2>沙龙管理</h2>
-      <el-button type="primary" icon="Plus" @click="showCreate">创建沙龙</el-button>
+  <div class="page-container salons-page" data-testid="admin-salons-shell">
+    <div class="page-header salons-page__header">
+      <div>
+        <span class="brand-label">SALON OPERATIONS</span>
+        <h2>沙龙管理</h2>
+        <p>优先读活动状态、席位和组织者信息，再决定是创建、编辑还是进入详情确认报名情况。</p>
+      </div>
+      <div class="salons-page__summary">
+        <span class="salons-page__pill">线下活动</span>
+        <span class="salons-page__pill salons-page__pill--active">{{ dominantStatusLabel }}</span>
+        <el-button type="primary" icon="Plus" @click="showCreate">创建沙龙</el-button>
+      </div>
     </div>
 
-    <!-- Filter -->
-    <el-card shadow="hover" class="filter-card">
+    <div class="salons-page__stats">
+      <article v-for="item in overviewItems" :key="item.label" class="salons-stat-card">
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+        <small>{{ item.hint }}</small>
+      </article>
+    </div>
+
+    <el-card shadow="hover" class="filter-card salons-toolbar" data-testid="admin-salons-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="状态">
           <el-select v-model="filters.status" placeholder="全部" clearable>
@@ -24,25 +39,24 @@
       </el-form>
     </el-card>
 
-    <!-- Table -->
-    <el-card shadow="hover">
+    <el-card shadow="hover" class="salons-table-card">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="70" />
-        <el-table-column prop="title" label="活动名称" min-width="180" />
-        <el-table-column label="组织者" width="120">
+        <el-table-column prop="title" label="活动名称" min-width="220" />
+        <el-table-column label="组织者" width="140">
           <template #default="{ row }">{{ row.organizer?.nickname || '-' }}</template>
         </el-table-column>
         <el-table-column label="活动时间" width="170">
           <template #default="{ row }">{{ formatDate(row.eventDate) }}</template>
         </el-table-column>
-        <el-table-column prop="location" label="地点" width="150" />
-        <el-table-column label="人数" width="100">
+        <el-table-column prop="location" label="地点" width="160" />
+        <el-table-column label="人数" width="110">
           <template #default="{ row }">{{ row.currentCount || 0 }}/{{ row.maxParticipants || '-' }}</template>
         </el-table-column>
-        <el-table-column label="费用" width="80">
+        <el-table-column label="费用" width="90">
           <template #default="{ row }">{{ row.fee > 0 ? `¥${row.fee}` : '免费' }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="110">
           <template #default="{ row }">
             <el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag>
           </template>
@@ -69,7 +83,6 @@
       </div>
     </el-card>
 
-    <!-- Detail Drawer -->
     <el-drawer v-model="showDrawer" title="沙龙详情" size="600px">
       <template v-if="current">
         <el-descriptions :column="1" border>
@@ -103,7 +116,6 @@
       </template>
     </el-drawer>
 
-    <!-- Create/Edit Dialog -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑沙龙' : '创建沙龙'" width="600px">
       <el-form ref="formRef" :model="salonForm" :rules="rules" label-width="100px">
         <el-form-item label="活动名称" prop="title">
@@ -134,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { getSalons, getSalonDetail, createSalon, updateSalon, updateSalonStatus } from '../api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
@@ -172,6 +184,56 @@ const formatDate = (d) => d ? dayjs(d).format('YYYY-MM-DD HH:mm') : '-'
 const statusText = (s) => ({ draft: '草稿', registering: '报名中', full: '已满员', ongoing: '进行中', ended: '已结束', cancelled: '已取消' }[s] || s)
 const statusType = (s) => ({ draft: 'info', registering: 'primary', full: 'warning', ongoing: 'success', ended: '', cancelled: 'danger' }[s] || 'info')
 
+const seatTotal = computed(() =>
+  list.value.reduce((sum, item) => sum + Number(item.maxParticipants || 0), 0)
+)
+
+const currentParticipantsTotal = computed(() =>
+  list.value.reduce((sum, item) => sum + Number(item.currentCount || 0), 0)
+)
+
+const registeringCount = computed(() =>
+  list.value.filter(item => item.status === 'registering').length
+)
+
+const cancelledCount = computed(() =>
+  list.value.filter(item => item.status === 'cancelled').length
+)
+
+const dominantStatusLabel = computed(() => {
+  if (!list.value.length) return '活动状态待生成'
+  const counter = list.value.reduce((acc, item) => {
+    const key = item.status || 'unknown'
+    acc[key] = (acc[key] || 0) + 1
+    return acc
+  }, {})
+  const dominantKey = Object.entries(counter).sort((a, b) => b[1] - a[1])[0]?.[0]
+  return dominantKey ? `${statusText(dominantKey)}为主` : '活动状态待生成'
+})
+
+const overviewItems = computed(() => [
+  {
+    label: '当前页活动',
+    value: list.value.length,
+    hint: '当前筛选条件下的线下活动数量'
+  },
+  {
+    label: '报名中',
+    value: registeringCount.value,
+    hint: '适合优先观察报名与转化'
+  },
+  {
+    label: '已取消',
+    value: cancelledCount.value,
+    hint: '需要复盘活动组织与用户触达'
+  },
+  {
+    label: '席位占用',
+    value: `${currentParticipantsTotal.value}/${seatTotal.value || 0}`,
+    hint: '快速判断当前活动池的报名热度'
+  }
+])
+
 const loadData = async () => {
   loading.value = true
   try {
@@ -183,7 +245,10 @@ const loadData = async () => {
   }
 }
 
-const search = () => { page.value = 1; loadData() }
+const search = () => {
+  page.value = 1
+  loadData()
+}
 
 const viewDetail = async (row) => {
   const res = await getSalonDetail(row.id)
@@ -239,9 +304,98 @@ onMounted(() => loadData())
 </script>
 
 <style scoped>
+.salons-page__header {
+  align-items: end;
+}
+
+.salons-page__header p {
+  max-width: 620px;
+  margin-top: 10px;
+}
+
+.salons-page__summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.salons-page__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  color: var(--ifu-text);
+  font-size: 12px;
+}
+
+.salons-page__pill--active {
+  background: rgba(200, 169, 119, 0.18);
+  color: var(--ifu-gold-700);
+}
+
+.salons-page__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.salons-stat-card {
+  padding: 18px;
+  border-radius: var(--ifu-radius-md);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 251, 246, 0.92));
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.salons-stat-card span {
+  display: block;
+  font-size: 12px;
+  color: var(--ifu-text-muted);
+}
+
+.salons-stat-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 26px;
+  color: var(--ifu-text-strong);
+}
+
+.salons-stat-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-muted);
+  line-height: 1.5;
+}
+
+.salons-toolbar,
+.salons-table-card {
+  position: relative;
+}
+
+.salons-toolbar::before,
+.salons-table-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 30%);
+}
+
 .pagination-wrap {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+@media (max-width: 1280px) {
+  .salons-page__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

@@ -8,6 +8,18 @@ const routes = [
     meta: { title: '管理员登录' }
   },
   {
+    path: '/preview/console-redesign',
+    name: 'PreviewConsoleRedesign',
+    component: () => import('../views/preview/ConsoleRedesign.vue'),
+    meta: { title: '后台高保真预览' }
+  },
+  {
+    path: '/preview/operations-redesign',
+    name: 'PreviewOperationsRedesign',
+    component: () => import('../views/preview/OperationsRedesign.vue'),
+    meta: { title: '后台运营列表高保真预览' }
+  },
+  {
     path: '/',
     component: () => import('../layout/Layout.vue'),
     redirect: '/dashboard',
@@ -62,7 +74,7 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - IFU` : 'IFU'
   
   const token = localStorage.getItem('admin_token')
-  if (to.path !== '/login' && !token) {
+  if (to.path !== '/login' && !to.path.startsWith('/preview') && !token) {
     next('/login')
   } else if (to.path === '/login' && token) {
     next('/dashboard')

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -7,18 +9,30 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  background: var(--ifu-bg);
 }
 
 body {
-  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC',
-    'Microsoft YaHei', 'Segoe UI', sans-serif;
-  color: var(--hl-text-primary);
-  background-color: var(--hl-bg-color);
-  background-image:
-    radial-gradient(circle at 15% 12%, rgba(201, 164, 106, 0.13), transparent 38%),
-    radial-gradient(circle at 80% 0%, rgba(140, 106, 67, 0.1), transparent 36%);
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: var(--ifu-text-strong);
+  background:
+    radial-gradient(circle at top left, rgba(200, 169, 119, 0.2), transparent 34%),
+    radial-gradient(circle at top right, rgba(166, 124, 82, 0.14), transparent 28%),
+    linear-gradient(180deg, #fffdf9 0%, var(--ifu-bg) 28%, #f9f3ea 100%);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.38), transparent 42%),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.46), transparent 12%);
+  opacity: 0.55;
 }
 
 a {
@@ -31,47 +45,332 @@ img {
   height: auto;
 }
 
-/* 页面容器 */
-.page {
+#app {
   min-height: 100vh;
-  background-color: transparent;
+  background: transparent;
+}
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  background: transparent;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* 有底部 TabBar 的页面 */
 .page--with-tabbar {
-  padding-bottom: calc(50px + env(safe-area-inset-bottom));
+  padding-bottom: calc(74px + env(safe-area-inset-bottom));
 }
 
-/* 卡片样式 */
 .card {
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
-  margin: 12px 16px;
-  padding: 16px;
-  box-shadow: var(--hl-shadow-card);
+  position: relative;
+  margin: 14px 16px;
+  padding: 18px;
+  border-radius: var(--ifu-radius-md);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 251, 246, 0.92));
+  box-shadow: var(--ifu-shadow-soft);
+  backdrop-filter: blur(16px);
 }
 
-/* Vant 主题覆盖 */
-:root:root {
-  --van-primary-color: var(--hl-primary-color);
-  --van-button-primary-background: var(--hl-primary-color);
-  --van-button-primary-border-color: var(--hl-primary-color);
-  --van-tab-active-text-color: var(--hl-primary-color);
-  --van-tabs-bottom-bar-color: var(--hl-primary-color);
-  --van-tabbar-item-active-color: var(--hl-accent-color);
-  --van-text-color: var(--hl-text-primary);
-  --van-text-color-2: var(--hl-text-secondary);
-  --van-background-2: var(--hl-bg-soft);
-  --van-border-color: var(--hl-border-color);
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 32%);
 }
 
-h1, h2, h3 {
-  font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
-  letter-spacing: 0.01em;
-}
-
-/* 安全区域 */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+h1,
+h2,
+h3,
+.serif-heading {
+  font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  letter-spacing: 0.02em;
+}
+
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(226, 205, 169, 0.78);
+  border-radius: var(--ifu-radius-pill);
+  background: rgba(255, 252, 247, 0.82);
+  color: var(--ifu-text);
+  font-size: 12px;
+}
+
+.brand-chip--active {
+  background: linear-gradient(135deg, var(--ifu-gold-100), rgba(200, 169, 119, 0.28));
+  color: var(--ifu-text-strong);
+  border-color: rgba(166, 124, 82, 0.44);
+}
+
+.brand-chip--ghost {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.brand-label {
+  font-size: 11px;
+  color: var(--ifu-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root:root {
+  --van-primary-color: var(--ifu-gold-700);
+  --van-button-primary-background: linear-gradient(135deg, var(--ifu-gold-700), var(--ifu-gold-500));
+  --van-button-primary-border-color: transparent;
+  --van-button-default-height: 44px;
+  --van-button-round-radius: 999px;
+  --van-tab-active-text-color: var(--ifu-text-strong);
+  --van-tabs-bottom-bar-color: var(--ifu-gold-600);
+  --van-tabbar-background: rgba(251, 247, 241, 0.94);
+  --van-tabbar-item-active-color: var(--ifu-gold-700);
+  --van-tabbar-item-text-color: var(--ifu-text-muted);
+  --van-nav-bar-background: transparent;
+  --van-nav-bar-title-text-color: var(--ifu-text-strong);
+  --van-nav-bar-icon-color: var(--ifu-text-strong);
+  --van-text-color: var(--ifu-text-strong);
+  --van-text-color-2: var(--ifu-text);
+  --van-text-color-3: var(--ifu-text-muted);
+  --van-background-2: transparent;
+  --van-border-color: var(--ifu-border);
+  --van-cell-background: rgba(255, 255, 255, 0.78);
+  --van-cell-group-background: transparent;
+  --van-field-input-text-color: var(--ifu-text-strong);
+  --van-tag-primary-background: rgba(200, 169, 119, 0.18);
+}
+
+.van-tabbar {
+  margin: 0 12px 12px;
+  width: auto !important;
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  border-radius: 24px !important;
+  box-shadow: var(--ifu-shadow-float);
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+}
+
+.van-tabbar::after {
+  display: none;
+}
+
+.van-tabbar-item {
+  min-height: 58px;
+}
+
+.van-nav-bar {
+  padding-top: max(env(safe-area-inset-top), 12px);
+}
+
+.van-nav-bar::after {
+  display: none;
+}
+
+.van-nav-bar__content {
+  padding: 0 12px;
+}
+
+.van-button--primary {
+  box-shadow: 0 14px 28px rgba(166, 124, 82, 0.18);
+}
+
+.van-button--default,
+.van-button--plain {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(219, 199, 173, 0.78);
+  color: var(--ifu-text-strong);
+}
+
+.van-popup {
+  background: linear-gradient(180deg, #fffefc, #f8f3ec);
+}
+
+.van-field {
+  border: 1px solid rgba(233, 221, 204, 0.84);
+}
+
+.utility-page {
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+
+.utility-page--form {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+
+.utility-hero {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at right top, rgba(255, 250, 244, 0.2), transparent 28%),
+    linear-gradient(145deg, #7c5e41, #b98e5c 66%, #dfc7a3);
+  color: #fff8ef;
+}
+
+.utility-hero::after {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 36%);
+}
+
+.utility-hero .brand-label {
+  color: rgba(255, 248, 239, 0.74);
+}
+
+.utility-hero h1 {
+  margin-top: 12px;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #fffdf9;
+}
+
+.utility-hero p {
+  margin-top: 12px;
+  color: rgba(255, 248, 239, 0.82);
+  line-height: 1.72;
+}
+
+.utility-hero__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+
+.utility-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.utility-hero__chips .brand-chip--active {
+  background: rgba(255, 248, 239, 0.18);
+  color: #fff8ef;
+  border-color: rgba(255, 248, 239, 0.28);
+}
+
+.utility-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.utility-hero__stat {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 248, 239, 0.12);
+  border: 1px solid rgba(255, 248, 239, 0.14);
+}
+
+.utility-hero__stat span,
+.utility-hero__stat small {
+  display: block;
+  color: rgba(255, 248, 239, 0.72);
+}
+
+.utility-hero__stat strong {
+  display: block;
+  margin: 8px 0 6px;
+  font-size: 22px;
+  color: #fffdf9;
+}
+
+#app .page .section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 16px 10px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ifu-text-strong);
+}
+
+#app .page .section-title__count {
+  color: var(--ifu-text-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+#app .page .van-cell-group--inset,
+#app .page .profile-edit-section__group,
+#app .page .cs-contact-card,
+#app .page .invite-code-card,
+#app .page .rules-card,
+#app .page .stats-row,
+#app .page .qrcode-card,
+#app .page .balance-card,
+#app .page .team-overview,
+#app .page .apply-card,
+#app .page .info-card,
+#app .page .record-item,
+#app .page .record-row,
+#app .page .member-row,
+#app .page .resource-card,
+#app .page .match-card,
+#app .page .product-card,
+#app .page .matchmaker-card {
+  border: 1px solid rgba(233, 221, 204, 0.88);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 251, 246, 0.92));
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+#app .page .form-wrap,
+#app .page .cert-content,
+#app .page .cs-content {
+  padding-top: 8px;
+}
+
+#app .page .wallet-filter,
+#app .page .match-filter,
+#app .page .cs-bottom-bar,
+#app .page .chat-input-bar {
+  border-top: 1px solid rgba(233, 221, 204, 0.76);
+  border-bottom: 1px solid rgba(233, 221, 204, 0.76);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+}
+
+#app .page .submit-wrap,
+#app .page .action-section {
+  padding: 16px;
+}
+
+#app .page .qrcode-card,
+#app .page .apply-card,
+#app .page .balance-card,
+#app .page .invite-banner,
+#app .page .team-overview {
+  border-radius: 28px;
+}
+
+#app .page .invite-banner {
+  margin: 14px 16px;
+  border: 1px solid rgba(233, 221, 204, 0.16);
+  box-shadow: var(--ifu-shadow-card);
+}
+
+#app .page .chat-page {
+  background: transparent;
+}
+
+#app .page .chat-messages {
+  padding-bottom: 20px;
+}
+
+#app .page .chat-bubble__content {
+  border: 1px solid rgba(233, 221, 204, 0.82);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+#app .page .chat-bubble--self .chat-bubble__content {
+  border-color: rgba(166, 124, 82, 0.2);
+  background: linear-gradient(135deg, var(--ifu-gold-700), var(--ifu-gold-500));
 }

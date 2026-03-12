@@ -7,13 +7,73 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/Login.vue'),
-    meta: { requiresAuth: false, title: '登录' }
+    meta: { requiresAuth: false, guestOnly: true, title: '登录' }
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/auth/Register.vue'),
-    meta: { requiresAuth: false, title: '注册' }
+    meta: { requiresAuth: false, guestOnly: true, title: '注册' }
+  },
+  {
+    path: '/preview/audit-home',
+    name: 'PreviewAuditHome',
+    component: () => import('@/views/preview/AuditHome.vue'),
+    meta: { requiresAuth: false, title: '首页审计板' }
+  },
+  {
+    path: '/preview/home-redesign',
+    name: 'PreviewHomeRedesign',
+    component: () => import('@/views/preview/HomeRedesign.vue'),
+    meta: { requiresAuth: false, title: '首页高保真预览' }
+  },
+  {
+    path: '/preview/design-system',
+    name: 'PreviewDesignSystem',
+    component: () => import('@/views/preview/DesignSystem.vue'),
+    meta: { requiresAuth: false, title: '设计系统预览' }
+  },
+  {
+    path: '/preview/messages-redesign',
+    name: 'PreviewMessagesRedesign',
+    component: () => import('@/views/preview/MessagesRedesign.vue'),
+    meta: { requiresAuth: false, title: '消息页高保真预览' }
+  },
+  {
+    path: '/preview/profile-redesign',
+    name: 'PreviewProfileRedesign',
+    component: () => import('@/views/preview/ProfileRedesign.vue'),
+    meta: { requiresAuth: false, title: '个人中心高保真预览' }
+  },
+  {
+    path: '/preview/matchmaker-redesign',
+    name: 'PreviewMatchmakerRedesign',
+    component: () => import('@/views/preview/MatchmakerRedesign.vue'),
+    meta: { requiresAuth: false, title: '红娘工作台高保真预览' }
+  },
+  {
+    path: '/preview/register-redesign',
+    name: 'PreviewRegisterRedesign',
+    component: () => import('@/views/preview/RegisterRedesign.vue'),
+    meta: { requiresAuth: false, title: '注册引导高保真预览' }
+  },
+  {
+    path: '/preview/detail-redesign',
+    name: 'PreviewDetailRedesign',
+    component: () => import('@/views/preview/DetailRedesign.vue'),
+    meta: { requiresAuth: false, title: '用户详情高保真预览' }
+  },
+  {
+    path: '/preview/salon-redesign',
+    name: 'PreviewSalonRedesign',
+    component: () => import('@/views/preview/SalonRedesign.vue'),
+    meta: { requiresAuth: false, title: '沙龙活动高保真预览' }
+  },
+  {
+    path: '/preview/support-suite',
+    name: 'PreviewSupportSuite',
+    component: () => import('@/views/preview/SupportSuiteRedesign.vue'),
+    meta: { requiresAuth: false, title: '支持与工作流高保真预览' }
   },
 
   // ===== 婚介端 =====
@@ -251,7 +311,7 @@ router.beforeEach((to, from, next) => {
 
   // 不需要认证的页面直接放行
   if (to.meta.requiresAuth === false) {
-    if (userStore.isLoggedIn) {
+    if (to.meta.guestOnly && userStore.isLoggedIn) {
       // 已登录用户访问登录页，重定向到对应首页
       const redirectPath = userStore.isMatchmaker ? '/matchmaker/profile' : '/user/home'
       next(redirectPath)

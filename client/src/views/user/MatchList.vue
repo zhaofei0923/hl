@@ -1,8 +1,23 @@
 <template>
-  <div class="page match-list-page">
+  <div class="page utility-page match-list-page">
     <van-nav-bar title="推荐匹配" left-arrow @click-left="$router.back()" :border="false" />
 
-    <!-- 筛选栏 -->
+    <section class="card utility-hero" data-testid="match-list-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">DISCOVERY</span>
+          <h1>把推荐列表做成可筛选、可比较的认识入口</h1>
+          <p>先缩小年龄、城市和学历范围，再进入每张卡片判断是否值得继续了解和打招呼。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ matchList.length }} 位候选</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">{{ filterAge || '年龄不限' }}</span>
+        <span class="brand-chip">{{ filterCity || '城市不限' }}</span>
+        <span class="brand-chip">{{ filterEducation || '学历不限' }}</span>
+      </div>
+    </section>
+
     <div class="match-filter">
       <div class="match-filter__item" @click="showAgePicker = true">
         <span :class="{ 'match-filter__item--active': filterAge }">{{ filterAge || '年龄' }}</span>
@@ -26,7 +41,6 @@
       </div>
     </div>
 
-    <!-- 匹配列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
         v-model:loading="listLoading"

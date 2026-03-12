@@ -1,55 +1,109 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar :title="`我的会员 (${stats.total})`" left-arrow @click-left="$router.back()">
+  <div class="page members-page">
+    <van-nav-bar title="会员经营" left-arrow :border="false" @click-left="$router.back()">
       <template #right>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <van-badge :content="activeFilterCount || ''" color="var(--hl-primary-color)">
-            <van-icon name="filter-o" size="20" @click="showFilter = true" />
-          </van-badge>
-          <van-icon name="search" size="20" @click="showSearch = true" />
+        <div class="members-page__nav-actions">
+          <button type="button" class="members-page__nav-button" @click="showFilter = true">
+            <van-badge :content="activeFilterCount || ''" color="var(--ifu-gold-700)">
+              <van-icon name="filter-o" size="18" />
+            </van-badge>
+          </button>
+          <button type="button" class="members-page__nav-button" @click="showSearch = true">
+            <van-icon name="search" size="18" />
+          </button>
         </div>
       </template>
     </van-nav-bar>
 
-    <!-- 类型筛选 -->
-    <div class="filter-bar">
-      <div
-        v-for="item in filterOptions"
-        :key="item.value"
-        class="filter-bar__item"
-        :class="{ 'filter-bar__item--active': memberType === item.value }"
-        @click="memberType = item.value"
-      >
-        {{ item.label }}
+    <section class="card members-hero" data-testid="matchmaker-members-shell">
+      <div class="members-hero__header">
+        <div>
+          <span class="brand-label">MEMBER STUDIO</span>
+          <h1>把会员池做成持续经营的关系面板</h1>
+          <p>先看存量、筛选密度和当前经营阶段，再决定是跟进、补资料还是继续发展新会员。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ currentTypeLabel }}</span>
       </div>
-    </div>
 
-    <!-- 会员列表 -->
-    <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-      <van-list
-        v-model:loading="listLoading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="loadMore"
-      >
-        <MemberCard
-          v-for="item in memberList"
-          :key="item.id"
-          :member="item"
-          @click="handleMemberClick"
-          @edit-profile="handleEditProfile"
-          @delete="handleDelete"
-          @call="handleCall"
-        />
+      <div class="members-hero__stats">
+        <article v-for="item in heroStats" :key="item.label" class="members-hero__stat">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <small>{{ item.hint }}</small>
+        </article>
+      </div>
+    </section>
 
-        <EmptyState v-if="!listLoading && memberList.length === 0" text="暂无会员数据" />
-      </van-list>
-    </van-pull-refresh>
+    <section class="card members-toolbar" data-testid="matchmaker-members-toolbar">
+      <div class="members-toolbar__header">
+        <div>
+          <span class="brand-label">FILTERS</span>
+          <h3>按经营阶段切换会员池</h3>
+        </div>
+        <button type="button" class="members-toolbar__search-button" @click="showSearch = true">
+          <van-icon name="search" size="16" />
+          搜索会员
+        </button>
+      </div>
 
-    <!-- 添加会员浮动按钮 -->
+      <div class="members-toolbar__chips">
+        <button
+          v-for="item in filterOptions"
+          :key="item.value"
+          type="button"
+          class="members-toolbar__chip"
+          :class="{ 'members-toolbar__chip--active': memberType === item.value }"
+          @click="memberType = item.value"
+        >
+          {{ item.label }}
+        </button>
+      </div>
+
+      <div v-if="activeFilterTags.length" class="members-toolbar__active-filters">
+        <span class="brand-label">ACTIVE FILTERS</span>
+        <div class="members-toolbar__active-list">
+          <span v-for="item in activeFilterTags" :key="item" class="brand-chip brand-chip--ghost">{{ item }}</span>
+        </div>
+      </div>
+      <p v-else class="members-toolbar__hint">
+        当前未启用精细筛选，适合先从{{ currentTypeLabel }}视图快速查看整体会员状态。
+      </p>
+    </section>
+
+    <section class="card members-list-shell">
+      <div class="members-list-shell__header">
+        <div>
+          <span class="brand-label">MEMBER LIST</span>
+          <h3>{{ currentTypeLabel }}会员池</h3>
+        </div>
+        <span class="members-list-shell__count">当前展示 {{ memberList.length }} 条</span>
+      </div>
+
+      <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+        <van-list
+          v-model:loading="listLoading"
+          :finished="finished"
+          finished-text="没有更多了"
+          @load="loadMore"
+        >
+          <MemberCard
+            v-for="item in memberList"
+            :key="item.id"
+            :member="item"
+            @click="handleMemberClick"
+            @edit-profile="handleEditProfile"
+            @delete="handleDelete"
+            @call="handleCall"
+          />
+
+          <EmptyState v-if="!listLoading && memberList.length === 0" text="暂无会员数据" />
+        </van-list>
+      </van-pull-refresh>
+    </section>
+
     <van-button
       class="fab-add"
+      data-testid="matchmaker-members-fab"
       round
       type="primary"
       icon="plus"
@@ -58,7 +112,6 @@
       发展会员
     </van-button>
 
-    <!-- 发展会员弹窗 -->
     <van-popup
       v-model:show="showAddMember"
       position="bottom"
@@ -71,37 +124,33 @@
           <van-icon name="cross" size="18" @click="showAddMember = false" />
         </div>
 
-        <!-- 方式选项 -->
         <div class="add-options">
-          <!-- 手动录入 -->
           <div class="add-option-card" @click="handleManualAdd">
             <div class="add-option-card__icon">
-              <van-icon name="edit" size="28" color="var(--hl-primary-color)" />
+              <van-icon name="edit" size="28" color="var(--ifu-gold-700)" />
             </div>
             <div class="add-option-card__content">
               <div class="add-option-card__title">手动录入</div>
               <div class="add-option-card__desc">填写会员详细资料，适合线下获客</div>
             </div>
-            <van-icon name="arrow" color="#ccc" />
+            <van-icon name="arrow" color="#b8ab99" />
           </div>
 
-          <!-- 邀请链接 -->
           <div class="add-option-card" @click="handleShowInviteLink">
             <div class="add-option-card__icon">
-              <van-icon name="share-o" size="28" color="var(--hl-primary-color)" />
+              <van-icon name="share-o" size="28" color="var(--ifu-warning)" />
             </div>
             <div class="add-option-card__content">
               <div class="add-option-card__title">邀请链接</div>
               <div class="add-option-card__desc">分享链接，用户注册后自动绑定</div>
             </div>
-            <van-icon name="arrow" color="#ccc" />
+            <van-icon name="arrow" color="#b8ab99" />
           </div>
         </div>
 
-        <!-- 邀请链接区域（展开时显示） -->
         <div v-if="showInviteLink" class="invite-link-card">
           <div class="invite-link-card__desc">
-            将以下链接分享给用户，用户在微信中打开并注册后，将自动成为您名下的会员
+            将以下链接分享给用户，用户在微信中打开并注册后，将自动成为您名下的会员。
           </div>
           <div class="invite-link-card__url">
             {{ inviteUrl || '生成中...' }}
@@ -115,7 +164,6 @@
       </div>
     </van-popup>
 
-    <!-- 搜索弹出框 -->
     <van-popup v-model:show="showSearch" position="top" round>
       <div class="search-popup">
         <van-search
@@ -128,7 +176,6 @@
       </div>
     </van-popup>
 
-    <!-- 筛选面板 -->
     <van-popup v-model:show="showFilter" position="bottom" round :style="{ maxHeight: '80vh' }">
       <div class="popup-form">
         <div class="popup-form__header">
@@ -191,7 +238,7 @@
             v-model="filterForm.city"
             placeholder="输入城市名称"
             clearable
-            style="background:var(--hl-bg-color);border-radius:8px;"
+            class="filter-section__field"
           />
         </div>
         <div class="filter-footer">
@@ -223,7 +270,6 @@ const finished = ref(false)
 const page = ref(1)
 const memberList = ref([])
 
-// 筛选表单状态
 const filterForm = reactive({
   gender: '',
   ageRange: '',
@@ -233,7 +279,6 @@ const filterForm = reactive({
   city: ''
 })
 
-// 当前生效的筛选条件
 const activeFilters = reactive({
   gender: '',
   ageRange: '',
@@ -262,6 +307,40 @@ const filterOptions = [
   { label: '无消费', value: 'no_consumption' }
 ]
 
+const currentTypeLabel = computed(() =>
+  filterOptions.find(item => item.value === memberType.value)?.label || '全部'
+)
+
+const heroStats = computed(() => [
+  {
+    label: '总会员',
+    value: stats.total || 0,
+    hint: '用于判断当前经营盘子大小'
+  },
+  {
+    label: '当前列表',
+    value: memberList.value.length,
+    hint: '当前筛选条件下已经加载的会员数量'
+  },
+  {
+    label: '生效筛选',
+    value: activeFilterCount.value,
+    hint: '越具体越适合做精细跟进'
+  }
+])
+
+const activeFilterTags = computed(() => {
+  const genderLabel = { 1: '男性', 2: '女性' }
+  return [
+    activeFilters.gender ? genderLabel[activeFilters.gender] : '',
+    activeFilters.ageRange ? `${activeFilters.ageRange} 岁` : '',
+    activeFilters.education,
+    activeFilters.maritalStatus,
+    activeFilters.incomeRange,
+    activeFilters.city ? `${activeFilters.city} 城市` : ''
+  ].filter(Boolean)
+})
+
 async function fetchStats() {
   try {
     const res = await memberApi.getStats()
@@ -280,8 +359,8 @@ async function loadMembers(isRefresh = false) {
   }
 
   try {
-    // 解析年龄段
-    let ageMin, ageMax
+    let ageMin
+    let ageMax
     if (activeFilters.ageRange) {
       const [min, max] = activeFilters.ageRange.split('-')
       ageMin = min
@@ -440,25 +519,170 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.filter-bar {
+.members-page {
+  padding-bottom: calc(118px + env(safe-area-inset-bottom));
+}
+
+.members-page__nav-actions {
   display: flex;
-  padding: 8px 16px;
-  gap: 8px;
-  background: var(--hl-card-bg);
+  align-items: center;
+  gap: 10px;
 }
 
-.filter-bar__item {
-  padding: 4px 12px;
+.members-page__nav-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(233, 221, 204, 0.9);
+  border-radius: 12px;
+  background: rgba(255, 252, 247, 0.78);
+  color: var(--ifu-text-strong);
+}
+
+.members-hero {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at right top, rgba(255, 250, 244, 0.2), transparent 28%),
+    linear-gradient(145deg, #7b5d40, #b68d59 66%, #decaab);
+  color: #fff8ef;
+}
+
+.members-hero::after {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 38%);
+}
+
+.members-hero .brand-label {
+  color: rgba(255, 248, 239, 0.72);
+}
+
+.members-hero__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+
+.members-hero__header h1 {
+  margin-top: 12px;
+  font-size: 29px;
+  line-height: 1.25;
+}
+
+.members-hero__header p {
+  margin-top: 12px;
+  max-width: 480px;
+  color: rgba(255, 248, 239, 0.8);
+  line-height: 1.7;
+}
+
+.members-hero .brand-chip--active {
+  background: rgba(255, 248, 239, 0.18);
+  color: #fff8ef;
+  border-color: rgba(255, 248, 239, 0.28);
+}
+
+.members-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.members-hero__stat {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 248, 239, 0.12);
+  border: 1px solid rgba(255, 248, 239, 0.14);
+}
+
+.members-hero__stat span,
+.members-hero__stat small {
+  display: block;
+  color: rgba(255, 248, 239, 0.72);
+}
+
+.members-hero__stat strong {
+  display: block;
+  margin: 8px 0 6px;
+  font-size: 26px;
+  color: #fffdf9;
+}
+
+.members-toolbar__header,
+.members-list-shell__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.members-toolbar__header h3,
+.members-list-shell__header h3 {
+  margin-top: 8px;
+  font-size: 21px;
+  color: var(--ifu-text-strong);
+}
+
+.members-toolbar__search-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(226, 205, 169, 0.78);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.88);
+  color: var(--ifu-text-strong);
+}
+
+.members-toolbar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.members-toolbar__chip {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(233, 221, 204, 0.88);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ifu-text);
+}
+
+.members-toolbar__chip--active {
+  background: linear-gradient(135deg, var(--ifu-gold-100), rgba(200, 169, 119, 0.3));
+  border-color: rgba(166, 124, 82, 0.42);
+  color: var(--ifu-text-strong);
+  box-shadow: 0 12px 20px rgba(166, 124, 82, 0.12);
+}
+
+.members-toolbar__active-filters {
+  margin-top: 18px;
+}
+
+.members-toolbar__active-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.members-toolbar__hint {
+  margin-top: 18px;
+  color: var(--ifu-text-muted);
+  line-height: 1.6;
+}
+
+.members-list-shell {
+  padding-bottom: 8px;
+}
+
+.members-list-shell__count {
+  color: var(--ifu-text-muted);
   font-size: 13px;
-  color: var(--hl-text-secondary);
-  border-radius: 16px;
-  background: var(--hl-bg-color);
-  cursor: pointer;
-}
-
-.filter-bar__item--active {
-  color: #fff;
-  background: var(--hl-primary-color);
 }
 
 .search-popup {
@@ -467,14 +691,19 @@ onMounted(() => {
 
 .filter-section {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--hl-border-color);
+  border-bottom: 1px solid var(--ifu-border);
 }
 
 .filter-section__label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   margin-bottom: 10px;
+}
+
+.filter-section__field {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .filter-footer {
@@ -486,12 +715,12 @@ onMounted(() => {
 .fab-add {
   position: fixed;
   right: 20px;
-  bottom: 80px;
+  bottom: 90px;
   z-index: 100;
-  padding: 0 16px;
-  height: 44px;
+  padding: 0 18px;
+  height: 48px;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(255, 125, 65, 0.4);
+  box-shadow: 0 18px 30px rgba(166, 124, 82, 0.28);
 }
 
 .popup-form {
@@ -505,17 +734,13 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 16px 12px;
-  border-bottom: 1px solid var(--hl-border-color);
+  border-bottom: 1px solid var(--ifu-border);
 }
 
 .popup-form__title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
-}
-
-.popup-form__footer {
-  padding: 20px 16px 0;
+  color: var(--ifu-text-strong);
 }
 
 .add-options {
@@ -530,21 +755,21 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 14px 12px;
-  background: var(--hl-bg-color);
-  border-radius: var(--hl-radius-sm);
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  border-radius: 18px;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 .add-option-card:active {
-  background: #f0ece8;
+  background: rgba(246, 235, 221, 0.88);
 }
 
 .add-option-card__icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: rgba(var(--hl-primary-rgb, 180, 120, 60), 0.1);
+  border-radius: 14px;
+  background: rgba(200, 169, 119, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -558,13 +783,13 @@ onMounted(() => {
 .add-option-card__title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 2px;
 }
 
 .add-option-card__desc {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .invite-link-card {
@@ -573,17 +798,18 @@ onMounted(() => {
 
 .invite-link-card__desc {
   font-size: 14px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   line-height: 1.6;
   margin-bottom: 16px;
 }
 
 .invite-link-card__url {
   padding: 12px;
-  background: var(--hl-bg-color);
-  border-radius: var(--hl-radius-sm);
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  border-radius: 16px;
   font-size: 13px;
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   word-break: break-all;
   line-height: 1.5;
   margin-bottom: 20px;

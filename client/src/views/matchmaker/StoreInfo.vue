@@ -1,9 +1,22 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="门店信息" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page utility-page--form">
+    <van-nav-bar title="门店信息" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 加载状态 -->
+    <section class="card utility-hero" data-testid="matchmaker-store-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">STORE PROFILE</span>
+          <h1>把门店信息做成可信赖的线下名片</h1>
+          <p>门店状态、基础资料、照片和营业执照要在同一页清楚呈现，方便后续审核和线下转化。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ hasStore ? '已开通门店' : '待申请门店' }}</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">{{ hasStore ? (storeData.name || '门店资料') : '提交申请' }}</span>
+        <span class="brand-chip">{{ hasStore ? '可编辑资料' : '等待审核' }}</span>
+      </div>
+    </section>
+
     <van-loading v-if="loading" class="page-loading" size="24px" vertical>加载中...</van-loading>
 
     <!-- 无门店：申请开通 -->

@@ -1,23 +1,47 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="我的钱包" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page">
+    <van-nav-bar title="我的钱包" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 钱包卡片 -->
+    <section class="card utility-hero" data-testid="matchmaker-wallet-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">WALLET</span>
+          <h1>把收益、提现和转入记录拉回同一个结算视图</h1>
+          <p>先看余额和月份，再决定切到收益、提现还是转入记录做具体核对。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ currentMonth }}</span>
+      </div>
+      <div class="utility-hero__stats">
+        <article class="utility-hero__stat">
+          <span>可用余额</span>
+          <strong>¥{{ formatMoney(walletStore.availableAmount) }}</strong>
+          <small>可继续提现吗</small>
+        </article>
+        <article class="utility-hero__stat">
+          <span>囍币</span>
+          <strong>{{ walletStore.xiCoins || 0 }}</strong>
+          <small>当前资产补充项</small>
+        </article>
+        <article class="utility-hero__stat">
+          <span>记录数</span>
+          <strong>{{ recordList.length }}</strong>
+          <small>{{ activeTab === 'earnings' ? '收益' : activeTab === 'withdrawals' ? '提现' : '转入' }}</small>
+        </article>
+      </div>
+    </section>
+
     <WalletCard
       :amount="walletStore.availableAmount"
       :coins="walletStore.xiCoins"
       @withdraw="$router.push('/matchmaker/withdraw')"
     />
 
-    <!-- 记录选项卡 -->
     <van-tabs v-model:active="activeTab" @change="handleTabChange">
       <van-tab title="收益记录" name="earnings" />
       <van-tab title="提现记录" name="withdrawals" />
       <van-tab title="转入记录" name="transfers" />
     </van-tabs>
 
-    <!-- 筛选栏 -->
     <div class="wallet-filter">
       <div class="wallet-filter__left" @click="showTypePicker = true">
         <span>{{ currentFilterLabel }}</span>
@@ -29,7 +53,6 @@
       </div>
     </div>
 
-    <!-- 记录列表 -->
     <van-list
       v-model:loading="listLoading"
       :finished="finished"

@@ -1,11 +1,18 @@
 <template>
-  <div class="page-container">
-    <div class="page-header">
-      <h2>用户管理</h2>
+  <div class="page-container users-page" data-testid="admin-users-shell">
+    <div class="page-header users-page__header">
+      <div>
+        <span class="brand-label">USER MANAGEMENT</span>
+        <h2>用户管理</h2>
+        <p>把认证状态、角色和后续动作放到同一阅读动线里，减少运营在表格里的来回搜索。</p>
+      </div>
+      <div class="users-page__summary">
+        <span class="users-page__pill">求偶用户 / 红娘</span>
+        <span class="users-page__pill users-page__pill--active">认证状态优先</span>
+      </div>
     </div>
 
-    <!-- Filter -->
-    <el-card shadow="hover" class="filter-card">
+    <el-card shadow="hover" class="filter-card users-toolbar" data-testid="admin-users-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="关键词">
           <el-input v-model="filters.keyword" placeholder="昵称/手机号/用户名" clearable @keyup.enter="search" />
@@ -43,8 +50,7 @@
       </el-form>
     </el-card>
 
-    <!-- Table -->
-    <el-card shadow="hover">
+    <el-card shadow="hover" class="users-table-card">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column label="头像" width="70">
@@ -312,6 +318,53 @@ onMounted(() => loadData())
 </script>
 
 <style scoped>
+.users-page__header {
+  align-items: end;
+}
+
+.users-page__header p {
+  max-width: 560px;
+  margin-top: 10px;
+}
+
+.users-page__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.users-page__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  color: var(--ifu-text);
+  font-size: 12px;
+}
+
+.users-page__pill--active {
+  background: rgba(200, 169, 119, 0.18);
+  color: var(--ifu-gold-700);
+}
+
+.users-toolbar,
+.users-table-card {
+  position: relative;
+}
+
+.users-toolbar::before,
+.users-table-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 32%);
+}
+
 .pagination-wrap {
   display: flex;
   justify-content: flex-end;

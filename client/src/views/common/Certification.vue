@@ -1,7 +1,24 @@
 <template>
-  <div class="page cert-page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="认证中心" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page utility-page--form cert-page">
+    <van-nav-bar title="认证中心" left-arrow :border="false" @click-left="$router.back()" />
+
+    <section class="card utility-hero" data-testid="certification-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">VERIFICATION</span>
+          <h1>把认证流程做成可理解、可追踪的信任面板</h1>
+          <p>清楚知道当前状态、需要提交的材料，以及完成认证后会对曝光、信任和推荐带来的变化。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">
+          {{ certStatus === 'certified' ? '已认证' : certStatus === 'pending' ? '审核中' : certStatus === 'rejected' ? '待重提' : '未认证' }}
+        </span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">实名校验</span>
+        <span class="brand-chip">资料提权</span>
+        <span class="brand-chip">信任展示</span>
+      </div>
+    </section>
 
     <div class="cert-content">
       <!-- 认证状态提示 -->

@@ -1,15 +1,28 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="提现" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page utility-page--form">
+    <van-nav-bar title="提现" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 余额展示 -->
+    <section class="card utility-hero" data-testid="matchmaker-withdraw-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">WITHDRAWAL</span>
+          <h1>把提现流程做成可预估到账的结算面板</h1>
+          <p>先看可提现金额和规则，再确认金额、渠道与手续费预期，减少提交前的不确定感。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ withdrawMethod === 'wechat' ? '微信提现' : '银行卡提现' }}</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">余额 ¥{{ formatMoney(walletStore.availableAmount) }}</span>
+        <span class="brand-chip">最低 10 元</span>
+        <span class="brand-chip">手续费 1%</span>
+      </div>
+    </section>
+
     <div class="balance-card">
       <div class="balance-card__label">可提现金额 (元)</div>
       <div class="balance-card__amount">{{ formatMoney(walletStore.availableAmount) }}</div>
     </div>
 
-    <!-- 提现金额 -->
     <div class="card">
       <div class="amount-section">
         <div class="amount-section__label">提现金额</div>
@@ -30,7 +43,6 @@
       </div>
     </div>
 
-    <!-- 提现方式 -->
     <div class="card">
       <div class="method-section">
         <div class="method-section__label">提现方式</div>
@@ -51,7 +63,6 @@
       </div>
     </div>
 
-    <!-- 提现规则 -->
     <div class="rules-card">
       <div class="rules-card__title">提现规则</div>
       <ul class="rules-card__list">
@@ -63,7 +74,6 @@
       </ul>
     </div>
 
-    <!-- 提现按钮 -->
     <div class="submit-wrap">
       <van-button
         block

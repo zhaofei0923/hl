@@ -1,11 +1,13 @@
 <template>
-  <div class="page page--with-tabbar home-page" style="padding-bottom: calc(100px + env(safe-area-inset-bottom));">
+  <div class="page page--with-tabbar home-page">
     <section class="home-hero" data-testid="home-hero">
-      <div class="home-hero__mask"></div>
+      <div class="home-hero__spark home-hero__spark--left"></div>
+      <div class="home-hero__spark home-hero__spark--right"></div>
+
       <div class="home-hero__top">
         <div class="home-hero__brand">
-          <span class="home-hero__brand-dot"></span>
-          <span>红娘严选</span>
+          <span class="brand-label">IFU CURATED MATCH</span>
+          <strong>红娘严选</strong>
         </div>
         <button
           type="button"
@@ -19,43 +21,62 @@
       </div>
 
       <div class="home-hero__content">
-        <h1>今日缘分推荐</h1>
-        <p>高匹配候选人已由平台与红娘双重筛选</p>
+        <h1>今天先看值得认识的人</h1>
+        <p>平台先做筛选，红娘再做复核，把认真关系留在更靠前的位置。</p>
       </div>
 
       <div class="home-hero__stats">
         <div class="home-hero__stat-item">
           <strong>{{ heroStats.todayMatches }}</strong>
-          <span>今日缘分</span>
+          <span>今日推荐</span>
         </div>
         <div class="home-hero__stat-item">
           <strong>{{ heroStats.verificationRate }}</strong>
-          <span>认证通过率</span>
+          <span>核验通过率</span>
         </div>
         <div class="home-hero__stat-item">
           <strong>{{ heroStats.matchmakerService }}</strong>
-          <span>红娘服务</span>
+          <span>红娘陪聊</span>
         </div>
       </div>
 
       <div class="home-hero__badges">
-        <span v-for="badge in trustBadges" :key="badge" class="home-trust-badge" data-testid="trust-badge">
+        <span
+          v-for="badge in trustBadges"
+          :key="badge"
+          class="home-trust-badge"
+          data-testid="trust-badge"
+        >
           <van-icon name="checked" size="12" />
           {{ badge }}
         </span>
       </div>
     </section>
 
+    <section class="home-curation card">
+      <div class="home-curation__copy">
+        <span class="brand-label">EDITORIAL CURATION</span>
+        <h2>先降低无效沟通，再提高见面的概率</h2>
+        <p>匹配理由会优先展示城市、教育与资料完整度，让你先看决定关系质量的那部分。</p>
+      </div>
+      <div class="home-curation__list">
+        <div v-for="item in curationHighlights" :key="item.title" class="home-curation__item">
+          <strong>{{ item.title }}</strong>
+          <span>{{ item.desc }}</span>
+        </div>
+      </div>
+    </section>
+
     <section class="home-filter">
-      <button type="button" class="filter-chip" @click="showAgePicker = true">
+      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterAgeRange }" @click="showAgePicker = true">
         <span>{{ filterAgeLabel || '年龄段' }}</span>
         <van-icon name="arrow-down" size="12" />
       </button>
-      <button type="button" class="filter-chip" @click="showCityInput = true">
+      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterCity }" @click="showCityInput = true">
         <span>{{ filterCity || '城市' }}</span>
         <van-icon name="arrow-down" size="12" />
       </button>
-      <button type="button" class="filter-chip" @click="showEducationFilter = true">
+      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterEducation }" @click="showEducationFilter = true">
         <span>{{ filterEducation || '学历' }}</span>
         <van-icon name="arrow-down" size="12" />
       </button>
@@ -65,7 +86,7 @@
         class="filter-reset"
         @click="resetFilters"
       >
-        重置
+        清空
       </button>
     </section>
 
@@ -73,7 +94,7 @@
       <van-list
         v-model:loading="listLoading"
         :finished="finished"
-        finished-text="今日推荐已看完"
+        finished-text="今日推荐已经看到尾声"
         @load="loadMore"
       >
         <article
@@ -86,11 +107,12 @@
           <header class="match-card__header">
             <van-image
               round
-              width="58"
-              height="58"
+              width="62"
+              height="62"
               :src="item.avatarUrl || defaultAvatar"
               fit="cover"
             />
+
             <div class="match-card__identity">
               <div class="match-card__name-row">
                 <h3 class="match-card__name">{{ item.nickname || '匿名用户' }}</h3>
@@ -98,20 +120,33 @@
                 <van-tag v-else type="warning" plain round size="small">待认证</van-tag>
               </div>
               <div class="match-card__tags">
-                <van-tag plain round size="medium">{{ item.age || '?' }}岁</van-tag>
-                <van-tag plain round size="medium">{{ item.city || '未知城市' }}</van-tag>
-                <van-tag plain round size="medium">{{ item.education || '未填写学历' }}</van-tag>
+                <span class="brand-chip brand-chip--ghost">{{ item.age || '?' }}岁</span>
+                <span class="brand-chip brand-chip--ghost">{{ item.city || '未知城市' }}</span>
+                <span class="brand-chip brand-chip--ghost">{{ item.education || '未填学历' }}</span>
               </div>
+            </div>
+
+            <div class="match-card__score match-card__score-badge">
+              <span>匹配度</span>
+              <strong>{{ item.matchScore || 0 }}%</strong>
             </div>
           </header>
 
-          <p class="match-card__reason">{{ getMatchReason(item) }}</p>
+          <div class="match-card__reason-wrap">
+            <span class="brand-label">MATCH REASON</span>
+            <p class="match-card__reason">{{ getMatchReason(item) }}</p>
+          </div>
+
+          <div class="match-card__meter">
+            <span class="match-card__meter-fill" :style="{ width: `${Math.min(item.matchScore || 0, 100)}%` }"></span>
+          </div>
+
           <p class="match-card__desc">{{ item.intro || '这个人很懒，什么都没写~' }}</p>
 
           <footer class="match-card__footer">
-            <div class="match-card__score">
-              <span>匹配度</span>
-              <strong>{{ item.matchScore || 0 }}%</strong>
+            <div class="match-card__summary">
+              <span>{{ item.occupation || '职业待补充' }}</span>
+              <span>{{ item.city || '城市待补充' }}</span>
             </div>
             <div class="match-card__actions">
               <van-button size="small" round plain @click.stop="handleCardClick(item)">
@@ -131,14 +166,16 @@
         </article>
 
         <div v-if="!listLoading && matchList.length === 0" class="home-empty-wrap">
-          <EmptyState text="暂无推荐，先完善资料可提升匹配精准度" />
-          <div class="home-empty-actions">
-            <van-button round plain block data-testid="empty-action" @click="router.push('/user/profile/edit')">
-              完善资料
-            </van-button>
-            <van-button round type="primary" block data-testid="empty-action" @click="router.push('/certification')">
-              去认证
-            </van-button>
+          <div class="card">
+            <EmptyState text="暂无推荐，先完善资料可提升匹配精准度" />
+            <div class="home-empty-actions">
+              <van-button round plain block data-testid="empty-action" @click="router.push('/user/profile/edit')">
+                完善资料
+              </van-button>
+              <van-button round type="primary" block data-testid="empty-action" @click="router.push('/certification')">
+                去认证
+              </van-button>
+            </div>
           </div>
         </div>
       </van-list>
@@ -151,7 +188,7 @@
       </button>
       <button type="button" @click="router.push('/user/match-list')">
         <van-icon name="friends-o" size="14" />
-        互相关注
+        更多匹配
       </button>
     </div>
 
@@ -237,6 +274,11 @@ const educationColumns = [
 ]
 
 const trustBadges = ['实名资料', '红娘初筛', '人工复核']
+const curationHighlights = [
+  { title: '同城优先', desc: '先把见面成本降下来' },
+  { title: '资料完整', desc: '减少只凭头像判断' },
+  { title: '节奏更稳', desc: '让红娘筛掉无效打扰' }
+]
 
 const heroStats = computed(() => ({
   todayMatches: totalCount.value || matchList.value.length,
@@ -286,15 +328,15 @@ function normalizeMatch(item) {
 
 function getMatchReason(item) {
   if (item.city && item.education) {
-    return '同城且学历匹配，沟通成本更低，建议优先联系'
+    return '同城且教育背景接近，沟通效率更高，适合先从轻松话题开始。'
   }
   if (item.city) {
-    return '同城高潜匹配，线下见面更高效'
+    return '同城高潜匹配，线下见面门槛更低，适合优先推进认识节奏。'
   }
   if (item.education) {
-    return '教育背景相近，价值观更容易同频'
+    return '教育背景相近，价值观更容易同频，适合进一步了解。'
   }
-  return '资料完整度较高，适合先聊三句再深入了解'
+  return '资料完整度较高，适合先聊三句，再决定是否继续深入了解。'
 }
 
 async function fetchMatches(isRefresh = false) {
@@ -369,7 +411,7 @@ function handleCardClick(item) {
   router.push(`/user/detail/${item.id}`)
 }
 
-function handleSayHi(item) {
+function handleSayHi() {
   showToast('已发送打招呼')
 }
 </script>
@@ -377,24 +419,40 @@ function handleSayHi(item) {
 <style scoped>
 .home-page {
   position: relative;
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
 }
 
 .home-hero {
   position: relative;
-  margin: 0 12px;
-  padding: 18px 16px 16px;
-  border-radius: 0 0 var(--hl-radius-lg) var(--hl-radius-lg);
-  background: linear-gradient(145deg, #352417, #6b4e31 55%, #8c6a43);
-  color: #f5eee7;
+  margin: 0 14px;
+  padding: calc(env(safe-area-inset-top) + 22px) 18px 20px;
+  border-radius: 0 0 var(--ifu-radius-lg) var(--ifu-radius-lg);
+  background:
+    linear-gradient(145deg, rgba(81, 56, 30, 0.14), transparent 36%),
+    linear-gradient(135deg, #8b6640 0%, #b58c58 55%, #d4b785 100%);
+  color: #fff9f3;
   overflow: hidden;
-  box-shadow: var(--hl-shadow-soft);
-  animation: hero-enter 0.45s ease;
+  box-shadow: var(--ifu-shadow-card);
 }
 
-.home-hero__mask {
+.home-hero__spark {
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 85% 0%, rgba(213, 185, 142, 0.32), transparent 42%);
+  border-radius: 50%;
+  background: rgba(255, 250, 244, 0.11);
+}
+
+.home-hero__spark--left {
+  width: 130px;
+  height: 130px;
+  left: -20px;
+  top: 68px;
+}
+
+.home-hero__spark--right {
+  width: 180px;
+  height: 180px;
+  right: -60px;
+  top: -46px;
 }
 
 .home-hero__top,
@@ -407,84 +465,77 @@ function handleSayHi(item) {
 
 .home-hero__top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
 }
 
-.home-hero__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  opacity: 0.95;
-}
-
-.home-hero__brand-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #d9be95;
+.home-hero__brand strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 16px;
 }
 
 .home-hero__message-btn {
-  border: none;
+  border: 1px solid rgba(255, 249, 243, 0.16);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 249, 243, 0.12);
   color: #fff;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   font-size: 12px;
   cursor: pointer;
 }
 
 .home-hero__content {
-  margin-top: 14px;
+  margin-top: 18px;
 }
 
 .home-hero__content h1 {
   margin: 0;
-  font-size: 23px;
-  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.18;
 }
 
 .home-hero__content p {
-  margin: 8px 0 0;
+  margin-top: 10px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.84);
+  line-height: 1.72;
+  color: rgba(255, 249, 243, 0.84);
 }
 
 .home-hero__stats {
-  margin-top: 16px;
+  margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .home-hero__stat-item {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  padding: 12px 8px;
+  border-radius: 18px;
+  background: rgba(255, 249, 243, 0.12);
+  border: 1px solid rgba(255, 249, 243, 0.12);
   text-align: center;
-  padding: 10px 6px;
 }
 
 .home-hero__stat-item strong {
   display: block;
-  font-size: 17px;
-  line-height: 1;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 18px;
 }
 
 .home-hero__stat-item span {
   display: block;
   margin-top: 6px;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 249, 243, 0.72);
 }
 
 .home-hero__badges {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -495,10 +546,55 @@ function handleSayHi(item) {
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #e9dbc8;
-  padding: 4px 9px;
+  color: #fff4e6;
+  padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 249, 243, 0.12);
+}
+
+.home-curation {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-curation__copy h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.home-curation__copy p {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ifu-text);
+}
+
+.home-curation__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-curation__item {
+  padding: 14px 12px;
+  border-radius: 20px;
+  background: rgba(255, 251, 246, 0.82);
+  border: 1px solid rgba(226, 205, 169, 0.52);
+}
+
+.home-curation__item strong {
+  display: block;
+  font-size: 13px;
+}
+
+.home-curation__item span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ifu-text-muted);
 }
 
 .home-filter {
@@ -506,227 +602,224 @@ function handleSayHi(item) {
   top: 0;
   z-index: 3;
   display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 12px;
-  backdrop-filter: blur(8px);
+  padding: 14px 16px 10px;
+  background: linear-gradient(180deg, rgba(251, 247, 241, 0.95), rgba(251, 247, 241, 0.75));
+  backdrop-filter: blur(10px);
 }
 
 .filter-chip,
 .filter-reset {
-  border: 1px solid var(--hl-border-color);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 999px;
-  min-height: 34px;
-  padding: 0 12px;
-  font-size: 12px;
-  color: var(--hl-text-secondary);
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 221, 204, 0.9);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ifu-text);
+  font-size: 12px;
 }
 
-.filter-chip {
-  flex: 1;
-  justify-content: space-between;
+.filter-chip--active {
+  background: linear-gradient(180deg, #fff9ef, rgba(226, 205, 169, 0.28));
+  border-color: rgba(166, 124, 82, 0.38);
+  color: var(--ifu-text-strong);
 }
 
 .filter-reset {
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
 }
 
 .match-card {
-  margin: 0 12px 12px;
-  padding: 14px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
-  box-shadow: var(--hl-shadow-card);
-  border: 1px solid rgba(140, 106, 67, 0.08);
-  animation: card-enter 0.35s ease;
-}
-
-.match-card:active {
-  transform: translateY(-1px) scale(0.996);
+  position: relative;
+  margin: 0 16px 14px;
+  padding: 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 244, 0.94));
+  box-shadow: var(--ifu-shadow-soft);
+  cursor: pointer;
 }
 
 .match-card__header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   gap: 12px;
+  align-items: start;
 }
 
 .match-card__identity {
   min-width: 0;
-  flex: 1;
 }
 
 .match-card__name-row {
   display: flex;
-  gap: 8px;
   align-items: center;
-  margin-bottom: 7px;
+  gap: 8px;
 }
 
 .match-card__name {
-  margin: 0;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .match-card__tags {
   display: flex;
-  gap: 6px;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.match-card__score-badge {
+  min-width: 72px;
+  padding: 8px 10px;
+  border-radius: 18px;
+  text-align: center;
+  background: linear-gradient(180deg, #fff8eb, rgba(226, 205, 169, 0.3));
+  border: 1px solid rgba(166, 124, 82, 0.22);
+}
+
+.match-card__score-badge span {
+  display: block;
+  font-size: 10px;
+  color: var(--ifu-text-muted);
+}
+
+.match-card__score-badge strong {
+  display: block;
+  margin-top: 2px;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 18px;
+  color: var(--ifu-text-strong);
+}
+
+.match-card__reason-wrap {
+  margin-top: 16px;
 }
 
 .match-card__reason {
-  margin: 11px 0 4px;
-  font-size: 13px;
-  color: var(--hl-primary-color);
-  background: var(--hl-primary-light);
-  border-radius: 8px;
-  padding: 7px 10px;
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ifu-text-strong);
+}
+
+.match-card__meter {
+  margin-top: 14px;
+  height: 8px;
+  border-radius: 999px;
+  background: #efe6d8;
+  overflow: hidden;
+}
+
+.match-card__meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ifu-gold-300), var(--ifu-gold-600));
 }
 
 .match-card__desc {
-  margin: 0;
+  margin-top: 12px;
   font-size: 13px;
-  color: var(--hl-text-placeholder);
-  line-height: 1.5;
+  line-height: 1.72;
+  color: var(--ifu-text);
 }
 
 .match-card__footer {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--hl-border-color);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
 }
 
-.match-card__score span {
+.match-card__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   font-size: 12px;
-  color: var(--hl-text-placeholder);
-}
-
-.match-card__score strong {
-  margin-left: 6px;
-  font-size: 18px;
-  color: var(--hl-accent-color);
+  color: var(--ifu-text-muted);
 }
 
 .match-card__actions {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.match-card__actions :deep(.van-button) {
-  min-width: 84px;
+.home-empty-wrap {
+  margin: 0 16px 18px;
 }
 
-.home-empty-wrap {
-  margin: 0 12px;
-  padding: 24px 14px;
-  border-radius: var(--hl-radius-md);
-  background: #fff;
-  box-shadow: var(--hl-shadow-card);
+.home-empty-wrap .card {
+  margin: 0;
 }
 
 .home-empty-actions {
-  margin-top: 14px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
-}
-
-.home-empty-actions :deep(.van-button) {
-  height: 42px;
 }
 
 .home-floating-cta {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(58px + env(safe-area-inset-bottom));
+  left: 16px;
+  right: 16px;
+  bottom: calc(78px + env(safe-area-inset-bottom));
   z-index: 4;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 .home-floating-cta button {
+  min-height: 46px;
   border: none;
   border-radius: 999px;
-  height: 38px;
-  background: rgba(46, 36, 23, 0.92);
-  color: #fff;
+  background: rgba(58, 46, 35, 0.92);
+  color: #fff8ef;
   display: inline-flex;
-  justify-content: center;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.city-popup {
-  overflow: hidden;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 18px 36px rgba(58, 46, 35, 0.18);
 }
 
 .city-popup__header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
-  padding: 12px 16px;
+  justify-content: space-between;
+  padding: 16px;
   font-size: 14px;
-  border-bottom: 1px solid var(--hl-border-color);
-}
-
-.city-popup__header span:last-child {
-  text-align: right;
 }
 
 .city-popup__confirm {
-  color: var(--hl-primary-color);
-  font-weight: 600;
+  color: var(--ifu-gold-700);
 }
 
 .city-popup__content {
-  padding: 16px;
+  padding: 0 16px 16px;
 }
 
-@keyframes hero-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 360px) {
-  .home-hero__content h1 {
-    font-size: 21px;
-  }
-
+@media (max-width: 380px) {
+  .home-curation__list,
   .home-hero__stats {
-    gap: 6px;
+    grid-template-columns: 1fr;
   }
 
-  .home-floating-cta {
-    left: 10px;
-    right: 10px;
+  .match-card__header,
+  .match-card__footer {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .match-card__actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>

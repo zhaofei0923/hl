@@ -1,5 +1,5 @@
 <template>
-  <van-tabbar v-model="active" :fixed="true" :safe-area-inset-bottom="true">
+  <van-tabbar v-model="active" :fixed="true" :safe-area-inset-bottom="true" class="brand-tabbar">
     <!-- 用户端首页 -->
     <van-tabbar-item v-if="isUser" name="home" icon="home-o" to="/user/home">
       首页
@@ -32,3 +32,15 @@ const isUser = computed(() => userStore.isUser)
 const unreadCount = computed(() => messageStore.totalUnread > 99 ? '99+' : messageStore.totalUnread)
 const mineRoute = computed(() => userStore.isMatchmaker ? '/matchmaker/profile' : '/user/profile')
 </script>
+
+<style scoped>
+.brand-tabbar :deep(.van-tabbar-item__text) {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.brand-tabbar :deep(.van-badge) {
+  background: var(--ifu-danger);
+  border-color: transparent;
+}
+</style>

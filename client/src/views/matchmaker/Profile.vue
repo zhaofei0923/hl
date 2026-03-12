@@ -1,75 +1,100 @@
 <template>
-  <div class="page page--with-tabbar">
-    <!-- 顶部渐变横幅 -->
-    <div class="profile-banner">
-      <div class="profile-banner__actions">
-        <van-icon name="certificate" size="22" color="#fff" @click="$router.push('/certification')" />
-        <van-icon name="setting-o" size="22" color="#fff" @click="$router.push('/settings')" />
+  <div class="page page--with-tabbar matchmaker-page">
+    <section class="matchmaker-hero">
+      <div class="matchmaker-hero__actions">
+        <button type="button" @click="$router.push('/certification')">
+          <van-icon name="certificate" size="18" />
+        </button>
+        <button type="button" @click="$router.push('/settings')">
+          <van-icon name="setting-o" size="18" />
+        </button>
       </div>
 
-      <!-- 用户信息 -->
-      <div class="profile-user">
-        <div class="profile-user__avatar-wrap">
+      <div class="matchmaker-hero__identity">
+        <div class="matchmaker-hero__avatar-wrap">
           <van-image
             round
-            width="64"
-            height="64"
+            width="70"
+            height="70"
             :src="userStore.userInfo?.avatarUrl || defaultAvatar"
             fit="cover"
           />
-          <div v-if="completionPercent < 100" class="profile-user__badge">
+          <div v-if="completionPercent < 100" class="matchmaker-hero__badge">
             {{ completionPercent }}%
           </div>
         </div>
-        <div class="profile-user__info">
-          <div class="profile-user__name-row">
-            <span class="profile-user__name">{{ userStore.userInfo?.nickname || '婚介用户' }}</span>
-            <van-tag type="primary" round size="medium">婚介</van-tag>
+
+        <div class="matchmaker-hero__info">
+          <span class="brand-label">MATCHMAKER STUDIO</span>
+          <div class="matchmaker-hero__name-row">
+            <h2>{{ userStore.userInfo?.nickname || '婚介用户' }}</h2>
+            <span class="brand-chip">婚介</span>
           </div>
-          <div class="profile-user__id">ID: {{ userStore.userInfo?.id || '--' }}</div>
-          <van-button
-            size="small"
-            round
-            class="profile-user__switch"
-            @click="handleSwitchRole"
-          >
+          <p>ID: {{ userStore.userInfo?.id || '--' }} · 以香槟金服务路径管理匹配、会员与活动。</p>
+          <van-button size="small" round class="matchmaker-hero__switch" @click="handleSwitchRole">
             切换至求偶
           </van-button>
         </div>
       </div>
-    </div>
 
-    <!-- 快捷功能 -->
-    <div class="card">
-      <div class="action-grid">
-        <div
+      <div class="matchmaker-hero__stats">
+        <div v-for="item in statsItems" :key="item.label" class="matchmaker-hero__stat" @click="handleStatsClick(item)">
+          <strong>{{ item.value }}</strong>
+          <span>{{ item.label }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card matchmaker-card">
+      <div class="matchmaker-card__header">
+        <span class="brand-label">PRIMARY WORKFLOW</span>
+        <span>高频任务入口</span>
+      </div>
+      <div class="matchmaker-card__grid">
+        <button
           v-for="item in quickActions"
           :key="item.label"
-          class="action-grid__item"
+          type="button"
+          class="matchmaker-card__item"
           @click="$router.push(item.route)"
         >
-          <van-icon :name="item.icon" :size="28" :color="item.color" />
-          <span>{{ item.label }}</span>
-        </div>
+          <div class="matchmaker-card__icon" :style="{ color: item.color }">
+            <van-icon :name="item.icon" size="24" />
+          </div>
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.desc }}</span>
+        </button>
       </div>
-    </div>
+    </section>
 
-    <!-- 扩展功能 -->
-    <div class="card">
-      <div class="action-grid action-grid--small">
-        <div
+    <section class="card matchmaker-card">
+      <div class="matchmaker-card__header">
+        <span class="brand-label">OPERATIONS</span>
+        <span>协作与经营</span>
+      </div>
+      <div class="matchmaker-card__grid matchmaker-card__grid--compact">
+        <button
           v-for="item in menuActions"
           :key="item.label"
-          class="action-grid__item"
+          type="button"
+          class="matchmaker-card__item"
           @click="$router.push(item.route)"
         >
-          <van-icon :name="item.icon" :size="24" :color="item.color" />
-          <span>{{ item.label }}</span>
-        </div>
+          <div class="matchmaker-card__icon" :style="{ color: item.color }">
+            <van-icon :name="item.icon" size="22" />
+          </div>
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.desc }}</span>
+        </button>
       </div>
-    </div>
+    </section>
 
-    <!-- 底部 TabBar -->
+    <section class="card matchmaker-note">
+      <span class="brand-label">SERVICE NOTE</span>
+      <h3>把业务管理做得像高质量待办，而不是信息堆积。</h3>
+      <p>优先跟进待提现、待联络会员和近期开场的活动，让每一个入口都对应清晰动作。</p>
+    </section>
+
     <TabBar />
   </div>
 </template>
@@ -77,7 +102,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from 'vant'
 import { useUserStore } from '@/stores/user'
 import { useWalletStore } from '@/stores/wallet'
 import { matchmakerApi } from '@/api/matchmaker'
@@ -98,26 +122,26 @@ const dashboard = ref({
 })
 
 const statsItems = computed(() => [
-  { label: '团队业绩', value: dashboard.value.teamPerformance },
-  { label: '今日收益', value: dashboard.value.todayEarning },
-  { label: '本月收益', value: dashboard.value.monthEarning },
-  { label: '提现中', value: dashboard.value.pendingWithdraw }
+  { label: '团队业绩', value: dashboard.value.teamPerformance || 0, route: '/matchmaker/team' },
+  { label: '今日收益', value: dashboard.value.todayEarning || 0, route: '/matchmaker/wallet' },
+  { label: '本月收益', value: dashboard.value.monthEarning || 0, route: '/matchmaker/wallet' },
+  { label: '提现中', value: dashboard.value.pendingWithdraw || 0, route: '/matchmaker/wallet' }
 ])
 
 const quickActions = [
-  { icon: 'friends-o', label: '我的会员', color: '#FF7D41', route: '/matchmaker/members' },
-  { icon: 'apps-o', label: '会员展示', color: '#1989fa', route: '/matchmaker/resources' }
+  { icon: 'friends-o', label: '我的会员', desc: '查看与维护会员资料', color: 'var(--ifu-warning)', route: '/matchmaker/members' },
+  { icon: 'apps-o', label: '会员展示', desc: '分享优质资源卡片', color: 'var(--ifu-info)', route: '/matchmaker/resources' },
+  { icon: 'calendar-o', label: '沙龙活动', desc: '组织线下见面场景', color: 'var(--ifu-gold-700)', route: '/matchmaker/salon' }
 ]
 
 const menuActions = [
-  { icon: 'share-o', label: '邀请好友', color: '#FF7D41', route: '/matchmaker/invite' },
-  { icon: 'service-o', label: '客服中心', color: '#1989fa', route: '/customer-service' },
-  { icon: 'calendar-o', label: '沙龙活动', color: '#722ED1', route: '/matchmaker/salon' }
+  { icon: 'cash-back-record', label: '钱包收益', desc: '查看到账与提现', color: 'var(--ifu-success)', route: '/matchmaker/wallet' },
+  { icon: 'share-o', label: '邀请好友', desc: '扩展合作网络', color: 'var(--ifu-warning)', route: '/matchmaker/invite' },
+  { icon: 'service-o', label: '客服中心', desc: '获取平台支持', color: 'var(--ifu-info)', route: '/customer-service' }
 ]
 
 function handleStatsClick(item) {
-  if (item.label === '团队业绩') router.push('/matchmaker/team')
-  else if (item.label === '提现中') router.push('/matchmaker/wallet')
+  router.push(item.route)
 }
 
 async function handleSwitchRole() {
@@ -144,94 +168,177 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.profile-banner {
-  background: linear-gradient(135deg, var(--hl-accent-color), var(--hl-primary-color));
-  padding: 48px 16px 24px;
-  border-radius: 0 0 20px 20px;
+.matchmaker-page {
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
 }
 
-.profile-banner__actions {
+.matchmaker-hero {
+  margin: 0 14px;
+  padding: calc(env(safe-area-inset-top) + 22px) 18px 22px;
+  border-radius: 0 0 var(--ifu-radius-lg) var(--ifu-radius-lg);
+  background:
+    radial-gradient(circle at right top, rgba(255, 249, 241, 0.16), transparent 22%),
+    linear-gradient(145deg, #7e5d3d, #b58c58 62%, #dbc298);
+  color: #fff8ef;
+  box-shadow: var(--ifu-shadow-card);
+}
+
+.matchmaker-hero__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 10px;
 }
 
-.profile-user {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.profile-user__avatar-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.profile-user__badge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  background: var(--hl-primary-color);
-  color: #fff;
-  font-size: 10px;
-  padding: 1px 5px;
-  border-radius: 8px;
-  border: 2px solid #fff;
-}
-
-.profile-user__info {
-  flex: 1;
-  color: #fff;
-}
-
-.profile-user__name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.profile-user__name {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.profile-user__id {
-  font-size: 12px;
-  opacity: 0.85;
-  margin-bottom: 8px;
-}
-
-.profile-user__switch {
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.9) !important;
-  color: var(--hl-primary-color) !important;
-  border-color: rgba(255, 255, 255, 0.9) !important;
-  font-weight: 500;
-}
-
-.action-grid {
+.matchmaker-hero__actions button {
+  width: 38px;
+  height: 38px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px 0;
+  place-items: center;
+  border: 1px solid rgba(255, 248, 239, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 248, 239, 0.12);
+  color: #fff;
 }
 
-.action-grid--small .action-grid__item {
-  padding: 8px 0;
-}
-
-.action-grid__item {
+.matchmaker-hero__identity {
   display: flex;
-  flex-direction: column;
+  gap: 14px;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 0;
+  margin-top: 18px;
 }
 
-.action-grid__item span {
+.matchmaker-hero__avatar-wrap {
+  position: relative;
+}
+
+.matchmaker-hero__badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(58, 46, 35, 0.86);
+  color: #fff8ef;
+  font-size: 10px;
+}
+
+.matchmaker-hero__info {
+  flex: 1;
+}
+
+.matchmaker-hero__name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.matchmaker-hero__name-row h2 {
+  font-size: 26px;
+}
+
+.matchmaker-hero__info p {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255, 248, 239, 0.78);
+}
+
+.matchmaker-hero__switch {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--ifu-text-strong) !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.matchmaker-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.matchmaker-hero__stat {
+  padding: 12px 8px;
+  border-radius: 18px;
+  background: rgba(255, 248, 239, 0.12);
+  border: 1px solid rgba(255, 248, 239, 0.14);
+  text-align: center;
+}
+
+.matchmaker-hero__stat strong {
+  display: block;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 18px;
+}
+
+.matchmaker-hero__stat span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255, 248, 239, 0.74);
+}
+
+.matchmaker-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
+}
+
+.matchmaker-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.matchmaker-card__item {
+  padding: 16px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 205, 169, 0.48);
+  background: rgba(255, 252, 247, 0.82);
+  text-align: left;
+}
+
+.matchmaker-card__icon {
+  margin-bottom: 12px;
+}
+
+.matchmaker-card__item strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ifu-text-strong);
+}
+
+.matchmaker-card__item span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ifu-text-muted);
+}
+
+.matchmaker-note h3 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.matchmaker-note p {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ifu-text);
+}
+
+@media (max-width: 420px) {
+  .matchmaker-card__grid,
+  .matchmaker-hero__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

@@ -2,6 +2,17 @@
   <div class="page page--with-tabbar messages-page">
     <van-nav-bar title="消息" :border="false" />
 
+    <section class="messages-hero card">
+      <div class="messages-hero__title">
+        <div>
+          <span class="brand-label">RELATIONSHIP INBOX</span>
+          <h2>先回复更有可能继续的对话</h2>
+        </div>
+        <div class="messages-hero__badge">{{ priorityCount }} 条优先</div>
+      </div>
+      <p class="messages-hero__desc">高意向与近期活跃会被排在更前面，先把对的人留在你的注意力里。</p>
+    </section>
+
     <section class="starter-panel">
       <div class="starter-panel__title">
         <span>推荐开场白</span>
@@ -33,8 +44,8 @@
           <div class="conversation-item__avatar">
             <van-image
               round
-              width="48"
-              height="48"
+              width="52"
+              height="52"
               :src="item.avatarUrl || defaultAvatar"
               fit="cover"
             />
@@ -63,7 +74,9 @@
           </div>
         </article>
 
-        <EmptyState v-if="!refreshing && normalizedConversations.length === 0" text="暂无消息" />
+        <div v-if="!refreshing && normalizedConversations.length === 0" class="card conversation-empty">
+          <EmptyState text="暂无消息" />
+        </div>
       </div>
     </van-pull-refresh>
 
@@ -149,6 +162,8 @@ const normalizedConversations = computed(() => {
     })
 })
 
+const priorityCount = computed(() => normalizedConversations.value.filter(item => item.intentLevel > 0).length)
+
 function formatTime(timestamp) {
   if (!timestamp) return ''
   const now = new Date()
@@ -201,34 +216,69 @@ onMounted(() => {
 
 <style scoped>
 .messages-page {
-  background: transparent;
+  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+.messages-hero {
+  margin-top: max(env(safe-area-inset-top), 8px);
+}
+
+.messages-hero__title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messages-hero__title h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.messages-hero__badge {
+  min-width: 72px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff8eb, rgba(226, 205, 169, 0.3));
+  border: 1px solid rgba(166, 124, 82, 0.24);
+  font-size: 12px;
+  color: var(--ifu-text-strong);
+}
+
+.messages-hero__desc {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ifu-text);
 }
 
 .starter-panel {
-  margin: 8px 12px 12px;
-  padding: 12px;
-  border-radius: var(--hl-radius-md);
-  background: linear-gradient(145deg, #fff, #f9f5ee);
-  border: 1px solid var(--hl-border-color);
-  box-shadow: var(--hl-shadow-card);
+  margin: 8px 14px 12px;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 247, 240, 0.9));
+  border: 1px solid rgba(233, 221, 204, 0.9);
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .starter-panel__title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .starter-panel__title span {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .starter-panel__title small {
   font-size: 11px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
 }
 
 .starter-panel__chips {
@@ -239,43 +289,35 @@ onMounted(() => {
 }
 
 .starter-chip {
-  border: 1px solid rgba(140, 106, 67, 0.2);
+  border: 1px solid rgba(166, 124, 82, 0.18);
   background: #fff;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   border-radius: 999px;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 36px;
+  padding: 0 14px;
   white-space: nowrap;
   font-size: 12px;
 }
 
 .conversation-list {
-  background: rgba(255, 255, 255, 0.74);
-  margin: 0 12px;
-  border-radius: var(--hl-radius-md);
-  overflow: hidden;
-  box-shadow: var(--hl-shadow-card);
+  margin: 0 14px;
 }
 
 .conversation-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px;
-  border-bottom: 1px solid var(--hl-border-color);
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 244, 0.94));
+  box-shadow: var(--ifu-shadow-soft);
   cursor: pointer;
 }
 
-.conversation-item:last-child {
-  border-bottom: 0;
-}
-
-.conversation-item:active {
-  background: var(--hl-bg-soft);
-}
-
 .conversation-item--priority {
-  background: linear-gradient(90deg, rgba(201, 164, 106, 0.08), rgba(201, 164, 106, 0));
+  background: linear-gradient(180deg, rgba(255, 248, 239, 0.98), rgba(255, 250, 244, 0.96));
 }
 
 .conversation-item__avatar {
@@ -293,7 +335,7 @@ onMounted(() => {
   text-align: center;
   font-size: 10px;
   color: #fff;
-  background: var(--hl-accent-color);
+  background: var(--ifu-danger);
   border-radius: 9px;
   padding: 0 4px;
 }
@@ -319,8 +361,8 @@ onMounted(() => {
 
 .conversation-item__name {
   font-size: 15px;
-  font-weight: 500;
-  color: var(--hl-text-primary);
+  font-weight: 600;
+  color: var(--ifu-text-strong);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -328,25 +370,29 @@ onMounted(() => {
 
 .conversation-item__priority-pill {
   border-radius: 999px;
-  padding: 1px 7px;
+  padding: 2px 8px;
   font-size: 10px;
   color: #fff;
-  background: linear-gradient(120deg, #8c6a43, #c9a46a);
+  background: linear-gradient(120deg, var(--ifu-gold-700), var(--ifu-gold-500));
 }
 
 .conversation-item__time {
   font-size: 12px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
   flex-shrink: 0;
   margin-left: 8px;
 }
 
 .conversation-item__preview {
   font-size: 13px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
+}
+
+.conversation-empty {
+  margin: 0;
 }
 </style>

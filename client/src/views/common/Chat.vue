@@ -1,8 +1,34 @@
 <template>
-  <div class="page chat-page">
-    <van-nav-bar :title="otherUser.nickname || '聊天'" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page chat-page">
+    <van-nav-bar
+      :title="conversationTitle"
+      :border="false"
+      left-arrow
+      @click-left="$router.back()"
+    />
 
-    <div ref="messageListRef" class="chat-messages" @scroll="handleScroll">
+    <section class="card utility-hero chat-hero" data-testid="chat-brand-shell">
+      <div class="utility-hero__top">
+        <div>
+          <p class="eyebrow">Champagne Conversation</p>
+          <h1>{{ conversationTitle }}</h1>
+          <p>{{ conversationHint }}</p>
+        </div>
+        <span class="utility-chip utility-chip--soft">已读回执开启</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="utility-chip">真诚开场</span>
+        <span class="utility-chip">节奏友好</span>
+        <span class="utility-chip">红娘可协助</span>
+      </div>
+    </section>
+
+    <div
+      ref="messageListRef"
+      class="chat-messages"
+      data-testid="chat-message-shell"
+      @scroll="handleScroll"
+    >
       <div v-if="loadingMore" class="chat-loading">
         <van-loading size="20" />
       </div>
@@ -30,7 +56,7 @@
       <EmptyState v-if="!loading && messages.length === 0" text="暂无消息，说点什么吧" />
     </div>
 
-    <div class="chat-input-bar">
+    <div class="chat-input-bar" data-testid="chat-input-shell">
       <van-field
         v-model="inputText"
         type="textarea"
@@ -54,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { computed, ref, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { messageApi } from '@/api/message'
@@ -82,6 +108,13 @@ const otherUser = ref({
   nickname: '',
   avatarUrl: ''
 })
+
+const conversationTitle = computed(() => otherUser.value.nickname || '信任对话')
+const conversationHint = computed(() =>
+  otherUser.value.nickname
+    ? `和 ${otherUser.value.nickname} 保持自然沟通，系统会为你保留稳定的沟通记录。`
+    : '从轻松问候开始，保持真实表达，建立更自然的了解节奏。'
+)
 
 async function fetchMessages(isLoadMore = false) {
   if (!isLoadMore) {
@@ -198,14 +231,19 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--hl-bg-color);
+  overflow: hidden;
 }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: 0 4px 8px;
   -webkit-overflow-scrolling: touch;
+}
+
+.chat-hero {
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .chat-loading {
@@ -267,10 +305,13 @@ onMounted(async () => {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 8px 12px;
+  margin-top: 8px;
+  padding: 10px 12px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
-  background: var(--hl-card-bg);
-  border-top: 1px solid var(--hl-border-color);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(166, 124, 82, 0.12);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -16px 32px rgba(79, 56, 36, 0.08);
 }
 
 .chat-input-bar__field {

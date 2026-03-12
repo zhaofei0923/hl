@@ -1,9 +1,23 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="邀请好友" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page">
+    <van-nav-bar title="邀请好友" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 邀请banner -->
+    <section class="card utility-hero" data-testid="matchmaker-invite-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">INVITE NETWORK</span>
+          <h1>把邀请页做成持续扩展合作网络的入口</h1>
+          <p>邀请码、奖励规则和邀请记录应该放在同一阅读路径里，减少从分享到账励确认之间的断层。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ inviteCode || '邀请码生成中' }}</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">{{ recordList.length }} 条邀请记录</span>
+        <span class="brand-chip">复制即分享</span>
+        <span class="brand-chip">首单奖励</span>
+      </div>
+    </section>
+
     <div class="invite-banner">
       <div class="invite-banner__icon">
         <van-icon name="friends-o" size="48" color="#fff" />
@@ -14,7 +28,6 @@
       </div>
     </div>
 
-    <!-- 邀请码 -->
     <div class="invite-code-card">
       <div class="invite-code-card__label">我的邀请码</div>
       <div class="invite-code-card__code-row">
@@ -43,7 +56,6 @@
       </div>
     </div>
 
-    <!-- 邀请规则 -->
     <div class="rules-card">
       <div class="rules-card__title">
         <van-icon name="info-o" size="16" color="var(--hl-primary-color)" />
@@ -69,7 +81,6 @@
       </div>
     </div>
 
-    <!-- 邀请记录 -->
     <div class="section-title">
       <span>邀请记录</span>
       <span class="section-title__count">共{{ recordList.length }}人</span>

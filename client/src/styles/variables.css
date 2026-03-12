@@ -1,37 +1,56 @@
 :root {
-  /* 婚介高端棕金主题 */
-  --hl-primary-color: #8c6a43;
-  --hl-primary-light: #f3e8db;
-  --hl-accent-color: #c9a46a;
-  --hl-accent-light: #f8f1e4;
+  --ifu-gold-700: #a67c52;
+  --ifu-gold-600: #b8945a;
+  --ifu-gold-500: #c8a977;
+  --ifu-gold-300: #e2cda9;
+  --ifu-gold-100: #f6ebdd;
 
-  /* 金色特权 */
-  --hl-gold-start: #a78350;
-  --hl-gold-end: #d7ba83;
+  --ifu-bg: #fbf7f1;
+  --ifu-bg-soft: #f4eee6;
+  --ifu-card: #ffffff;
+  --ifu-card-muted: rgba(255, 255, 255, 0.76);
+  --ifu-text-strong: #3a2e23;
+  --ifu-text: #655647;
+  --ifu-text-muted: #9a8a78;
+  --ifu-border: #e9ddcc;
+  --ifu-border-strong: #dbc7ad;
+  --ifu-success: #7e9a78;
+  --ifu-warning: #c28b4e;
+  --ifu-danger: #a85d52;
+  --ifu-info: #8c9aa8;
 
-  /* 钱包红色（保留给红娘端） */
-  --hl-wallet-start: #b04d3f;
-  --hl-wallet-end: #cf7363;
+  --ifu-radius-xs: 12px;
+  --ifu-radius-sm: 16px;
+  --ifu-radius-md: 22px;
+  --ifu-radius-lg: 30px;
+  --ifu-radius-pill: 999px;
 
-  /* 背景色 */
-  --hl-bg-color: #f6f3ee;
-  --hl-bg-soft: #f0ebe3;
-  --hl-card-bg: #ffffff;
+  --ifu-shadow-soft: 0 10px 26px rgba(83, 59, 33, 0.08);
+  --ifu-shadow-card: 0 22px 56px rgba(83, 59, 33, 0.1);
+  --ifu-shadow-float: 0 26px 60px rgba(83, 59, 33, 0.14);
 
-  /* 文字色 */
-  --hl-text-primary: #2e2a26;
-  --hl-text-secondary: #5a524a;
-  --hl-text-placeholder: #8a8178;
+  --ifu-page-max: 1180px;
+  --ifu-page-padding: 16px;
 
-  /* 边框 */
-  --hl-border-color: #e6ddd2;
-
-  /* 圆角（10/14/20） */
-  --hl-radius-sm: 10px;
-  --hl-radius-md: 14px;
-  --hl-radius-lg: 20px;
-
-  /* 阴影 */
-  --hl-shadow-soft: 0 8px 24px rgba(44, 34, 21, 0.08);
-  --hl-shadow-card: 0 4px 14px rgba(45, 35, 22, 0.06);
+  /* Backward-compatible aliases used throughout the existing client. */
+  --hl-primary-color: var(--ifu-gold-700);
+  --hl-primary-light: var(--ifu-gold-100);
+  --hl-accent-color: var(--ifu-gold-500);
+  --hl-accent-light: #fbf3e6;
+  --hl-gold-start: var(--ifu-gold-600);
+  --hl-gold-end: var(--ifu-gold-300);
+  --hl-wallet-start: #b6845f;
+  --hl-wallet-end: #d8b489;
+  --hl-bg-color: var(--ifu-bg);
+  --hl-bg-soft: var(--ifu-bg-soft);
+  --hl-card-bg: var(--ifu-card);
+  --hl-text-primary: var(--ifu-text-strong);
+  --hl-text-secondary: var(--ifu-text);
+  --hl-text-placeholder: var(--ifu-text-muted);
+  --hl-border-color: var(--ifu-border);
+  --hl-radius-sm: var(--ifu-radius-xs);
+  --hl-radius-md: var(--ifu-radius-sm);
+  --hl-radius-lg: var(--ifu-radius-md);
+  --hl-shadow-soft: var(--ifu-shadow-soft);
+  --hl-shadow-card: var(--ifu-shadow-card);
 }

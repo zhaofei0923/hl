@@ -1,7 +1,6 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar :title="`会员展示 (${totalCount})`" left-arrow @click-left="$router.back()">
+  <div class="page utility-page">
+    <van-nav-bar :title="`会员展示 (${totalCount})`" left-arrow :border="false" @click-left="$router.back()">
       <template #right>
         <div style="display:flex;align-items:center;gap:14px;">
           <van-badge :content="activeFilterCount || ''" color="var(--hl-primary-color)">
@@ -12,7 +11,22 @@
       </template>
     </van-nav-bar>
 
-    <!-- 资源列表 -->
+    <section class="card utility-hero" data-testid="matchmaker-resources-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">RESOURCE POOL</span>
+          <h1>把会员资源库做成可互推的共享盘</h1>
+          <p>先看总量和筛选密度，再决定查看详情、互推资源，还是继续细化筛选条件。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ notCertified ? '需先认证' : '资源可用' }}</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">{{ totalCount }} 位资源</span>
+        <span class="brand-chip">{{ activeFilterCount }} 个筛选</span>
+        <span class="brand-chip">互推协作</span>
+      </div>
+    </section>
+
     <van-empty
       v-if="notCertified"
       image="network"
@@ -117,7 +131,6 @@
       </div>
     </van-popup>
 
-    <!-- 筛选面板 -->
     <van-popup v-model:show="showFilter" position="bottom" round :style="{ maxHeight: '80vh' }">
       <div class="popup-form">
         <div class="popup-form__header">

@@ -1,11 +1,26 @@
 <template>
-  <div class="page">
-    <van-nav-bar title="编辑会员资料" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page utility-page--form">
+    <van-nav-bar title="编辑会员资料" left-arrow :border="false" @click-left="$router.back()" />
+
+    <section class="card utility-hero" data-testid="matchmaker-member-edit-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">EDIT MEMBER</span>
+          <h1>把资料编辑做成清楚、连续的会员维护动作</h1>
+          <p>更新资料时优先补齐影响推荐和沟通判断的关键信息，避免形成只改局部、整体仍然模糊的档案。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">维护档案</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">纠正资料</span>
+        <span class="brand-chip">补齐偏好</span>
+        <span class="brand-chip">更新相册</span>
+      </div>
+    </section>
 
     <van-loading v-if="loading" class="page-loading" size="24px" vertical>加载中...</van-loading>
 
     <van-form v-if="!loading" ref="formRef" @submit="handleSubmit">
-      <!-- 基础信息 -->
       <div class="section-title">基本信息</div>
       <van-cell-group inset>
         <van-field
@@ -122,7 +137,6 @@
         />
       </van-cell-group>
 
-      <!-- 详细信息 -->
       <div class="section-title">详细介绍</div>
       <van-cell-group inset>
         <van-field

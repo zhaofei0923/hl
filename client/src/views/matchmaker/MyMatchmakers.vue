@@ -1,9 +1,23 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="我的红娘" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page">
+    <van-nav-bar title="我的红娘" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 红娘列表 -->
+    <section class="card utility-hero" data-testid="my-matchmakers-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">ADVISOR NETWORK</span>
+          <h1>把合作红娘做成可追踪的协作列表</h1>
+          <p>先看成员数量、业绩和加入时间，再决定重点维护哪位顾问的协作关系。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ matchmakerList.length }} 位红娘</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">会员协作</span>
+        <span class="brand-chip">业绩联动</span>
+        <span class="brand-chip">长期合作</span>
+      </div>
+    </section>
+
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
         v-model:loading="listLoading"

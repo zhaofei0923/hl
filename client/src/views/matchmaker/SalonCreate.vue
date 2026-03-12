@@ -1,10 +1,27 @@
 <template>
-  <div class="page">
+  <div class="page utility-page utility-page--form">
     <van-nav-bar
       :title="isEdit ? '编辑活动' : '创建活动'"
       left-arrow
+      :border="false"
       @click-left="$router.back()"
     />
+
+    <section class="card utility-hero" data-testid="matchmaker-salon-create-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">SALON FORM</span>
+          <h1>{{ isEdit ? '把活动修改做成清晰的运营调整' : '把活动创建做成一眼能确认信息完整度的表单' }}</h1>
+          <p>时间、地点、人数和费用应当一次写清，方便后续报名、线下执行和红娘协作跟进。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ isEdit ? '编辑中' : '创建中' }}</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">时间与地点</span>
+        <span class="brand-chip">席位设置</span>
+        <span class="brand-chip">封面图上传</span>
+      </div>
+    </section>
 
     <div class="form-wrap">
       <van-form @submit="onSubmit">
@@ -60,7 +77,6 @@
           </van-field>
         </van-cell-group>
 
-        <!-- 封面图上传 -->
         <div class="section-title">封面图（可选）</div>
         <van-cell-group inset>
           <van-field label="封面图">
@@ -84,7 +100,6 @@
       </van-form>
     </div>
 
-    <!-- 日期时间选择器 -->
     <van-popup v-model:show="showDatePicker" position="bottom" round>
       <van-date-picker
         v-model="dateValue"

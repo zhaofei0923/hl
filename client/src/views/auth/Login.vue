@@ -1,27 +1,59 @@
 <template>
   <div class="page login-page">
-    <!-- 顶部品牌区域 -->
-    <div class="login-header">
+    <section class="login-header" data-testid="login-brand-panel">
+      <div class="login-header__halo"></div>
+      <div class="login-header__ornament"></div>
+      <div class="login-header__topline">
+        <span class="brand-label">IF U MATCHMAKING EDITION</span>
+        <span class="login-header__status">香槟金甄选</span>
+      </div>
       <div class="login-header__logo">
-        <van-icon name="like" size="48" color="#fff" />
+        <van-icon name="like" size="30" color="#fff8ef" />
       </div>
       <h1 class="login-header__title">IFU</h1>
-      <p class="login-header__subtitle">遇见对的人，从这里开始</p>
-    </div>
+      <p class="login-header__subtitle">严选匹配 / 红娘协作 / 真实认证</p>
+      <div class="login-header__pill-row">
+        <span
+          v-for="pill in brandPills"
+          :key="pill"
+          class="login-header__pill"
+          data-testid="login-brand-pill"
+        >
+          {{ pill }}
+        </span>
+      </div>
 
-    <!-- 登录/注册表单 -->
+      <div class="login-header__promise-grid">
+        <div
+          v-for="item in servicePromises"
+          :key="item.title"
+          class="login-header__promise"
+        >
+          <strong>{{ item.title }}</strong>
+          <span>{{ item.desc }}</span>
+        </div>
+      </div>
+    </section>
+
     <div class="login-form-wrapper">
-      <!-- 邀请提示 -->
       <van-notice-bar
         v-if="$route.query.inviteCode"
         left-icon="volume-o"
         text="您正在通过邀请链接注册，注册后将自动成为红娘会员"
-        color="#1989fa"
-        background="#ecf9ff"
-        style="margin: -8px -16px 12px; border-radius: var(--hl-radius-sm);"
+        color="#7b5b39"
+        background="#f5ecdd"
+        style="margin: -8px 0 14px; border-radius: 18px;"
       />
+
+      <section class="login-editorial-card">
+        <div>
+          <span class="brand-label">MATCH WITH INTENT</span>
+          <h2>把第一印象变成值得继续的对话</h2>
+        </div>
+        <p>为认真进入关系的人准备。真实资料、人工撮合、合适再见面。</p>
+      </section>
+
       <van-tabs v-model:active="activeTab" shrink animated>
-        <!-- Tab 1: 短信验证码登录 -->
         <van-tab title="短信登录">
           <div class="login-form">
             <van-field
@@ -64,7 +96,6 @@
           </div>
         </van-tab>
 
-        <!-- Tab 2: 用户名密码登录 -->
         <van-tab title="账号登录">
           <div class="login-form">
             <van-field
@@ -98,10 +129,8 @@
           </div>
         </van-tab>
 
-        <!-- Tab 3: 注册 -->
         <van-tab title="注册">
           <div class="login-form">
-            <!-- 身份选择 -->
             <div class="role-select">
               <div
                 class="role-select__item"
@@ -169,7 +198,6 @@
         </van-tab>
       </van-tabs>
 
-      <!-- 协议勾选 -->
       <div class="login-agreement">
         <van-checkbox v-model="agreed" icon-size="16" shape="square">
           <span class="login-agreement__text">
@@ -181,7 +209,6 @@
         </van-checkbox>
       </div>
 
-      <!-- 第三方登录 -->
       <div class="login-third">
         <div class="login-third__divider">
           <span>其他登录方式</span>
@@ -193,6 +220,17 @@
           </div>
         </div>
       </div>
+
+      <section class="login-proof-panel">
+        <div
+          v-for="item in socialProof"
+          :key="item.label"
+          class="login-proof-panel__item"
+        >
+          <strong>{{ item.value }}</strong>
+          <span>{{ item.label }}</span>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -209,7 +247,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-const activeTab = ref(1) // 默认显示账号登录
+const activeTab = ref(1)
 const loading = ref(false)
 const showLoginPwd = ref(false)
 const showRegPwd = ref(false)
@@ -218,19 +256,28 @@ const agreed = ref(false)
 const countdown = ref(0)
 let countdownTimer = null
 
-// 短信登录表单
+const brandPills = ['红娘严选', '实名资料', '线下可见面']
+const servicePromises = [
+  { title: '先筛再聊', desc: '减少低质量打扰' },
+  { title: '重视安全感', desc: '认证与人工复核并行' },
+  { title: '适合长期关系', desc: '优先真实择偶意向' }
+]
+const socialProof = [
+  { value: '1v1', label: '顾问式推荐' },
+  { value: '98%', label: '资料核验率' },
+  { value: '同城', label: '优先线下连接' }
+]
+
 const smsForm = reactive({
   phone: '',
   code: ''
 })
 
-// 用户名登录表单
 const loginForm = reactive({
   username: '',
   password: ''
 })
 
-// 注册表单
 const regForm = reactive({
   username: '',
   nickname: '',
@@ -239,7 +286,6 @@ const regForm = reactive({
   role: 'user'
 })
 
-// 发送短信验证码
 async function handleSendSms() {
   const phoneError = validatePhone(smsForm.phone)
   if (phoneError) {
@@ -263,7 +309,6 @@ async function handleSendSms() {
   }
 }
 
-// 短信验证码登录
 async function handleSmsLogin() {
   if (!checkAgreement()) return
 
@@ -284,7 +329,6 @@ async function handleSmsLogin() {
   }
 }
 
-// 用户名密码登录
 async function handleUsernameLogin() {
   if (!checkAgreement()) return
 
@@ -305,7 +349,6 @@ async function handleUsernameLogin() {
   }
 }
 
-// 注册
 async function handleRegister() {
   if (!checkAgreement()) return
 
@@ -337,12 +380,10 @@ async function handleRegister() {
   }
 }
 
-// 微信登录
 function handleWechatLogin() {
   showToast('微信登录开发中...')
 }
 
-// 协议检查
 function checkAgreement() {
   if (!agreed.value) {
     showToast('请先同意用户协议和隐私政策')
@@ -351,7 +392,6 @@ function checkAgreement() {
   return true
 }
 
-// 登录成功后跳转
 function navigateAfterLogin(data) {
   const redirect = route.query.redirect
   if (redirect) {
@@ -365,40 +405,198 @@ function navigateAfterLogin(data) {
 
 <style scoped>
 .login-page {
-  background: var(--hl-bg-color);
+  overflow-x: hidden;
   min-height: 100vh;
 }
 
 .login-header {
-  background: linear-gradient(135deg, var(--hl-accent-color), var(--hl-primary-color));
-  padding: 60px 20px 40px;
-  text-align: center;
-  border-radius: 0 0 30px 30px;
+  position: relative;
+  margin: 0 14px;
+  padding: calc(env(safe-area-inset-top) + 24px) 22px 28px;
+  border-radius: 0 0 var(--ifu-radius-lg) var(--ifu-radius-lg);
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.18), transparent 22%),
+    radial-gradient(circle at 82% 12%, rgba(243, 223, 194, 0.26), transparent 18%),
+    linear-gradient(145deg, #8f6840 0%, #b38a58 52%, #d0b07c 100%);
+  color: #fff9f1;
+  overflow: hidden;
+  box-shadow: var(--ifu-shadow-card);
+}
+
+.login-header__halo,
+.login-header__ornament {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-header__halo {
+  width: 180px;
+  height: 180px;
+  top: -68px;
+  right: -42px;
+  background: rgba(255, 244, 228, 0.13);
+}
+
+.login-header__ornament {
+  width: 96px;
+  height: 96px;
+  left: -18px;
+  bottom: 46px;
+  border: 1px solid rgba(255, 250, 241, 0.18);
+}
+
+.login-header__topline,
+.login-header__logo,
+.login-header__title,
+.login-header__subtitle,
+.login-header__pill-row,
+.login-header__promise-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.login-header__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.login-header__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 248, 239, 0.16);
+  background: rgba(255, 248, 239, 0.1);
+  font-size: 12px;
 }
 
 .login-header__logo {
-  margin-bottom: 12px;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  margin: 20px auto 10px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 248, 239, 0.22), rgba(255, 248, 239, 0.08));
+  border: 1px solid rgba(255, 248, 239, 0.18);
+  backdrop-filter: blur(10px);
 }
 
 .login-header__title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
+  text-align: center;
+  font-size: 34px;
+  color: #fff9f1;
   margin-bottom: 8px;
 }
 
 .login-header__subtitle {
+  text-align: center;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 249, 241, 0.88);
+}
+
+.login-header__pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.login-header__pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 248, 239, 0.14);
+  border: 1px solid rgba(255, 248, 239, 0.14);
+  font-size: 12px;
+}
+
+.login-header__promise-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.login-header__promise {
+  padding: 12px 10px;
+  border-radius: 18px;
+  background: rgba(255, 248, 239, 0.1);
+  border: 1px solid rgba(255, 248, 239, 0.14);
+  text-align: left;
+}
+
+.login-header__promise strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login-header__promise span {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: rgba(255, 249, 241, 0.74);
 }
 
 .login-form-wrapper {
-  margin: -20px 16px 0;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-lg);
-  padding: 24px 16px;
+  margin: -18px 16px 0;
+  padding: 22px 18px 26px;
   position: relative;
   z-index: 1;
+  background: rgba(255, 255, 255, 0.84);
+  border-radius: var(--ifu-radius-lg);
+  border: 1px solid rgba(233, 221, 204, 0.94);
+  box-shadow: var(--ifu-shadow-float);
+  backdrop-filter: blur(16px);
+}
+
+.login-editorial-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffaf3, #f8efe2);
+  border: 1px solid rgba(226, 205, 169, 0.6);
+}
+
+.login-editorial-card h2 {
+  font-size: 22px;
+  line-height: 1.25;
+  margin-top: 4px;
+}
+
+.login-editorial-card p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ifu-text);
+}
+
+.login-form-wrapper :deep(.van-tabs__nav) {
+  padding: 4px;
+  border-radius: 18px;
+  background: #efe8de;
+}
+
+.login-form-wrapper :deep(.van-tab) {
+  color: var(--ifu-text-muted);
+}
+
+.login-form-wrapper :deep(.van-tab--active) {
+  color: var(--ifu-text-strong);
+}
+
+.login-form-wrapper :deep(.van-tabs__line) {
+  bottom: 8px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .login-form {
@@ -407,25 +605,26 @@ function navigateAfterLogin(data) {
 
 .login-form :deep(.van-field) {
   margin-bottom: 12px;
-  background: var(--hl-bg-color);
-  border-radius: var(--hl-radius-sm);
+  background: rgba(250, 245, 237, 0.84);
+  border-radius: 18px;
 }
 
 .login-form__submit {
-  margin-top: 24px;
-  height: 44px;
+  margin-top: 22px;
+  height: 48px;
   font-size: 16px;
+  font-weight: 600;
 }
 
 .login-form__tip {
   margin-top: 16px;
   text-align: center;
   font-size: 13px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
 .login-form__link {
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   cursor: pointer;
 }
 
@@ -434,17 +633,21 @@ function navigateAfterLogin(data) {
   padding: 0 4px;
 }
 
+.login-agreement :deep(.van-checkbox__icon) {
+  border-radius: 8px;
+}
+
 .login-agreement__text {
   font-size: 12px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
 }
 
 .login-agreement__link {
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
 }
 
 .login-third {
-  margin-top: 32px;
+  margin-top: 26px;
 }
 
 .login-third__divider {
@@ -463,7 +666,7 @@ function navigateAfterLogin(data) {
 
 .login-third__divider span {
   font-size: 12px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
   padding: 0 16px;
 }
 
@@ -482,10 +685,38 @@ function navigateAfterLogin(data) {
 
 .login-third__icon span {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
-/* 身份选择 */
+.login-proof-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.login-proof-panel__item {
+  padding: 12px 10px;
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(255, 250, 242, 0.8);
+  border: 1px solid rgba(226, 205, 169, 0.48);
+}
+
+.login-proof-panel__item strong {
+  display: block;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 20px;
+  color: var(--ifu-text-strong);
+}
+
+.login-proof-panel__item span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--ifu-text-muted);
+}
+
 .role-select {
   display: flex;
   gap: 12px;
@@ -500,17 +731,17 @@ function navigateAfterLogin(data) {
   align-items: center;
   gap: 4px;
   padding: 14px 8px;
-  border: 2px solid var(--hl-border-color);
-  border-radius: var(--hl-radius-sm);
+  border: 1px solid rgba(219, 199, 173, 0.9);
+  border-radius: 18px;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
 .role-select__item--active {
-  border-color: var(--hl-primary-color);
-  background: rgba(255, 125, 65, 0.06);
-  color: var(--hl-primary-color);
+  border-color: rgba(166, 124, 82, 0.5);
+  background: linear-gradient(180deg, #fff7eb, rgba(226, 205, 169, 0.28));
+  color: var(--ifu-text-strong);
 }
 
 .role-select__label {
@@ -520,6 +751,13 @@ function navigateAfterLogin(data) {
 
 .role-select__desc {
   font-size: 11px;
-  opacity: 0.8;
+  color: var(--ifu-text-muted);
+}
+
+@media (max-width: 380px) {
+  .login-header__promise-grid,
+  .login-proof-panel {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

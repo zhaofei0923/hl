@@ -1,5 +1,5 @@
 <template>
-  <div class="page profile-edit-page">
+  <div class="page utility-page utility-page--form profile-edit-page">
     <van-nav-bar
       title="编辑资料"
       left-arrow
@@ -10,6 +10,22 @@
         <span class="nav-save-btn" @click="handleSave">保存</span>
       </template>
     </van-nav-bar>
+
+    <section class="card utility-hero" data-testid="user-profile-edit-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">PROFILE EDIT</span>
+          <h1>把资料维护做成清楚可控的形象更新流程</h1>
+          <p>头像、基础资料、生活方式和婚恋观应该在同一页完整呈现，方便你持续优化展示效果。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">资料维护</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">头像更新</span>
+        <span class="brand-chip">基础信息</span>
+        <span class="brand-chip">婚恋偏好</span>
+      </div>
+    </section>
 
     <div v-if="loading" class="profile-edit-loading">
       <van-loading type="spinner" color="var(--hl-primary-color)" />

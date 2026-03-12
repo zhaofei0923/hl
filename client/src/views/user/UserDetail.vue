@@ -15,14 +15,18 @@
       <section class="detail-hero" :style="heroBackgroundStyle">
         <div class="detail-hero__overlay"></div>
         <div class="detail-hero__content">
-          <van-image
-            round
-            width="76"
-            height="76"
-            :src="userDetail.avatarUrl || defaultAvatar"
-            fit="cover"
-            class="detail-hero__avatar"
-          />
+          <span class="detail-hero__label brand-label">PROFILE</span>
+          <div class="detail-hero__top">
+            <van-image
+              round
+              width="76"
+              height="76"
+              :src="userDetail.avatarUrl || defaultAvatar"
+              fit="cover"
+              class="detail-hero__avatar"
+            />
+            <span class="detail-hero__score">{{ matchScoreText }}</span>
+          </div>
           <div class="detail-hero__name-row">
             <h1>{{ userDetail.nickname || '匿名用户' }}</h1>
             <van-tag v-if="userDetail.verified" type="success" plain round size="small">已认证</van-tag>
@@ -69,6 +73,20 @@
         <div class="detail-summary__item">
           <span class="label">收入</span>
           <strong>{{ userDetail.income_range || '未填写' }}</strong>
+        </div>
+      </section>
+
+      <section class="detail-match card" data-testid="detail-match-reasons">
+        <div class="detail-section__title">
+          <van-icon name="fire-o" size="16" />
+          <h3>这次推荐的理由</h3>
+        </div>
+        <ul class="detail-match__list">
+          <li v-for="reason in matchReasons" :key="reason">{{ reason }}</li>
+        </ul>
+        <div class="detail-match__tip">
+          <span class="brand-label">OPENING IDEA</span>
+          <p>{{ openingSuggestion }}</p>
         </div>
       </section>
 
@@ -184,6 +202,8 @@ const trustLevelText = computed(() => {
   return '待完善'
 })
 
+const matchScoreText = computed(() => `${userDetail.matchScore || Math.max(78, profileCompletion.value)}%`)
+
 const lifestyleItems = computed(() => [
   { label: '工作城市', value: userDetail.city || '未填写' },
   { label: '职业方向', value: userDetail.occupation || '未填写' },
@@ -194,6 +214,19 @@ const lifestyleItems = computed(() => [
 
 const relationshipValues = computed(() => splitParagraph(userDetail.self_intro, '希望我们都认真对待关系，在真诚沟通里建立稳定长期的信任。'))
 const partnerRequirementLines = computed(() => splitParagraph(userDetail.partner_requirement, '期待对方情绪稳定、愿意沟通，也愿意一起规划未来。'))
+const matchReasons = computed(() => [
+  userDetail.city ? `同在${userDetail.city}，见面和后续相处的现实成本更低。` : '同城关系更容易从线上沟通过渡到线下见面。',
+  userDetail.education ? `资料显示学历背景为${userDetail.education}，信息完整度更高。`
+    : '核心资料比较完整，红娘能更准确判断沟通节奏。',
+  userDetail.occupation ? `${userDetail.occupation}的生活节奏更适合从轻话题慢慢打开。`
+    : '整体生活方式偏稳定，适合认真推进认识。'
+])
+const openingSuggestion = computed(() => {
+  if (userDetail.city && userDetail.occupation) {
+    return `可以从 ${userDetail.city} 的日常节奏和 ${userDetail.occupation} 的工作体验切入，更容易形成自然对话。`
+  }
+  return '建议先从周末安排、最近的兴趣体验或城市生活偏好开始，轻松但不空泛。'
+})
 
 const heroBackgroundStyle = computed(() => {
   const cover = userDetail.photos?.[0] || userDetail.avatarUrl
@@ -302,9 +335,34 @@ onMounted(() => {
   z-index: 1;
 }
 
+.detail-hero__label {
+  display: inline-block;
+  color: rgba(255, 250, 244, 0.82);
+}
+
+.detail-hero__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 .detail-hero__avatar {
   border: 2px solid rgba(255, 255, 255, 0.85);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.detail-hero__score {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 250, 244, 0.16);
+  color: #fffaf4;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 22px;
 }
 
 .detail-hero__name-row {
@@ -384,11 +442,9 @@ onMounted(() => {
 
 .detail-summary__item {
   text-align: center;
-  border-right: 1px solid var(--hl-border-color);
-}
-
-.detail-summary__item:last-child {
-  border-right: 0;
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffaf3, #f8eedf);
 }
 
 .detail-summary__item .label {
@@ -408,6 +464,10 @@ onMounted(() => {
   margin-top: 12px;
 }
 
+.detail-match {
+  margin-top: 12px;
+}
+
 .detail-section__title {
   display: inline-flex;
   align-items: center;
@@ -424,6 +484,32 @@ onMounted(() => {
   list-style: none;
   margin: 14px 0 0;
   padding: 0;
+}
+
+.detail-match__list {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: var(--hl-text-secondary);
+}
+
+.detail-match__list li {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.detail-match__tip {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffaf3, #f7eddc);
+}
+
+.detail-match__tip p {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--hl-text-secondary);
 }
 
 .detail-list li {

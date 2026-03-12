@@ -1,7 +1,22 @@
 <template>
-  <div class="page cs-page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="客服中心" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page cs-page">
+    <van-nav-bar title="客服中心" left-arrow :border="false" @click-left="$router.back()" />
+
+    <section class="card utility-hero" data-testid="customer-service-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">SUPPORT</span>
+          <h1>把帮助中心做成可直接行动的服务页</h1>
+          <p>先定位常见问题，再决定拨打电话、在线咨询，还是继续查看平台规则和会员权益说明。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">客服在线</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">常见问题</span>
+        <span class="brand-chip">人工咨询</span>
+        <span class="brand-chip">服务时间 9:00-21:00</span>
+      </div>
+    </section>
 
     <div class="cs-content">
       <!-- 常见问题 -->

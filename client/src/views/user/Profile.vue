@@ -1,100 +1,100 @@
 <template>
-  <div class="page page--with-tabbar">
-    <!-- 顶部用户信息 -->
-    <div class="profile-header">
-      <div class="profile-header__bg"></div>
-      <div class="profile-header__content">
+  <div class="page page--with-tabbar profile-page">
+    <section class="profile-hero">
+      <div class="profile-hero__topline">
+        <span class="brand-label">PERSONAL SALON</span>
+        <button type="button" class="profile-hero__settings" @click="$router.push('/settings')">
+          <van-icon name="setting-o" size="18" />
+        </button>
+      </div>
+
+      <div class="profile-hero__main">
         <van-image
           round
-          width="72"
-          height="72"
+          width="78"
+          height="78"
           :src="userStore.userInfo?.avatarUrl || defaultAvatar"
           fit="cover"
-          class="profile-header__avatar"
+          class="profile-hero__avatar"
         />
-        <h2 class="profile-header__name">{{ userStore.userInfo?.nickname || '用户' }}</h2>
-
-        <!-- 资料完成度 -->
-        <div class="profile-progress">
-          <div class="profile-progress__label">
-            <span>资料完成度</span>
-            <span class="profile-progress__percent">{{ completionPercent }}%</span>
+        <div class="profile-hero__info">
+          <h2 class="profile-hero__name">{{ userStore.userInfo?.nickname || '用户' }}</h2>
+          <div class="profile-hero__meta">
+            <span class="brand-chip">{{ completionPercent }}% 资料完成</span>
+            <span class="brand-chip brand-chip--ghost">{{ unreadText || '消息静默中' }}</span>
           </div>
-          <van-progress
-            :percentage="completionPercent"
-            :show-pivot="false"
-            color="var(--hl-primary-color)"
-            track-color="rgba(255,255,255,0.3)"
-            stroke-width="6"
-          />
+          <p class="profile-hero__intro">把资料写得更准确，平台和红娘才能给你更像“合适的人”的推荐。</p>
         </div>
       </div>
-    </div>
 
-    <!-- 菜单列表 -->
-    <div class="profile-menu">
-      <van-cell-group :border="false">
-        <van-cell
-          title="编辑资料"
-          icon="edit"
-          is-link
-          @click="$router.push('/user/profile/edit')"
+      <div class="profile-progress">
+        <div class="profile-progress__label">
+          <span>完善度</span>
+          <span class="profile-progress__percent">{{ completionPercent }}%</span>
+        </div>
+        <van-progress
+          :percentage="completionPercent"
+          :show-pivot="false"
+          color="linear-gradient(90deg, #e2cda9, #a67c52)"
+          track-color="rgba(255,255,255,0.32)"
+          stroke-width="6"
         />
-        <van-cell
-          title="推荐匹配"
-          icon="like-o"
-          is-link
-          @click="$router.push('/user/match-list')"
-        />
-        <van-cell
-          title="我的消息"
-          icon="chat-o"
-          is-link
-          :value="unreadText"
-          @click="$router.push('/messages')"
-        />
-        <van-cell
-          title="沙龙活动"
-          icon="calendar-o"
-          is-link
-          @click="$router.push('/user/salon')"
-        />
-        <van-cell
-          title="认证中心"
-          icon="shield-o"
-          is-link
-          @click="$router.push('/certification')"
-        />
-        <van-cell
-          title="客服中心"
-          icon="service-o"
-          is-link
-          @click="$router.push('/customer-service')"
-        />
-        <van-cell
-          title="设置"
-          icon="setting-o"
-          is-link
-          @click="$router.push('/settings')"
-        />
-      </van-cell-group>
-    </div>
+      </div>
+    </section>
 
-    <!-- 切换到婚介角色 -->
-    <div v-if="userStore.userInfo?.hasMatchmakerRole" class="profile-switch">
-      <van-button block round type="primary" plain @click="handleSwitchToMatchmaker">
-        切换至婚介端
+    <section class="profile-actions card">
+      <div class="profile-actions__grid">
+        <button v-for="action in heroActions" :key="action.label" type="button" class="profile-actions__item" @click="$router.push(action.route)">
+          <div class="profile-actions__icon" :style="{ color: action.color }">
+            <van-icon :name="action.icon" size="22" />
+          </div>
+          <strong>{{ action.label }}</strong>
+          <span>{{ action.desc }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="profile-menu card">
+      <div class="profile-menu__header">
+        <span class="brand-label">SERVICE NAVIGATION</span>
+        <span>围绕认真关系的常用入口</span>
+      </div>
+      <button
+        v-for="item in menuItems"
+        :key="item.label"
+        type="button"
+        class="profile-menu__item"
+        @click="$router.push(item.route)"
+      >
+        <div class="profile-menu__item-left">
+          <div class="profile-menu__icon" :style="{ color: item.color }">
+            <van-icon :name="item.icon" size="18" />
+          </div>
+          <div>
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.desc }}</span>
+          </div>
+        </div>
+        <van-icon name="arrow" size="16" />
+      </button>
+    </section>
+
+    <section class="profile-switch card">
+      <div class="profile-switch__content">
+        <span class="brand-label">ROLE EXPANSION</span>
+        <h3>{{ userStore.userInfo?.hasMatchmakerRole ? '切换到婚介端继续管理撮合' : '申请成为红娘，进入协作端' }}</h3>
+        <p>{{ userStore.userInfo?.hasMatchmakerRole ? '如果你也在帮助别人牵线，可以直接切到红娘视角继续服务。' : '审核通过后可管理会员、撮合匹配并获得收益。' }}</p>
+      </div>
+      <van-button
+        block
+        round
+        :type="userStore.userInfo?.hasMatchmakerRole ? 'default' : 'primary'"
+        @click="userStore.userInfo?.hasMatchmakerRole ? handleSwitchToMatchmaker() : handleApplyMatchmaker()"
+      >
+        {{ userStore.userInfo?.hasMatchmakerRole ? '切换至婚介端' : '申请成为红娘' }}
       </van-button>
-    </div>
+    </section>
 
-    <!-- 申请成为红娘 -->
-    <div v-else class="profile-switch">
-      <van-button block round type="primary" plain @click="handleApplyMatchmaker">
-        申请成为红娘
-      </van-button>
-    </div>
-
-    <!-- 底部 TabBar -->
     <TabBar />
   </div>
 </template>
@@ -117,10 +117,23 @@ const completionPercent = ref(60)
 
 const unreadText = computed(() => {
   if (messageStore.totalUnread > 0) {
-    return `${messageStore.totalUnread}条未读`
+    return `${messageStore.totalUnread} 条未读`
   }
   return ''
 })
+
+const heroActions = computed(() => [
+  { label: '编辑资料', desc: '补全择偶信息', icon: 'edit', color: 'var(--ifu-gold-700)', route: '/user/profile/edit' },
+  { label: '推荐匹配', desc: '查看更多推荐', icon: 'like-o', color: 'var(--ifu-warning)', route: '/user/match-list' },
+  { label: '我的消息', desc: unreadText.value || '查看最近对话', icon: 'chat-o', color: 'var(--ifu-info)', route: '/messages' }
+])
+
+const menuItems = [
+  { label: '沙龙活动', desc: '报名同城线下活动', icon: 'calendar-o', color: 'var(--ifu-warning)', route: '/user/salon' },
+  { label: '认证中心', desc: '提升资料可信度', icon: 'shield-o', color: 'var(--ifu-success)', route: '/certification' },
+  { label: '客服中心', desc: '获取人工支持', icon: 'service-o', color: 'var(--ifu-gold-700)', route: '/customer-service' },
+  { label: '设置', desc: '账号与通知管理', icon: 'setting-o', color: 'var(--ifu-info)', route: '/settings' }
+]
 
 async function handleSwitchToMatchmaker() {
   try {
@@ -139,7 +152,6 @@ async function handleApplyMatchmaker() {
     })
     await matchmakerApi.apply({})
     showSuccessToast('申请成功')
-    // 切换到红娘角色
     await userStore.switchRole('matchmaker')
     router.replace('/matchmaker/profile')
   } catch (err) {
@@ -155,74 +167,195 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.profile-header {
-  position: relative;
-  padding-bottom: 16px;
+.profile-page {
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
 }
 
-.profile-header__bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 160px;
-  background: linear-gradient(135deg, var(--hl-accent-color), var(--hl-primary-color));
-  border-radius: 0 0 24px 24px;
+.profile-hero {
+  margin: 0 14px;
+  padding: calc(env(safe-area-inset-top) + 22px) 18px 20px;
+  border-radius: 0 0 var(--ifu-radius-lg) var(--ifu-radius-lg);
+  background:
+    radial-gradient(circle at right top, rgba(255, 251, 245, 0.18), transparent 20%),
+    linear-gradient(145deg, #8a6440, #c09a68 68%, #e0c79b);
+  color: #fff8ef;
+  box-shadow: var(--ifu-shadow-card);
 }
 
-.profile-header__content {
-  position: relative;
+.profile-hero__topline {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  padding-top: 40px;
 }
 
-.profile-header__avatar {
-  border: 3px solid #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-.profile-header__name {
-  font-size: 20px;
-  font-weight: 600;
+.profile-hero__settings {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 248, 239, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 248, 239, 0.12);
   color: #fff;
-  margin-top: 12px;
 }
 
-.profile-header__id {
+.profile-hero__main {
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.profile-hero__avatar {
+  border: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.profile-hero__info {
+  flex: 1;
+}
+
+.profile-hero__name {
+  font-size: 26px;
+}
+
+.profile-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.profile-hero__intro {
+  margin-top: 12px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 4px;
+  line-height: 1.7;
+  color: rgba(255, 248, 239, 0.78);
 }
 
 .profile-progress {
-  width: calc(100% - 64px);
-  margin-top: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: var(--hl-radius-sm);
-  padding: 12px 16px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 248, 239, 0.16);
 }
 
 .profile-progress__label {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
-  color: var(--hl-primary-color);
   margin-bottom: 8px;
+  font-size: 13px;
 }
 
 .profile-progress__percent {
   font-weight: 600;
 }
 
-.profile-menu {
-  margin: 12px 16px;
-  border-radius: var(--hl-radius-md);
-  overflow: hidden;
+.profile-actions__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.profile-switch {
-  padding: 16px;
+.profile-actions__item {
+  padding: 14px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 205, 169, 0.48);
+  background: rgba(255, 252, 248, 0.86);
+  text-align: left;
+}
+
+.profile-actions__icon {
+  margin-bottom: 12px;
+}
+
+.profile-actions__item strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ifu-text-strong);
+}
+
+.profile-actions__item span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ifu-text-muted);
+}
+
+.profile-menu__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--ifu-text-muted);
+}
+
+.profile-menu__item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(233, 221, 204, 0.7);
+  background: transparent;
+  color: var(--ifu-text-strong);
+}
+
+.profile-menu__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.profile-menu__item:first-of-type {
+  padding-top: 0;
+}
+
+.profile-menu__item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-menu__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(246, 235, 221, 0.72);
+}
+
+.profile-menu__item strong {
+  display: block;
+  font-size: 14px;
+}
+
+.profile-menu__item span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--ifu-text-muted);
+}
+
+.profile-switch__content h3 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.profile-switch__content p {
+  margin-top: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ifu-text);
+}
+
+@media (max-width: 380px) {
+  .profile-actions__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

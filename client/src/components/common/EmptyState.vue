@@ -28,7 +28,7 @@ defineProps({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 56px 20px;
 }
 
 .empty-state__image {
@@ -39,11 +39,20 @@ defineProps({
 }
 
 .empty-state__icon {
-  margin-bottom: 16px;
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.94), rgba(246, 235, 221, 0.76));
+  border: 1px solid rgba(226, 205, 169, 0.4);
 }
 
 .empty-state__text {
   font-size: 14px;
-  color: var(--hl-text-placeholder);
+  line-height: 1.7;
+  color: var(--ifu-text-muted);
+  text-align: center;
 }
 </style>

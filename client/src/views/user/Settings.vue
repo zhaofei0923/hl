@@ -2,30 +2,27 @@
   <div class="page settings-page">
     <van-nav-bar title="设置" left-arrow @click-left="$router.back()" :border="false" />
 
-    <!-- 账户设置 -->
-    <div class="settings-section">
+    <section class="settings-brand-panel card" data-testid="settings-brand-panel">
+      <span class="brand-label">SETTINGS</span>
+      <h1>把账号、通知和隐私集中到一页管理</h1>
+      <p>不只是切换开关，而是让你清楚知道哪些设置会影响沟通体验、资料展示和账户安全。</p>
+      <div class="settings-brand-panel__chips">
+        <span class="brand-chip brand-chip--active">账户安全</span>
+        <span class="brand-chip">通知节奏</span>
+        <span class="brand-chip">隐私控制</span>
+      </div>
+    </section>
+
+    <section class="settings-section" data-testid="settings-account-shell">
       <div class="settings-section__title">账户</div>
       <van-cell-group :border="false" class="settings-section__group">
-        <van-cell
-          title="手机号"
-          :value="maskedPhone"
-        />
-        <van-cell
-          title="修改密码"
-          is-link
-          @click="handleChangePassword"
-        />
-        <van-cell
-          title="微信绑定"
-          :value="wechatBound ? '已绑定' : '未绑定'"
-          is-link
-          @click="handleWechatBind"
-        />
+        <van-cell title="手机号" :value="maskedPhone" />
+        <van-cell title="修改密码" is-link @click="handleChangePassword" />
+        <van-cell title="微信绑定" :value="wechatBound ? '已绑定' : '未绑定'" is-link @click="handleWechatBind" />
       </van-cell-group>
-    </div>
+    </section>
 
-    <!-- 通知设置 -->
-    <div class="settings-section">
+    <section class="settings-section">
       <div class="settings-section__title">通知</div>
       <van-cell-group :border="false" class="settings-section__group">
         <van-cell title="消息通知" center>
@@ -49,10 +46,9 @@
           </template>
         </van-cell>
       </van-cell-group>
-    </div>
+    </section>
 
-    <!-- 隐私设置 -->
-    <div class="settings-section">
+    <section class="settings-section">
       <div class="settings-section__title">隐私</div>
       <van-cell-group :border="false" class="settings-section__group">
         <van-cell title="隐藏在线状态" center>
@@ -66,39 +62,19 @@
           </template>
         </van-cell>
       </van-cell-group>
-    </div>
+    </section>
 
-    <!-- 其他 -->
-    <div class="settings-section">
+    <section class="settings-section">
       <div class="settings-section__title">其他</div>
       <van-cell-group :border="false" class="settings-section__group">
-        <van-cell
-          title="清除缓存"
-          :value="cacheSize"
-          is-link
-          @click="handleClearCache"
-        />
-        <van-cell
-          title="关于我们"
-          :value="`v${appVersion}`"
-          is-link
-          @click="handleAbout"
-        />
-        <van-cell
-          title="用户协议"
-          is-link
-          @click="handleAgreement"
-        />
-        <van-cell
-          title="隐私政策"
-          is-link
-          @click="handlePrivacy"
-        />
+        <van-cell title="清除缓存" :value="cacheSize" is-link @click="handleClearCache" />
+        <van-cell title="关于我们" :value="`v${appVersion}`" is-link @click="handleAbout" />
+        <van-cell title="用户协议" is-link @click="handleAgreement" />
+        <van-cell title="隐私政策" is-link @click="handlePrivacy" />
       </van-cell-group>
-    </div>
+    </section>
 
-    <!-- 退出登录按钮 -->
-    <div class="settings-logout">
+    <div class="settings-logout" data-testid="settings-logout-shell">
       <van-button
         block
         round
@@ -139,17 +115,14 @@ const maskedPhone = computed(() => {
   return phone ? maskPhone(phone) : '未绑定'
 })
 
-// 设置更改
-function onSettingChange(key, value) {
+function onSettingChange() {
   showToast('设置已保存')
 }
 
-// 修改密码
 function handleChangePassword() {
   showToast('修改密码功能开发中')
 }
 
-// 微信绑定
 function handleWechatBind() {
   if (wechatBound.value) {
     showDialog({
@@ -166,7 +139,6 @@ function handleWechatBind() {
   }
 }
 
-// 清除缓存
 function handleClearCache() {
   showDialog({
     title: '清除缓存',
@@ -179,7 +151,6 @@ function handleClearCache() {
   }).catch(() => {})
 }
 
-// 关于我们
 function handleAbout() {
   showDialog({
     title: '关于我们',
@@ -188,17 +159,14 @@ function handleAbout() {
   })
 }
 
-// 用户协议
 function handleAgreement() {
   showToast('用户协议页面开发中')
 }
 
-// 隐私政策
 function handlePrivacy() {
   showToast('隐私政策页面开发中')
 }
 
-// 退出登录
 function handleLogout() {
   showDialog({
     title: '退出登录',
@@ -214,12 +182,9 @@ function handleLogout() {
     } finally {
       logoutLoading.value = false
     }
-  }).catch(() => {
-    // cancelled
-  })
+  }).catch(() => {})
 }
 
-// 计算缓存大小
 function calcCacheSize() {
   try {
     let total = 0
@@ -237,16 +202,60 @@ function calcCacheSize() {
 
 onMounted(() => {
   calcCacheSize()
-  // 检查微信绑定状态
   wechatBound.value = !!userStore.userInfo?.wechatBound
 })
 </script>
 
 <style scoped>
 .settings-page {
-  background: var(--hl-bg-color);
   min-height: 100vh;
   padding-bottom: 40px;
+}
+
+.settings-brand-panel {
+  margin-top: 8px;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 239, 0.92));
+}
+
+.settings-brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 138px;
+  background: linear-gradient(135deg, rgba(142, 105, 65, 0.96), rgba(188, 150, 98, 0.82));
+  border-radius: inherit;
+}
+
+.settings-brand-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-brand-panel .brand-label {
+  color: rgba(255, 250, 244, 0.8);
+}
+
+.settings-brand-panel h1 {
+  margin-top: 12px;
+  font-size: 28px;
+  line-height: 1.2;
+  color: #fffaf4;
+  max-width: 280px;
+}
+
+.settings-brand-panel p {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--ifu-text);
+}
+
+.settings-brand-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .settings-section {
@@ -254,26 +263,30 @@ onMounted(() => {
 }
 
 .settings-section__title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--hl-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ifu-text);
   padding: 0 16px;
   margin-bottom: 8px;
 }
 
 .settings-section__group {
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
   margin: 0 16px;
   overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .settings-section__group :deep(.van-cell) {
-  padding: 14px 16px;
+  padding: 15px 16px;
+  background: transparent;
 }
 
+.settings-section__group :deep(.van-cell__title),
 .settings-section__group :deep(.van-cell__value) {
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
 .settings-logout {
@@ -281,14 +294,9 @@ onMounted(() => {
 }
 
 .settings-logout__btn {
-  height: 44px;
-  font-size: 16px;
-  color: var(--hl-accent-color);
-  border-color: var(--hl-accent-color);
-  background: var(--hl-card-bg);
-}
-
-.settings-logout__btn:active {
-  background: #FFF0F0;
+  height: 46px;
+  color: var(--ifu-gold-700);
+  border-color: rgba(166, 124, 82, 0.32);
+  background: rgba(255, 255, 255, 0.92);
 }
 </style>

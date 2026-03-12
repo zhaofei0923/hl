@@ -1,11 +1,18 @@
 <template>
-  <div class="page-container">
-    <div class="page-header">
-      <h2>提现审批</h2>
+  <div class="page-container withdrawals-page" data-testid="admin-withdrawals-shell">
+    <div class="page-header withdrawals-page__header">
+      <div>
+        <span class="brand-label">WITHDRAWALS</span>
+        <h2>提现审批</h2>
+        <p>优先看金额、渠道和风险等级，再做通过或拒绝判断，减少审批过程中的上下文切换。</p>
+      </div>
+      <div class="withdrawals-page__summary">
+        <span class="withdrawals-page__pill">审批视图</span>
+        <span class="withdrawals-page__pill withdrawals-page__pill--active">高风险优先</span>
+      </div>
     </div>
 
-    <!-- Filter -->
-    <el-card shadow="hover" class="filter-card">
+    <el-card shadow="hover" class="filter-card withdrawals-toolbar" data-testid="admin-withdrawals-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="状态">
           <el-select v-model="filters.status" placeholder="全部" clearable>
@@ -22,8 +29,7 @@
       </el-form>
     </el-card>
 
-    <!-- Table -->
-    <el-card shadow="hover">
+    <el-card shadow="hover" class="withdrawals-table-card">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column label="用户" width="150">
@@ -168,6 +174,53 @@ onMounted(() => loadData())
 </script>
 
 <style scoped>
+.withdrawals-page__header {
+  align-items: end;
+}
+
+.withdrawals-page__header p {
+  max-width: 560px;
+  margin-top: 10px;
+}
+
+.withdrawals-page__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.withdrawals-page__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  color: var(--ifu-text);
+  font-size: 12px;
+}
+
+.withdrawals-page__pill--active {
+  background: rgba(200, 169, 119, 0.18);
+  color: var(--ifu-gold-700);
+}
+
+.withdrawals-toolbar,
+.withdrawals-table-card {
+  position: relative;
+}
+
+.withdrawals-toolbar::before,
+.withdrawals-table-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 32%);
+}
+
 .pagination-wrap {
   display: flex;
   justify-content: flex-end;

@@ -1,9 +1,35 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="婚介团" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page">
+    <van-nav-bar title="婚介团" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 团队概览 -->
+    <section class="card utility-hero" data-testid="matchmaker-team-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">TEAM</span>
+          <h1>把团队页做成协作与业绩联动面板</h1>
+          <p>先看团队人数和本月业绩，再进入成员列表确认谁在持续贡献、谁需要继续带教。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">{{ teamInfo.name || '我的团队' }}</span>
+      </div>
+      <div class="utility-hero__stats">
+        <article class="utility-hero__stat">
+          <span>成员数</span>
+          <strong>{{ teamInfo.memberCount || 0 }}</strong>
+          <small>当前顾问网络规模</small>
+        </article>
+        <article class="utility-hero__stat">
+          <span>总业绩</span>
+          <strong>¥{{ formatMoney(teamInfo.totalPerformance) }}</strong>
+          <small>累计团队贡献</small>
+        </article>
+        <article class="utility-hero__stat">
+          <span>本月业绩</span>
+          <strong>¥{{ formatMoney(teamInfo.monthPerformance) }}</strong>
+          <small>关注当月活跃度</small>
+        </article>
+      </div>
+    </section>
+
     <div class="team-overview">
       <div class="team-overview__name">
         <van-icon name="cluster-o" size="22" color="#fff" />
@@ -27,7 +53,6 @@
       </div>
     </div>
 
-    <!-- 成员列表 -->
     <div class="section-title">
       <span>团队成员</span>
       <span class="section-title__count">共{{ memberList.length }}人</span>

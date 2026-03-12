@@ -1,9 +1,23 @@
 <template>
-  <div class="page">
-    <!-- 导航栏 -->
-    <van-nav-bar title="官方收款码" left-arrow @click-left="$router.back()" />
+  <div class="page utility-page">
+    <van-nav-bar title="官方收款码" left-arrow :border="false" @click-left="$router.back()" />
 
-    <!-- 提示信息 -->
+    <section class="card utility-hero" data-testid="matchmaker-qrcode-shell">
+      <div class="utility-hero__top">
+        <div>
+          <span class="brand-label">PAYMENT QR</span>
+          <h1>把收款码做成可直接展示的成交工具</h1>
+          <p>除了展示二维码，还要同步呈现今日收款、笔数和累计金额，方便现场成交时快速核对。</p>
+        </div>
+        <span class="brand-chip brand-chip--active">官方收款</span>
+      </div>
+      <div class="utility-hero__chips">
+        <span class="brand-chip">今日 ¥{{ formatMoney(stats.todayAmount) }}</span>
+        <span class="brand-chip">{{ stats.todayCount || 0 }} 笔</span>
+        <span class="brand-chip">累计 ¥{{ formatMoney(stats.totalAmount) }}</span>
+      </div>
+    </section>
+
     <van-notice-bar
       left-icon="info-o"
       text="此为官方收款码，会员可扫码完成付款，款项将直接进入您的钱包"
@@ -11,7 +25,6 @@
       background="#FFF7F0"
     />
 
-    <!-- 收款码展示 -->
     <div class="qrcode-section">
       <div class="qrcode-card">
         <div class="qrcode-card__title">扫码向我付款</div>
@@ -33,7 +46,6 @@
       </div>
     </div>
 
-    <!-- 收款统计 -->
     <div class="stats-section">
       <div class="stats-row">
         <div class="stats-row__item">
@@ -53,7 +65,6 @@
       </div>
     </div>
 
-    <!-- 操作按钮 -->
     <div class="action-section">
       <van-button
         block

@@ -48,6 +48,9 @@ services:
       - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
       - CLIENT_URL=${CLIENT_URL:-https://hl.easudata.com}
       - TEST_SMS_CODE=${TEST_SMS_CODE:-}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID:-}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY:-}
+      - TENCENT_OCR_REGION=${TENCENT_OCR_REGION:-ap-guangzhou}
     depends_on:
       mysql:
         condition: service_healthy

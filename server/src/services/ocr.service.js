@@ -47,15 +47,13 @@ async function recognizeImage(imageBuffer) {
  * Heuristic: if all text is concentrated in the right portion, crop the left as the photo.
  * Returns the saved photo URL or null.
  */
-async function extractPhoto(imageBuffer) {
+async function extractPhoto(imageBuffer, detections) {
   try {
     const metadata = await sharp(imageBuffer).metadata();
     const { width, height } = metadata;
     if (!width || !height) return null;
 
-    // Get text positions from OCR
-    const detections = await recognizeImage(imageBuffer);
-    if (detections.length === 0) return null;
+    if (!detections || detections.length === 0) return null;
 
     // Find the leftmost X of all text polygons
     let minTextX = width;
@@ -336,14 +334,17 @@ function parseMemberCard(detections) {
  * @returns {{ fields: Object, photos: string[] }}
  */
 async function recognizeMemberCard(imageBuffer) {
-  // Run OCR and photo extraction in parallel
-  const [detections, photoUrl] = await Promise.all([
-    recognizeImage(imageBuffer),
-    extractPhoto(imageBuffer),
+  // Single OCR call, reuse detections for both parsing and photo extraction
+  const detections = await recognizeImage(imageBuffer);
+  logger.info(`OCR returned ${detections.length} text detections`);
+
+  const [fields, photoUrl] = await Promise.all([
+    Promise.resolve(parseMemberCard(detections)),
+    extractPhoto(imageBuffer, detections),
   ]);
 
-  const fields = parseMemberCard(detections);
   const photos = photoUrl ? [photoUrl] : [];
+  logger.info(`Parsed ${Object.keys(fields).length} fields, ${photos.length} photos`);
 
   return { fields, photos };
 }

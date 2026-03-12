@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <el-aside :width="isCollapse ? '64px' : '220px'" class="layout-aside">
       <div class="logo-area">
-        <span v-if="!isCollapse" class="logo-text">婚恋管理后台</span>
+        <span v-if="!isCollapse" class="logo-text">IFU</span>
         <span v-else class="logo-text-mini">婚</span>
       </div>
       <el-menu :default-active="currentRoute" class="sidebar-menu" :collapse="isCollapse" router background-color="#001529" text-color="#ffffffa6" active-text-color="#fff">

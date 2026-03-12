@@ -5,7 +5,7 @@
       <div class="login-header__logo">
         <van-icon name="like" size="48" color="#fff" />
       </div>
-      <h1 class="login-header__title">婚恋平台</h1>
+      <h1 class="login-header__title">IFU</h1>
       <p class="login-header__subtitle">遇见对的人，从这里开始</p>
     </div>
 

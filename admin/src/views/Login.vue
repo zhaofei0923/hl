@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <h1>婚恋管理后台</h1>
+        <h1>IFU</h1>
         <p>Marriage Matchmaking Admin Panel</p>
       </div>
       <el-form ref="formRef" :model="form" :rules="rules" @submit.prevent="handleLogin">

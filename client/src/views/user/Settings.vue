@@ -183,7 +183,7 @@ function handleClearCache() {
 function handleAbout() {
   showDialog({
     title: '关于我们',
-    message: `婚恋平台 v${appVersion}\n\n致力于为单身人士提供优质的婚恋交友服务`,
+    message: `IFU v${appVersion}\n\n致力于为单身人士提供优质的婚恋交友服务`,
     confirmButtonColor: 'var(--hl-primary-color)',
   })
 }

@@ -59,7 +59,7 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title ? `${to.meta.title} - 婚恋管理后台` : '婚恋管理后台'
+  document.title = to.meta.title ? `${to.meta.title} - IFU` : 'IFU'
   
   const token = localStorage.getItem('admin_token')
   if (to.path !== '/login' && !token) {

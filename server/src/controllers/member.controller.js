@@ -958,10 +958,8 @@ const memberController = {
         };
       }
 
-      // Exclude current matchmaker's own members
-      const memberWhere = {
-        matchmakerId: { [Op.ne]: matchmaker.id }
-      };
+      // Show all members in the system (resource pool for all matchmakers)
+      const memberWhere = {};
 
       const { count, rows } = await Member.findAndCountAll({
         where: memberWhere,

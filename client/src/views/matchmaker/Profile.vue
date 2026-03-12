@@ -39,9 +39,6 @@
       </div>
     </div>
 
-    <!-- 数据统计栏 -->
-    <StatsBar :items="statsItems" @click="handleStatsClick" />
-
     <!-- 快捷功能 -->
     <div class="card">
       <div class="action-grid">
@@ -85,7 +82,6 @@ import { useUserStore } from '@/stores/user'
 import { useWalletStore } from '@/stores/wallet'
 import { matchmakerApi } from '@/api/matchmaker'
 import TabBar from '@/components/common/TabBar.vue'
-import StatsBar from '@/components/matchmaker/StatsBar.vue'
 
 const router = useRouter()
 const userStore = useUserStore()

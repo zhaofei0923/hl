@@ -13,7 +13,13 @@
     </van-nav-bar>
 
     <!-- 资源列表 -->
-    <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+    <van-empty
+      v-if="notCertified"
+      image="network"
+      description="仅已认证红娘可查看会员资源库，请先完成认证"
+      style="margin-top:80px"
+    />
+    <van-pull-refresh v-else v-model="refreshing" @refresh="onRefresh">
       <van-list
         v-model:loading="listLoading"
         :finished="finished"
@@ -99,8 +105,6 @@
           <EmptyState v-if="!listLoading && resourceList.length === 0" text="暂无会员数据" />
       </van-list>
     </van-pull-refresh>
-
-    <!-- 搜索弹出框 -->
     <van-popup v-model:show="showSearch" position="top" round>
       <div class="search-popup">
         <van-search
@@ -255,6 +259,7 @@ const finished = ref(false)
 const page = ref(1)
 const resourceList = ref([])
 const totalCount = ref(0)
+const notCertified = ref(false)
 
 const showFilter = ref(false)
 const filterForm = reactive({
@@ -304,7 +309,7 @@ async function fetchResources(isRefresh = false) {
       params.ageMin = min
       params.ageMax = max
     }
-    const res = await memberApi.getList(params)
+    const res = await memberApi.getResources(params)
     const list = res.data?.list || []
     if (isRefresh || page.value === 1) {
       totalCount.value = res.data?.pagination?.total || 0
@@ -322,6 +327,9 @@ async function fetchResources(isRefresh = false) {
       page.value++
     }
   } catch (err) {
+    if (err?.response?.status === 403 || err?.response?.data?.code === 40301) {
+      notCertified.value = true
+    }
     finished.value = true
   } finally {
     listLoading.value = false

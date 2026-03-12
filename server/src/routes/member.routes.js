@@ -36,6 +36,9 @@ router.get('/invite-code', memberController.getInviteCode);
 // List members
 router.get('/list', memberController.list);
 
+// Get resource pool (all members from other matchmakers, certified only)
+router.get('/resources', memberController.getResources);
+
 // Add a new member
 router.post('/add', memberController.add);
 

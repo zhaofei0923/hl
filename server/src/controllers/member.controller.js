@@ -890,6 +890,114 @@ const memberController = {
   },
 
   /**
+   * Get all members from other matchmakers (resource pool)
+   * Only accessible to certified matchmakers (certificationStatus === 2)
+   * GET /api/member/resources
+   */
+  async getResources(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const { page = 1, pageSize = 15, keyword, gender,
+              ageMin, ageMax, education, maritalStatus, incomeRange, city } = req.query;
+
+      const matchmaker = await Matchmaker.findOne({ where: { userId } });
+      if (!matchmaker) {
+        return error(res, '红娘信息不存在', 40400, 404);
+      }
+
+      // Only certified matchmakers can view the resource pool
+      if (matchmaker.certificationStatus !== 2) {
+        return error(res, '仅已认证红娘可查看会员资源库', 40301, 403);
+      }
+
+      // Build profile filters
+      const profileWhere = {};
+      if (ageMin || ageMax) {
+        profileWhere.age = {};
+        if (ageMin) profileWhere.age[Op.gte] = Number(ageMin);
+        if (ageMax) profileWhere.age[Op.lte] = Number(ageMax);
+      }
+      if (education) profileWhere.education = education;
+      if (maritalStatus) profileWhere.maritalStatus = maritalStatus;
+      if (incomeRange) profileWhere.incomeRange = incomeRange;
+      if (city) profileWhere.city = { [Op.like]: `%${city}%` };
+
+      const profileInclude = {
+        association: 'profile',
+        attributes: ['realName', 'age', 'height', 'education', 'occupation', 'incomeRange', 'province', 'city', 'nativePlace', 'maritalStatus', 'photos'],
+        ...(Object.keys(profileWhere).length > 0 ? { where: profileWhere } : {})
+      };
+
+      const userInclude = {
+        association: 'user',
+        attributes: ['id', 'phone', 'nickname', 'avatarUrl', 'gender'],
+        include: [profileInclude]
+      };
+
+      if (gender) {
+        userInclude.where = { gender: Number(gender) };
+      }
+
+      if (keyword) {
+        userInclude.where = {
+          ...userInclude.where,
+          [Op.or]: [
+            { nickname: { [Op.like]: `%${keyword}%` } },
+            { phone: { [Op.like]: `%${keyword}%` } }
+          ]
+        };
+      }
+
+      // Exclude current matchmaker's own members
+      const memberWhere = {
+        matchmakerId: { [Op.ne]: matchmaker.id }
+      };
+
+      const { count, rows } = await Member.findAndCountAll({
+        where: memberWhere,
+        include: [userInclude],
+        limit: Number(pageSize),
+        offset: (Number(page) - 1) * Number(pageSize),
+        order: [['created_at', 'DESC']],
+        distinct: true
+      });
+
+      const flatList = rows.map(row => {
+        const m = row.toJSON();
+        const user = m.user || {};
+        const profile = user.profile || {};
+        return {
+          ...m,
+          nickname: user.nickname,
+          phone: user.phone,
+          avatarUrl: user.avatarUrl,
+          gender: user.gender,
+          realName: profile.realName,
+          age: profile.age,
+          height: profile.height,
+          education: profile.education,
+          occupation: profile.occupation,
+          incomeRange: profile.incomeRange,
+          city: profile.city,
+          province: profile.province,
+          nativePlace: profile.nativePlace,
+          maritalStatus: profile.maritalStatus,
+          photos: profile.photos,
+        };
+      });
+
+      return paginate(res, {
+        list: flatList,
+        total: count,
+        page: Number(page),
+        pageSize: Number(pageSize)
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
    * Delete a member
    * DELETE /api/member/:id
    */

@@ -11,6 +11,11 @@ export const memberApi = {
     return request.get('/member/list', { params })
   },
 
+  // 会员资源库（已认证红娘可见所有其他红娘的会员）
+  getResources(params) {
+    return request.get('/member/resources', { params })
+  },
+
   // 会员详情
   getDetail(id) {
     return request.get(`/member/${id}`)

@@ -365,7 +365,7 @@ function handleSearch() {
 }
 
 function handleDetail(item) {
-  router.push(`/matchmaker/member/${item.id}`)
+  router.push(`/matchmaker/member/${item.id}?from=resources`)
 }
 
 function applyFilter() {

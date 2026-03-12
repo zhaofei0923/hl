@@ -2,7 +2,7 @@
   <div class="page member-detail-page">
     <van-nav-bar title="会员详情" left-arrow :border="false" @click-left="$router.back()">
       <template #right>
-        <button type="button" class="member-detail-page__edit" @click="handleEdit">编辑</button>
+        <button v-if="canEdit" type="button" class="member-detail-page__edit" @click="handleEdit">编辑</button>
       </template>
     </van-nav-bar>
 
@@ -123,6 +123,7 @@ import EmptyState from '@/components/common/EmptyState.vue'
 
 const route = useRoute()
 const router = useRouter()
+const canEdit = computed(() => route.query.from !== 'resources')
 
 const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIzMiIgZmlsbD0iI0UwRTBFMCIvPjxwYXRoIGQ9Ik0zMiAyMGE4IDggMCAxIDAgMCAxNiA4IDggMCAwIDAgMC0xNnptMCAyMGMtOC44NCAwLTE2IDMuNTgtMTYgOHYyaDMydi0yYzAtNC40Mi03LjE2LTgtMTYtOHoiIGZpbGw9IiNBMEEwQTAiLz48L3N2Zz4='
 

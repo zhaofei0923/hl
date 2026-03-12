@@ -1,6 +1,6 @@
 <template>
-  <div class="member-card" @click="$emit('click', member)">
-    <div class="member-card__header">
+  <div class="member-card">
+    <div class="member-card__header" @click="$emit('click', member)">
       <van-image
         round
         width="48"
@@ -25,8 +25,8 @@
       </div>
     </div>
     <div class="member-card__actions">
-      <van-button size="small" round plain @click.stop="$emit('editProfile', member)">编辑资料</van-button>
-      <van-button size="small" round type="danger" plain @click.stop="$emit('delete', member)">删除</van-button>
+      <van-button size="small" round plain @click="$emit('editProfile', member)">编辑资料</van-button>
+      <van-button size="small" round type="danger" plain @click="$emit('delete', member)">删除</van-button>
     </div>
   </div>
 </template>

@@ -42,7 +42,7 @@
       </div>
     </section>
 
-    <section class="profile-actions card">
+    <section class="profile-nav card">
       <div class="profile-actions__grid">
         <button v-for="action in heroActions" :key="action.label" type="button" class="profile-actions__item" @click="$router.push(action.route)">
           <div class="profile-actions__icon" :style="{ color: action.color }">
@@ -52,13 +52,11 @@
           <span>{{ action.desc }}</span>
         </button>
       </div>
-    </section>
 
-    <section class="profile-menu card">
-      <div class="profile-menu__header">
-        <span class="brand-label">SERVICE NAVIGATION</span>
-        <span>围绕认真关系的常用入口</span>
+      <div class="profile-nav__divider">
+        <span class="brand-label">更多服务</span>
       </div>
+
       <button
         v-for="item in menuItems"
         :key="item.label"
@@ -282,13 +280,20 @@ onMounted(() => {
   color: var(--ifu-text-muted);
 }
 
-.profile-menu__header {
+.profile-nav__divider {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  font-size: 12px;
+  gap: 10px;
+  margin: 16px 0 4px;
+  font-size: 11px;
   color: var(--ifu-text-muted);
+}
+
+.profile-nav__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(233, 221, 204, 0.7);
 }
 
 .profile-menu__item {
@@ -298,9 +303,11 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(233, 221, 204, 0.7);
+  border: none;
+  border-bottom: 1px solid rgba(233, 221, 204, 0.6);
   background: transparent;
   color: var(--ifu-text-strong);
+  cursor: pointer;
 }
 
 .profile-menu__item:last-child {

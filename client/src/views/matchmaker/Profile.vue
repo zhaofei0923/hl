@@ -42,9 +42,6 @@
     <!-- 数据统计栏 -->
     <StatsBar :items="statsItems" @click="handleStatsClick" />
 
-    <!-- 婚介特权卡片 -->
-    <PrivilegeCard @open-store="$router.push('/matchmaker/store')" />
-
     <!-- 快捷功能 -->
     <div class="card">
       <div class="action-grid">
@@ -89,7 +86,6 @@ import { useWalletStore } from '@/stores/wallet'
 import { matchmakerApi } from '@/api/matchmaker'
 import TabBar from '@/components/common/TabBar.vue'
 import StatsBar from '@/components/matchmaker/StatsBar.vue'
-import PrivilegeCard from '@/components/matchmaker/PrivilegeCard.vue'
 
 const router = useRouter()
 const userStore = useUserStore()

@@ -131,12 +131,12 @@ const statsItems = computed(() => [
 const quickActions = [
   { icon: 'friends-o', label: '我的会员', desc: '查看与维护会员资料', color: 'var(--ifu-warning)', route: '/matchmaker/members' },
   { icon: 'apps-o', label: '会员展示', desc: '分享优质资源卡片', color: 'var(--ifu-info)', route: '/matchmaker/resources' },
-  { icon: 'calendar-o', label: '沙龙活动', desc: '组织线下见面场景', color: 'var(--ifu-gold-700)', route: '/matchmaker/salon' }
+  { icon: 'calendar-o', label: '沙龙活动', desc: '组织线下见面场景', color: 'var(--ifu-gold-700)', route: '/matchmaker/salon' },
+  { icon: 'share-o', label: '邀请好友', desc: '扩展合作网络', color: 'var(--ifu-warning)', route: '/matchmaker/invite' }
 ]
 
 const menuActions = [
   { icon: 'cash-back-record', label: '钱包收益', desc: '查看到账与提现', color: 'var(--ifu-success)', route: '/matchmaker/wallet' },
-  { icon: 'share-o', label: '邀请好友', desc: '扩展合作网络', color: 'var(--ifu-warning)', route: '/matchmaker/invite' },
   { icon: 'service-o', label: '客服中心', desc: '获取平台支持', color: 'var(--ifu-info)', route: '/customer-service' }
 ]
 

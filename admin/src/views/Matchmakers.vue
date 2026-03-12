@@ -13,8 +13,9 @@
         <el-form-item label="认证状态">
           <el-select v-model="filters.certificationStatus" placeholder="全部" clearable>
             <el-option label="未认证" :value="0" />
-            <el-option label="已认证" :value="1" />
-            <el-option label="审核中" :value="2" />
+            <el-option label="审核中" :value="1" />
+            <el-option label="已认证" :value="2" />
+            <el-option label="已拒绝" :value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="等级">
@@ -112,8 +113,9 @@
         <el-form-item label="认证状态">
           <el-select v-model="certForm.certificationStatus" style="width: 100%;">
             <el-option label="未认证" :value="0" />
-            <el-option label="已认证" :value="1" />
-            <el-option label="审核中" :value="2" />
+            <el-option label="审核中" :value="1" />
+            <el-option label="已认证" :value="2" />
+            <el-option label="已拒绝" :value="3" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -162,8 +164,8 @@ const filters = reactive({ keyword: '', certificationStatus: '', level: '' })
 
 const formatDate = (d) => d ? dayjs(d).format('YYYY-MM-DD HH:mm') : '-'
 
-const certStatusText = (s) => ({ 0: '未认证', 1: '已认证', 2: '审核中' }[s] || '未知')
-const certStatusType = (s) => ({ 0: 'info', 1: 'success', 2: 'warning' }[s] || 'info')
+const certStatusText = (s) => ({ 0: '未认证', 1: '审核中', 2: '已认证', 3: '已拒绝' }[s] || '未知')
+const certStatusType = (s) => ({ 0: 'info', 1: 'warning', 2: 'success', 3: 'danger' }[s] || 'info')
 
 const loadData = async () => {
   loading.value = true

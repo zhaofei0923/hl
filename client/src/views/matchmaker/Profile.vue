@@ -105,17 +105,14 @@ const statsItems = computed(() => [
 ])
 
 const quickActions = [
-  { icon: 'balance-o', label: '我的钱包', color: '#E84D5F', route: '/matchmaker/wallet' },
   { icon: 'friends-o', label: '我的会员', color: '#FF7D41', route: '/matchmaker/members' },
-  { icon: 'apps-o', label: '会员展示', color: '#1989fa', route: '/matchmaker/resources' },
-  { icon: 'cluster-o', label: '婚介团', color: '#07c160', route: '/matchmaker/team' }
+  { icon: 'apps-o', label: '会员展示', color: '#1989fa', route: '/matchmaker/resources' }
 ]
 
 const menuActions = [
   { icon: 'share-o', label: '邀请好友', color: '#FF7D41', route: '/matchmaker/invite' },
   { icon: 'service-o', label: '客服中心', color: '#1989fa', route: '/customer-service' },
-  { icon: 'calendar-o', label: '沙龙活动', color: '#722ED1', route: '/matchmaker/salon' },
-  { icon: 'qr', label: '收款码', color: '#FA8C16', route: '/matchmaker/qrcode' }
+  { icon: 'calendar-o', label: '沙龙活动', color: '#722ED1', route: '/matchmaker/salon' }
 ]
 
 function handleStatsClick(item) {

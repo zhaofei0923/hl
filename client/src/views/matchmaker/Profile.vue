@@ -118,11 +118,7 @@ const quickActions = [
 const menuActions = [
   { icon: 'share-o', label: '邀请好友', color: '#FF7D41', route: '/matchmaker/invite' },
   { icon: 'service-o', label: '客服中心', color: '#1989fa', route: '/customer-service' },
-  { icon: 'shop-o', label: '我的商城', color: '#07c160', route: '/matchmaker/shop' },
-  { icon: 'orders-o', label: '业绩订单', color: '#E84D5F', route: '/matchmaker/orders' },
-  { icon: 'manager-o', label: '我的红娘', color: '#8B6914', route: '/matchmaker/my-matchmakers' },
   { icon: 'calendar-o', label: '沙龙活动', color: '#722ED1', route: '/matchmaker/salon' },
-  { icon: 'location-o', label: '门店信息', color: '#13C2C2', route: '/matchmaker/store' },
   { icon: 'qr', label: '收款码', color: '#FA8C16', route: '/matchmaker/qrcode' }
 ]
 

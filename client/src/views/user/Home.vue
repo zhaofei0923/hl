@@ -80,8 +80,20 @@
         <span>{{ filterEducation || '学历' }}</span>
         <van-icon name="arrow-down" size="12" />
       </button>
+      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterGender }" @click="showGenderFilter = true">
+        <span>{{ filterGenderLabel || '性别' }}</span>
+        <van-icon name="arrow-down" size="12" />
+      </button>
+      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterMarital }" @click="showMaritalFilter = true">
+        <span>{{ filterMaritalLabel || '婚情' }}</span>
+        <van-icon name="arrow-down" size="12" />
+      </button>
+      <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterIncome }" @click="showIncomeFilter = true">
+        <span>{{ filterIncomeLabel || '收入' }}</span>
+        <van-icon name="arrow-down" size="12" />
+      </button>
       <button
-        v-if="filterAgeRange || filterCity || filterEducation"
+        v-if="filterAgeRange || filterCity || filterEducation || filterGender || filterMarital || filterIncome"
         type="button"
         class="filter-reset"
         @click="resetFilters"
@@ -181,17 +193,6 @@
       </van-list>
     </van-pull-refresh>
 
-    <div class="home-floating-cta">
-      <button type="button" @click="router.push('/messages')">
-        <van-icon name="chat-o" size="14" />
-        去消息
-      </button>
-      <button type="button" @click="router.push('/user/match-list')">
-        <van-icon name="friends-o" size="14" />
-        更多匹配
-      </button>
-    </div>
-
     <van-popup v-model:show="showAgePicker" position="bottom" round>
       <van-picker
         title="选择年龄段"
@@ -223,6 +224,33 @@
         :columns="educationColumns"
         @confirm="onEducationConfirm"
         @cancel="showEducationFilter = false"
+      />
+    </van-popup>
+
+    <van-popup v-model:show="showGenderFilter" position="bottom" round>
+      <van-picker
+        title="选择性别"
+        :columns="genderColumns"
+        @confirm="onGenderConfirm"
+        @cancel="showGenderFilter = false"
+      />
+    </van-popup>
+
+    <van-popup v-model:show="showMaritalFilter" position="bottom" round>
+      <van-picker
+        title="选择婚情"
+        :columns="maritalColumns"
+        @confirm="onMaritalConfirm"
+        @cancel="showMaritalFilter = false"
+      />
+    </van-popup>
+
+    <van-popup v-model:show="showIncomeFilter" position="bottom" round>
+      <van-picker
+        title="选择收入范围"
+        :columns="incomeColumns"
+        @confirm="onIncomeConfirm"
+        @cancel="showIncomeFilter = false"
       />
     </van-popup>
 
@@ -260,6 +288,16 @@ const showCityInput = ref(false)
 const showEducationFilter = ref(false)
 const cityInputValue = ref('')
 
+const filterGender = ref('')
+const filterGenderLabel = ref('')
+const filterMarital = ref('')
+const filterMaritalLabel = ref('')
+const filterIncome = ref('')
+const filterIncomeLabel = ref('')
+const showGenderFilter = ref(false)
+const showMaritalFilter = ref(false)
+const showIncomeFilter = ref(false)
+
 const ageColumns = [
   { text: '不限', value: '' },
   { text: '23-28岁', value: '23-28' },
@@ -271,6 +309,28 @@ const ageColumns = [
 const educationColumns = [
   { text: '不限', value: '' },
   ...EDUCATION_OPTIONS.map(item => ({ text: item, value: item }))
+]
+
+const genderColumns = [
+  { text: '不限', value: '' },
+  { text: '男', value: 'male' },
+  { text: '女', value: 'female' }
+]
+
+const maritalColumns = [
+  { text: '不限', value: '' },
+  { text: '未婚', value: '未婚' },
+  { text: '离婚', value: '离婚' },
+  { text: '丧偶', value: '丧偶' }
+]
+
+const incomeColumns = [
+  { text: '不限', value: '' },
+  { text: '5万5人以下', value: '0-50000' },
+  { text: '5万-10万', value: '50000-100000' },
+  { text: '10万-20万', value: '100000-200000' },
+  { text: '20万-50万', value: '200000-500000' },
+  { text: '50万以上', value: '500000+' }
 ]
 
 const trustBadges = ['实名资料', '红娘初筛', '人工复核']
@@ -302,6 +362,15 @@ const recommendationQuery = computed(() => {
   }
   if (filterEducation.value) {
     params.education = filterEducation.value
+  }
+  if (filterGender.value) {
+    params.gender = filterGender.value
+  }
+  if (filterMarital.value) {
+    params.maritalStatus = filterMarital.value
+  }
+  if (filterIncome.value) {
+    params.incomeRange = filterIncome.value
   }
 
   return params
@@ -398,12 +467,39 @@ function onCityConfirm() {
   onRefresh()
 }
 
+function onGenderConfirm({ selectedOptions }) {
+  filterGenderLabel.value = selectedOptions[0].text
+  filterGender.value = selectedOptions[0].value
+  showGenderFilter.value = false
+  onRefresh()
+}
+
+function onMaritalConfirm({ selectedOptions }) {
+  filterMaritalLabel.value = selectedOptions[0].text
+  filterMarital.value = selectedOptions[0].value
+  showMaritalFilter.value = false
+  onRefresh()
+}
+
+function onIncomeConfirm({ selectedOptions }) {
+  filterIncomeLabel.value = selectedOptions[0].text
+  filterIncome.value = selectedOptions[0].value
+  showIncomeFilter.value = false
+  onRefresh()
+}
+
 function resetFilters() {
   filterAgeLabel.value = ''
   filterAgeRange.value = ''
   filterCity.value = ''
   filterEducation.value = ''
   cityInputValue.value = ''
+  filterGender.value = ''
+  filterGenderLabel.value = ''
+  filterMarital.value = ''
+  filterMaritalLabel.value = ''
+  filterIncome.value = ''
+  filterIncomeLabel.value = ''
   onRefresh()
 }
 
@@ -419,7 +515,7 @@ function handleSayHi() {
 <style scoped>
 .home-page {
   position: relative;
-  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  padding-bottom: calc(74px + env(safe-area-inset-bottom));
 }
 
 .home-hero {
@@ -607,6 +703,12 @@ function handleSayHi() {
   padding: 14px 16px 10px;
   background: linear-gradient(180deg, rgba(251, 247, 241, 0.95), rgba(251, 247, 241, 0.75));
   backdrop-filter: blur(10px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.home-filter::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-chip,
@@ -619,8 +721,10 @@ function handleSayHi() {
   border-radius: 999px;
   border: 1px solid rgba(233, 221, 204, 0.9);
   background: rgba(255, 255, 255, 0.82);
-  color: var(--ifu-text);
+  color: #3a2e23;
   font-size: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .filter-chip--active {
@@ -765,28 +869,20 @@ function handleSayHi() {
   gap: 10px;
 }
 
-.home-floating-cta {
-  position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: calc(78px + env(safe-area-inset-bottom));
-  z-index: 4;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+:deep(.van-picker) {
+  color: #3a2e23;
 }
 
-.home-floating-cta button {
-  min-height: 46px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(58, 46, 35, 0.92);
-  color: #fff8ef;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 18px 36px rgba(58, 46, 35, 0.18);
+:deep(.van-picker__title),
+:deep(.van-picker-column__item),
+:deep(.van-picker__cancel),
+:deep(.van-picker__confirm) {
+  color: #3a2e23;
+}
+
+:deep(.van-picker-column__item--selected) {
+  color: #8b6640;
+  font-weight: 600;
 }
 
 .city-popup__header {

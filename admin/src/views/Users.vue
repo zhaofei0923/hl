@@ -2,12 +2,12 @@
   <div class="page-container users-page" data-testid="admin-users-shell">
     <div class="page-header users-page__header">
       <div>
-        <span class="brand-label">USER MANAGEMENT</span>
-        <h2>用户管理</h2>
-        <p>把认证状态、角色和后续动作放到同一阅读动线里，减少运营在表格里的来回搜索。</p>
+        <span class="brand-label">MEMBER MANAGEMENT</span>
+        <h2>会员管理</h2>
+        <p>会员资料、认证状态与后续动作一览，仅展示寻友会员。</p>
       </div>
       <div class="users-page__summary">
-        <span class="users-page__pill">求偶用户 / 红娘</span>
+        <span class="users-page__pill">寻友会员</span>
         <span class="users-page__pill users-page__pill--active">认证状态优先</span>
       </div>
     </div>
@@ -27,12 +27,6 @@
           <el-select v-model="filters.status" placeholder="全部" clearable>
             <el-option label="正常" :value="1" />
             <el-option label="禁用" :value="0" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="角色">
-          <el-select v-model="filters.role" placeholder="全部" clearable>
-            <el-option label="求偶用户" value="user" />
-            <el-option label="红娘" value="matchmaker" />
           </el-select>
         </el-form-item>
         <el-form-item label="认证状态">
@@ -64,13 +58,6 @@
         <el-table-column label="性别" width="70">
           <template #default="{ row }">
             {{ row.gender === 1 ? '男' : row.gender === 2 ? '女' : '未设置' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="角色" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.currentRole === 'matchmaker' ? 'warning' : 'primary'" size="small">
-              {{ row.currentRole === 'matchmaker' ? '红娘' : '用户' }}
-            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="城市" width="100">
@@ -129,7 +116,6 @@
           <el-descriptions-item label="昵称">{{ currentUser.nickname }}</el-descriptions-item>
           <el-descriptions-item label="手机号">{{ currentUser.phone }}</el-descriptions-item>
           <el-descriptions-item label="性别">{{ currentUser.gender === 1 ? '男' : currentUser.gender === 2 ? '女' : '未设置' }}</el-descriptions-item>
-          <el-descriptions-item label="角色">{{ currentUser.currentRole === 'matchmaker' ? '红娘' : '用户' }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="currentUser.status === 1 ? 'success' : 'danger'">
               {{ currentUser.status === 1 ? '正常' : '禁用' }}
@@ -246,7 +232,7 @@ const filters = reactive({
   keyword: '',
   gender: '',
   status: '',
-  role: '',
+  role: 'user',
   certificationStatus: ''
 })
 
@@ -269,7 +255,7 @@ const search = () => {
 }
 
 const resetFilters = () => {
-  Object.assign(filters, { keyword: '', gender: '', status: '', role: '', certificationStatus: '' })
+  Object.assign(filters, { keyword: '', gender: '', status: '', role: 'user', certificationStatus: '' })
   search()
 }
 

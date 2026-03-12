@@ -34,7 +34,7 @@ const routes = [
         path: 'users',
         name: 'Users',
         component: () => import('../views/Users.vue'),
-        meta: { title: '用户管理', icon: 'User' }
+        meta: { title: '会员管理', icon: 'User' }
       },
       {
         path: 'matchmakers',

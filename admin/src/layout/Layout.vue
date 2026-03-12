@@ -71,7 +71,7 @@ const isCollapse = ref(false)
 
 const menuItems = [
   { path: '/dashboard', title: '数据概览', desc: '总览与优先级', icon: 'DataAnalysis' },
-  { path: '/users', title: '用户管理', desc: '资料与认证状态', icon: 'User' },
+  { path: '/users', title: '会员管理', desc: '资料与认证状态', icon: 'User' },
   { path: '/matchmakers', title: '红娘管理', desc: '等级与协作网络', icon: 'Avatar' },
   { path: '/withdrawals', title: '提现审批', desc: '风险与出款处理', icon: 'Wallet' },
   { path: '/orders', title: '订单管理', desc: '收入与服务类型', icon: 'Tickets' },

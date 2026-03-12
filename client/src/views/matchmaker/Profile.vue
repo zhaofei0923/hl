@@ -30,19 +30,13 @@
             <h2>{{ userStore.userInfo?.nickname || '婚介用户' }}</h2>
             <span class="brand-chip">婚介</span>
           </div>
-          <p>ID: {{ userStore.userInfo?.id || '--' }} · 以香槟金服务路径管理匹配、会员与活动。</p>
           <van-button size="small" round class="matchmaker-hero__switch" @click="handleSwitchRole">
             切换至求偶
           </van-button>
         </div>
       </div>
 
-      <div class="matchmaker-hero__stats">
-        <div v-for="item in statsItems" :key="item.label" class="matchmaker-hero__stat" @click="handleStatsClick(item)">
-          <strong>{{ item.value }}</strong>
-          <span>{{ item.label }}</span>
-        </div>
-      </div>
+
     </section>
 
     <section class="card matchmaker-card">

@@ -257,11 +257,10 @@ function splitParagraph(value, fallback) {
 async function fetchUserDetail() {
   loading.value = true
   try {
-    // 占位：当前项目暂无公开用户详情接口，先复用个人资料接口进行展示
-    const res = await userApi.getProfile()
+    const res = await userApi.getPublicProfile(userId)
     const data = res.data || {}
 
-    userDetail.id = userId || data.id
+    userDetail.id = data.id || userId
     userDetail.nickname = data.nickname || ''
     userDetail.gender = data.gender || 0
     userDetail.avatarUrl = data.avatarUrl || ''

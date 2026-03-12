@@ -6,6 +6,11 @@ export const userApi = {
     return request.get('/user/profile')
   },
 
+  // 获取指定用户的公开资料
+  getPublicProfile(id) {
+    return request.get(`/user/public/${id}`)
+  },
+
   // 更新用户基础信息
   updateProfile(data) {
     return request.put('/user/profile', data)

@@ -274,6 +274,57 @@ const userController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  /**
+   * Get public profile of any user by ID
+   * GET /api/user/public/:id
+   */
+  async getPublicProfile(req, res, next) {
+    try {
+      const targetId = req.params.id;
+
+      const user = await User.findByPk(targetId, {
+        attributes: ['id', 'nickname', 'avatarUrl', 'gender', 'certificationStatus'],
+        include: [
+          {
+            association: 'profile',
+            attributes: [
+              'realName', 'age', 'height', 'education', 'occupation',
+              'incomeRange', 'city', 'province', 'nativePlace',
+              'maritalStatus', 'selfIntro', 'partnerRequirement', 'photos'
+            ]
+          }
+        ]
+      });
+
+      if (!user) {
+        return error(res, '用户不存在', 40400, 404);
+      }
+
+      const u = user.toJSON();
+      const profile = u.profile || {};
+
+      return success(res, {
+        id: u.id,
+        nickname: u.nickname,
+        avatarUrl: u.avatarUrl,
+        gender: u.gender,
+        verified: u.certificationStatus === 'approved',
+        age: profile.age,
+        height: profile.height,
+        education: profile.education,
+        occupation: profile.occupation,
+        income_range: profile.incomeRange,
+        city: profile.city,
+        marital_status: profile.maritalStatus,
+        self_intro: profile.selfIntro,
+        partner_requirement: profile.partnerRequirement,
+        photos: profile.photos || []
+      });
+    } catch (err) {
+      next(err);
+    }
   }
 };
 

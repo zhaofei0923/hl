@@ -39,4 +39,7 @@ router.get('/certification', userController.getCertification);
 // Submit certification application
 router.post('/certification', userController.submitCertification);
 
+// Get public profile of any user by ID
+router.get('/public/:id', userController.getPublicProfile);
+
 module.exports = router;

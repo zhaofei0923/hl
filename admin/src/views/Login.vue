@@ -15,7 +15,7 @@
       <div class="login-card">
         <div class="login-header">
           <span class="brand-label">SIGN IN</span>
-          <h2>进入香槟金运营台</h2>
+          <h2>进入运营管理平台</h2>
           <p>统一查看用户、红娘、订单与线下活动。</p>
         </div>
         <el-form ref="formRef" :model="form" :rules="rules" @submit.prevent="handleLogin">

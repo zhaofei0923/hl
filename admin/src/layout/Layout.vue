@@ -3,7 +3,7 @@
     <el-aside :width="isCollapse ? '88px' : '248px'" class="layout-aside">
       <div class="logo-area">
         <span class="brand-label">IFU CONSOLE</span>
-        <strong v-if="!isCollapse" class="logo-text">香槟金运营台</strong>
+        <strong v-if="!isCollapse" class="logo-text">运营管理平台</strong>
         <strong v-else class="logo-text-mini">IFU</strong>
       </div>
       <el-menu :default-active="currentRoute" class="sidebar-menu" :collapse="isCollapse" router>

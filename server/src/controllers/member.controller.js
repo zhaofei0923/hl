@@ -1,5 +1,6 @@
 const { Member, User, UserProfile, Matchmaker, MatchRecord, Wallet, Conversation, Message } = require('../models');
 const memberService = require('../services/member.service');
+const ocrService = require('../services/ocr.service');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const { success, error, paginate } = require('../utils/response');
@@ -1032,6 +1033,35 @@ const memberController = {
 
       return success(res, null, '删除成功');
     } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * OCR recognize member card image
+   * POST /api/member/ocr-recognize
+   */
+  async ocrRecognize(req, res, next) {
+    try {
+      if (!req.file) {
+        return error(res, '请上传资料卡图片', 40001);
+      }
+      const fs = require('fs');
+      const imageBuffer = fs.readFileSync(req.file.path);
+      // Clean up temp file
+      fs.unlinkSync(req.file.path);
+
+      const result = await ocrService.recognizeMemberCard(imageBuffer);
+      const fieldCount = Object.keys(result.fields).length;
+      const photoCount = result.photos.length;
+
+      if (fieldCount === 0 && photoCount === 0) {
+        return success(res, { fields: {}, photos: [] }, '未识别到有效信息，请确认图片为会员资料卡');
+      }
+
+      return success(res, result, `识别完成，提取了${fieldCount}个字段${photoCount > 0 ? '和1张照片' : ''}`);
+    } catch (err) {
+      logger.error('OCR recognize failed:', err);
       next(err);
     }
   }

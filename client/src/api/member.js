@@ -79,5 +79,10 @@ export const memberApi = {
   // 删除会员
   deleteMember(id) {
     return request.delete(`/member/${id}`)
+  },
+
+  // OCR 识别资料卡
+  ocrRecognize(formData) {
+    return request.post('/member/ocr-recognize', formData)
   }
 }

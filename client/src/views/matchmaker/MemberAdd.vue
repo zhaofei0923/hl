@@ -18,6 +18,36 @@
       </div>
     </section>
 
+    <!-- 智能识别入口 -->
+    <van-cell-group inset style="margin: 12px 16px">
+      <van-field name="ocrUpload" label="智能识别">
+        <template #input>
+          <div class="ocr-upload-area">
+            <van-uploader
+              :after-read="afterReadOcr"
+              :max-count="1"
+              :max-size="20 * 1024 * 1024"
+              accept="image/*"
+              :preview-image="false"
+              @oversize="() => showToast('图片不能超过 20MB')"
+            >
+              <van-button
+                size="small"
+                type="primary"
+                plain
+                icon="scan"
+                :loading="ocrLoading"
+                loading-text="识别中..."
+              >
+                拍照/上传资料卡
+              </van-button>
+            </van-uploader>
+            <span class="ocr-hint">上传会员资料卡图片，自动识别填写信息</span>
+          </div>
+        </template>
+      </van-field>
+    </van-cell-group>
+
     <van-form ref="formRef" @submit="handleSubmit">
       <div class="section-title">基本信息</div>
       <van-cell-group inset>
@@ -331,6 +361,7 @@ import { memberApi } from '@/api/member'
 const router = useRouter()
 const formRef = ref(null)
 const submitting = ref(false)
+const ocrLoading = ref(false)
 const fileList = ref([])
 const avatarList = ref([])
 
@@ -532,6 +563,71 @@ function onOversize() {
   showToast('生活照大小不能超过 20MB')
 }
 
+// ========== OCR 智能识别 ==========
+const incomeOptionValues = ['5万以下', '5-10万', '10-20万', '20-50万', '50-100万', '100万+']
+const educationOptionValues = ['高中及以下', '专科', '本科', '硕士', '博士', '其他']
+const maritalOptionValues = ['未婚', '离异', '丧偶']
+const houseOptionValues = ['有', '无', '按揭中']
+const carOptionValues = ['有', '无']
+
+function fuzzyMatch(value, options) {
+  if (!value) return ''
+  const exact = options.find(o => o === value)
+  if (exact) return exact
+  const partial = options.find(o => value.includes(o) || o.includes(value))
+  return partial || ''
+}
+
+async function afterReadOcr(file) {
+  const f = Array.isArray(file) ? file[0] : file
+  ocrLoading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('image', f.file)
+    const res = await memberApi.ocrRecognize(formData)
+    const data = res.data || res
+    const fields = data.fields || {}
+    const photos = data.photos || []
+
+    // Fill text fields
+    if (fields.age) form.age = fields.age
+    if (fields.constellation) form.constellation = fields.constellation
+    if (fields.height) form.height = fields.height
+    if (fields.education) form.education = fuzzyMatch(fields.education, educationOptionValues) || form.education
+    if (fields.city) form.city = fields.city
+    if (fields.nativePlace) form.nativePlace = fields.nativePlace
+    if (fields.occupation) form.occupation = fields.occupation
+    if (fields.incomeRange) form.incomeRange = fuzzyMatch(fields.incomeRange, incomeOptionValues) || form.incomeRange
+    if (fields.maritalStatus) form.maritalStatus = fuzzyMatch(fields.maritalStatus, maritalOptionValues) || form.maritalStatus
+    if (fields.houseStatus) form.houseStatus = fuzzyMatch(fields.houseStatus, houseOptionValues) || form.houseStatus
+    if (fields.carStatus) form.carStatus = fuzzyMatch(fields.carStatus, carOptionValues) || form.carStatus
+    if (fields.familySituation) form.familySituation = fields.familySituation
+    if (fields.selfIntro) form.selfIntro = fields.selfIntro
+    if (fields.partnerRequirement) form.partnerRequirement = fields.partnerRequirement
+    if (fields.remark) form.remark = fields.remark
+
+    // Fill photos as life photos
+    if (photos.length > 0) {
+      for (const url of photos) {
+        if (fileList.value.length < 3) {
+          fileList.value.push({ url, status: 'done', message: '' })
+        }
+      }
+    }
+
+    const fieldCount = Object.keys(fields).length
+    if (fieldCount === 0 && photos.length === 0) {
+      showToast('未识别到有效信息，请确认图片为会员资料卡')
+    } else {
+      showSuccessToast(`识别完成，请检查并补充信息`)
+    }
+  } catch (err) {
+    showFailToast(err?.response?.data?.message || '识别失败，请重试')
+  } finally {
+    ocrLoading.value = false
+  }
+}
+
 async function handleSubmit() {
   submitting.value = true
   try {
@@ -583,6 +679,17 @@ async function handleSubmit() {
 
 .form-footer {
   padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.ocr-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ocr-hint {
+  font-size: 12px;
+  color: var(--hl-text-secondary, #999);
 }
 
 :deep(.van-cell-group--inset) {

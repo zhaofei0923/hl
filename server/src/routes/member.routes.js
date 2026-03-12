@@ -54,6 +54,9 @@ router.get('/stats', memberController.getStats);
 // Recommend own member to a resource (cross-matchmaker)
 router.post('/recommend', memberController.recommend);
 
+// OCR recognize member card image (max 20MB)
+router.post('/ocr-recognize', upload.single('image'), memberController.ocrRecognize);
+
 // Upload member avatar (single, max 5MB)
 router.post('/upload-avatar', uploadAvatar.single('avatar'), memberController.uploadAvatar);
 

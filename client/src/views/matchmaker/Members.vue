@@ -34,42 +34,6 @@
       </div>
     </section>
 
-    <section class="card members-toolbar" data-testid="matchmaker-members-toolbar">
-      <div class="members-toolbar__header">
-        <div>
-          <span class="brand-label">FILTERS</span>
-          <h3>按经营阶段切换会员池</h3>
-        </div>
-        <button type="button" class="members-toolbar__search-button" @click="showSearch = true">
-          <van-icon name="search" size="16" />
-          搜索会员
-        </button>
-      </div>
-
-      <div class="members-toolbar__chips">
-        <button
-          v-for="item in filterOptions"
-          :key="item.value"
-          type="button"
-          class="members-toolbar__chip"
-          :class="{ 'members-toolbar__chip--active': memberType === item.value }"
-          @click="memberType = item.value"
-        >
-          {{ item.label }}
-        </button>
-      </div>
-
-      <div v-if="activeFilterTags.length" class="members-toolbar__active-filters">
-        <span class="brand-label">ACTIVE FILTERS</span>
-        <div class="members-toolbar__active-list">
-          <span v-for="item in activeFilterTags" :key="item" class="brand-chip brand-chip--ghost">{{ item }}</span>
-        </div>
-      </div>
-      <p v-else class="members-toolbar__hint">
-        当前未启用精细筛选，适合先从{{ currentTypeLabel }}视图快速查看整体会员状态。
-      </p>
-    </section>
-
     <section class="card members-list-shell">
       <div class="members-list-shell__header">
         <div>
@@ -609,7 +573,6 @@ onMounted(() => {
   color: #fffdf9;
 }
 
-.members-toolbar__header,
 .members-list-shell__header {
   display: flex;
   justify-content: space-between;
@@ -617,63 +580,10 @@ onMounted(() => {
   gap: 16px;
 }
 
-.members-toolbar__header h3,
 .members-list-shell__header h3 {
   margin-top: 8px;
   font-size: 21px;
   color: var(--ifu-text-strong);
-}
-
-.members-toolbar__search-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid rgba(226, 205, 169, 0.78);
-  border-radius: 999px;
-  background: rgba(255, 252, 247, 0.88);
-  color: var(--ifu-text-strong);
-}
-
-.members-toolbar__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.members-toolbar__chip {
-  min-height: 38px;
-  padding: 0 16px;
-  border: 1px solid rgba(233, 221, 204, 0.88);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--ifu-text);
-}
-
-.members-toolbar__chip--active {
-  background: linear-gradient(135deg, var(--ifu-gold-100), rgba(200, 169, 119, 0.3));
-  border-color: rgba(166, 124, 82, 0.42);
-  color: var(--ifu-text-strong);
-  box-shadow: 0 12px 20px rgba(166, 124, 82, 0.12);
-}
-
-.members-toolbar__active-filters {
-  margin-top: 18px;
-}
-
-.members-toolbar__active-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.members-toolbar__hint {
-  margin-top: 18px;
-  color: var(--ifu-text-muted);
-  line-height: 1.6;
 }
 
 .members-list-shell {

@@ -597,4 +597,28 @@ onMounted(() => {
 :deep(.van-field__label) {
   width: 90px;
 }
+
+:deep(.van-picker) {
+  background: #fff;
+}
+
+:deep(.van-picker-column__item) {
+  color: var(--ifu-text-strong, #3a2e23);
+}
+
+:deep(.van-picker__toolbar) {
+  background: #fff;
+}
+
+:deep(.van-picker__title) {
+  color: var(--ifu-text-strong, #3a2e23);
+}
+
+:deep(.van-picker__confirm) {
+  color: var(--ifu-gold-700, #a67c52);
+}
+
+:deep(.van-picker__cancel) {
+  color: var(--ifu-text-muted, #9a8a78);
+}
 </style>

@@ -486,14 +486,24 @@ const memberController = {
         return error(res, '红娘信息不存在', 40400, 404);
       }
 
-      const memberRow = await Member.findOne({
+      const includeClause = [{
+        association: 'user',
+        attributes: { exclude: ['passwordHash'] },
+        include: [{ association: 'profile' }]
+      }];
+
+      // First try own member; if not found and matchmaker is certified, allow viewing resource pool members
+      let memberRow = await Member.findOne({
         where: { id, matchmakerId: matchmaker.id },
-        include: [{
-          association: 'user',
-          attributes: { exclude: ['passwordHash'] },
-          include: [{ association: 'profile' }]
-        }]
+        include: includeClause
       });
+
+      if (!memberRow && matchmaker.certificationStatus === 2) {
+        memberRow = await Member.findOne({
+          where: { id },
+          include: includeClause
+        });
+      }
 
       if (!memberRow) {
         return error(res, '会员不存在', 40400, 404);

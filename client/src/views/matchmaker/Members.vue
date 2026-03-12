@@ -140,8 +140,8 @@
       </div>
     </van-popup>
 
-    <van-popup v-model:show="showFilter" position="bottom" round :style="{ maxHeight: '80vh' }">
-      <div class="popup-form">
+    <van-popup v-model:show="showFilter" position="bottom" round :style="{ maxHeight: '80vh' }" :overlay-style="{ background: 'rgba(0,0,0,0.6)' }">
+      <div class="popup-form filter-popup">
         <div class="popup-form__header">
           <span class="popup-form__title">筛选条件</span>
           <van-icon name="cross" size="18" @click="showFilter = false" />
@@ -554,22 +554,35 @@ onMounted(() => {
 }
 
 .members-hero__stat {
-  padding: 14px;
+  padding: 14px 10px;
   border-radius: 18px;
   background: rgba(255, 248, 239, 0.12);
   border: 1px solid rgba(255, 248, 239, 0.14);
+  text-align: center;
 }
 
-.members-hero__stat span,
+.members-hero__stat span {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 248, 239, 0.78);
+  white-space: nowrap;
+}
+
 .members-hero__stat small {
   display: block;
-  color: rgba(255, 248, 239, 0.72);
+  font-size: 11px;
+  color: rgba(255, 248, 239, 0.58);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .members-hero__stat strong {
   display: block;
   margin: 8px 0 6px;
-  font-size: 26px;
+  font-size: 28px;
   color: #fffdf9;
 }
 
@@ -599,27 +612,50 @@ onMounted(() => {
   padding-bottom: 8px;
 }
 
+.filter-popup {
+  background: var(--ifu-bg);
+}
+
 .filter-section {
-  padding: 14px 16px;
+  padding: 16px 16px;
   border-bottom: 1px solid var(--ifu-border);
 }
 
 .filter-section__label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  color: var(--ifu-text-strong);
+  margin-bottom: 12px;
+}
+
+.filter-section :deep(.van-radio-group) {
+  gap: 10px;
+}
+
+.filter-section :deep(.van-radio__icon--checked .van-icon) {
+  background-color: var(--ifu-gold-700);
+  border-color: var(--ifu-gold-700);
+}
+
+.filter-section :deep(.van-radio__label) {
   color: var(--ifu-text);
-  margin-bottom: 10px;
 }
 
 .filter-section__field {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.82);
+  background: #fff;
+  border: 1px solid var(--ifu-border);
+}
+
+.filter-section__field :deep(.van-field__control) {
+  color: var(--ifu-text-strong);
 }
 
 .filter-footer {
   display: flex;
   gap: 12px;
   padding: 16px 16px 24px;
+  border-top: 1px solid var(--ifu-border);
 }
 
 .fab-add {

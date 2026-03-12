@@ -36,7 +36,7 @@
           />
           <div class="resource-card__body" @click="handleDetail(item)">
             <div class="resource-card__top">
-              <span class="resource-card__name">{{ item.name || '匿名' }}</span>
+              <span class="resource-card__name">{{ item.nickname || item.realName || '匿名' }}</span>
               <van-icon
                 v-if="item.gender"
                 :name="item.gender === 1 ? 'friends-o' : 'friends-o'"
@@ -200,7 +200,7 @@
         </div>
         <div class="recommend-popup__target" v-if="recommendTarget">
           <span class="recommend-popup__label">推送给：</span>
-          <span class="recommend-popup__name">{{ recommendTarget.name || '匿名' }}</span>
+          <span class="recommend-popup__name">{{ recommendTarget.nickname || recommendTarget.realName || '匿名' }}</span>
         </div>
 
         <van-loading v-if="myMembersLoading" class="loading-center" />
@@ -222,7 +222,7 @@
               fit="cover"
             />
             <div class="my-member-item__info">
-              <div class="my-member-item__name">{{ m.name || m.nickname || '匿名' }}</div>
+              <div class="my-member-item__name">{{ m.nickname || m.realName || '匿名' }}</div>
               <div class="my-member-item__meta">
                 <span v-if="m.age">{{ m.age }}岁</span>
                 <span v-if="m.city">{{ m.city }}</span>

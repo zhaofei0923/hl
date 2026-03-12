@@ -1,20 +1,22 @@
 <template>
-  <van-tabbar v-model="active" :fixed="true" :safe-area-inset-bottom="true" class="brand-tabbar">
-    <!-- 用户端首页 -->
-    <van-tabbar-item v-if="isUser" name="home" icon="home-o" to="/user/home">
-      首页
-    </van-tabbar-item>
+  <Teleport to="body">
+    <van-tabbar v-model="active" :fixed="true" :z-index="1000" :safe-area-inset-bottom="true" class="brand-tabbar">
+      <!-- 用户端首页 -->
+      <van-tabbar-item v-if="isUser" name="home" icon="home-o" to="/user/home">
+        首页
+      </van-tabbar-item>
 
-    <!-- 消息 -->
-    <van-tabbar-item name="messages" icon="chat-o" :badge="unreadCount || ''" to="/messages">
-      消息
-    </van-tabbar-item>
+      <!-- 消息 -->
+      <van-tabbar-item name="messages" icon="chat-o" :badge="unreadCount || ''" to="/messages">
+        消息
+      </van-tabbar-item>
 
-    <!-- 我的 -->
-    <van-tabbar-item name="mine" icon="user-o" :to="mineRoute">
-      我的
-    </van-tabbar-item>
-  </van-tabbar>
+      <!-- 我的 -->
+      <van-tabbar-item name="mine" icon="user-o" :to="mineRoute">
+        我的
+      </van-tabbar-item>
+    </van-tabbar>
+  </Teleport>
 </template>
 
 <script setup>

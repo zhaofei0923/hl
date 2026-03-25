@@ -6,7 +6,7 @@ const sendSmsValidation = [
     .matches(/^1[3-9]\d{9}$/).withMessage('手机号格式不正确'),
   body('type')
     .notEmpty().withMessage('验证码类型不能为空')
-    .isIn(['login', 'register', 'reset_password', 'bind_phone', 'setPassword']).withMessage('验证码类型不正确')
+    .isIn(['login', 'register', 'reset_password', 'bind_phone']).withMessage('验证码类型不正确')
 ];
 
 const smsLoginValidation = [

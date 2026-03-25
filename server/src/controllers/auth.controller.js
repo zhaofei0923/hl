@@ -391,7 +391,7 @@ const authController = {
       }
       // Flow 2: Set password via SMS code verification
       else if (phone && smsCode) {
-        const isValid = await authService.verifySmsCode(phone, smsCode, 'setPassword');
+        const isValid = await authService.verifySmsCode(phone, smsCode, 'reset_password');
         if (!isValid) {
           return error(res, '验证码无效或已过期', 40001);
         }

@@ -81,7 +81,7 @@ const matchService = {
    * Get recommended matches with filters and pagination
    */
   async getRecommendations(userId, filters = {}) {
-    const { page = 1, pageSize = 20, minAge, maxAge, city, education } = filters;
+    const { page = 1, pageSize = 20, minAge, maxAge, city, education, gender, maritalStatus } = filters;
 
     const user = await User.findByPk(userId, {
       include: [{ association: 'profile' }]
@@ -105,6 +105,13 @@ const matchService = {
       userWhere.gender = 1;
     }
 
+    // Gender filter: client sends 'male'/'female', override the auto opposite-gender logic
+    if (gender === 'male') {
+      userWhere.gender = 1;
+    } else if (gender === 'female') {
+      userWhere.gender = 2;
+    }
+
     // Build profile where clause for filters
     const profileWhere = {};
     if (minAge || maxAge) {
@@ -117,6 +124,9 @@ const matchService = {
     }
     if (education) {
       profileWhere.education = education;
+    }
+    if (maritalStatus) {
+      profileWhere.maritalStatus = maritalStatus;
     }
 
     const profileInclude = {

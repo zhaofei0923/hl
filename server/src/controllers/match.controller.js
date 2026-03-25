@@ -30,7 +30,7 @@ const matchController = {
   async getRecommendations(req, res, next) {
     try {
       const { userId } = req.user;
-      const { page = 1, pageSize = 20, minAge, maxAge, city, education } = req.query;
+      const { page = 1, pageSize = 20, minAge, maxAge, city, education, gender, maritalStatus } = req.query;
 
       const result = await matchService.getRecommendations(userId, {
         page,
@@ -38,7 +38,9 @@ const matchController = {
         minAge,
         maxAge,
         city,
-        education
+        education,
+        gender,
+        maritalStatus
       });
 
       return paginate(res, {

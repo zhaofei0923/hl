@@ -15,18 +15,22 @@ async function startServer() {
     await sequelize.authenticate();
     logger.info('Database connection established successfully');
 
-    // Sync database (create tables if they don't exist)
-    // In production, use migrations instead
-    if (process.env.NODE_ENV !== 'production') {
-      // Use plain sync (creates missing tables only).
-      // alter:true causes duplicate index accumulation in MySQL.
-      // For schema changes, use migrations or set FORCE_SYNC=1 to recreate all tables.
-      if (process.env.FORCE_SYNC === '1') {
-        await sequelize.sync({ force: true });
-        logger.info('Database tables recreated (FORCE_SYNC)');
-      } else {
+    // Sync database schema
+    // - FORCE_SYNC=1 : drop & recreate all tables (dev only)
+    // - Tables exist  : skip sync to prevent Sequelize from accumulating duplicate unique indexes
+    // - Tables absent : create them via sync()
+    if (process.env.FORCE_SYNC === '1' && process.env.NODE_ENV !== 'production') {
+      await sequelize.sync({ force: true });
+      logger.info('Database tables recreated (FORCE_SYNC)');
+    } else {
+      const [[{ cnt }]] = await sequelize.query(
+        "SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'"
+      );
+      if (Number(cnt) === 0) {
         await sequelize.sync();
-        logger.info('Database models synchronized');
+        logger.info('Database tables created');
+      } else {
+        logger.info('Database tables already exist, skipping sync');
       }
     }
 

@@ -75,11 +75,16 @@ const User = sequelize.define('User', {
   lastLoginAt: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+  deletedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   tableName: 'users',
   underscored: true,
-  timestamps: true
+  timestamps: true,
+  paranoid: true
 });
 
 module.exports = User;

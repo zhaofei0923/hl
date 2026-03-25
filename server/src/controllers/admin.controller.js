@@ -56,6 +56,34 @@ const adminController = {
     } catch (err) { next(err); }
   },
 
+  async deleteUser(req, res, next) {
+    try {
+      const result = await adminService.deleteUser(req.params.id);
+      if (!result) return error(res, '用户不存在', 40400, 404);
+      if (result.error) return error(res, result.error);
+      return success(res, null, '删除成功');
+    } catch (err) { next(err); }
+  },
+
+  async exportUsers(req, res, next) {
+    try {
+      const { ids, keyword, gender, status, certificationStatus } = req.query;
+      const idArray = ids ? ids.split(',').map(Number).filter(Boolean) : [];
+      const workbook = await adminService.exportUsers({
+        ids: idArray,
+        keyword,
+        gender,
+        status,
+        certificationStatus
+      });
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=users_${dateStr}.xlsx`);
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (err) { next(err); }
+  },
+
   // ==================== Matchmaker Management ====================
 
   async getMatchmakers(req, res, next) {
@@ -90,6 +118,14 @@ const adminController = {
       const mm = await adminService.updateLevel(req.params.id, level);
       if (!mm) return error(res, '红娘不存在', 40400, 404);
       return success(res, mm, '等级更新成功');
+    } catch (err) { next(err); }
+  },
+
+  async deleteMatchmaker(req, res, next) {
+    try {
+      const result = await adminService.deleteMatchmaker(req.params.id);
+      if (!result) return error(res, '红娘不存在', 40400, 404);
+      return success(res, null, '删除成功');
     } catch (err) { next(err); }
   },
 

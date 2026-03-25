@@ -12,12 +12,15 @@ export const getOrderDistribution = () => request.get('/admin/dashboard/order-di
 export const getUsers = (params) => request.get('/admin/users', { params })
 export const getUserDetail = (id) => request.get(`/admin/users/${id}`)
 export const updateUserStatus = (id, status) => request.put(`/admin/users/${id}/status`, { status })
+export const deleteUser = (id) => request.delete(`/admin/users/${id}`)
+export const exportUsers = (params) => request.get('/admin/users/export', { params, responseType: 'blob' })
 
 // Matchmakers
 export const getMatchmakers = (params) => request.get('/admin/matchmakers', { params })
 export const getMatchmakerDetail = (id) => request.get(`/admin/matchmakers/${id}`)
 export const updateCertification = (id, certificationStatus) => request.put(`/admin/matchmakers/${id}/certification`, { certificationStatus })
 export const updateMatchmakerLevel = (id, level) => request.put(`/admin/matchmakers/${id}/level`, { level })
+export const deleteMatchmaker = (id) => request.delete(`/admin/matchmakers/${id}`)
 
 // Withdrawals
 export const getWithdrawals = (params) => request.get('/admin/withdrawals', { params })

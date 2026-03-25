@@ -3,6 +3,7 @@
  */
 const { Op, fn, col, literal } = require('sequelize');
 const sequelize = require('../config/database');
+const ExcelJS = require('exceljs');
 const {
   User, UserProfile, UserCertification, Matchmaker, MatchmakerStore,
   Wallet, WithdrawRecord, Order, SalonEvent,
@@ -141,6 +142,94 @@ const adminService = {
     return user;
   },
 
+  async deleteUser(userId) {
+    const user = await User.findByPk(userId);
+    if (!user) return null;
+    if (user.isAdmin === 1) return { error: '不能删除管理员账号' };
+
+    // 如果该用户有红娘身份，同步软删红娘记录
+    const matchmaker = await Matchmaker.findOne({ where: { userId } });
+    if (matchmaker) {
+      await matchmaker.destroy();
+      logger.info(`Admin soft-deleted matchmaker ${matchmaker.id} (linked to user ${userId})`);
+    }
+
+    await user.destroy();
+    logger.info(`Admin soft-deleted user ${userId}`);
+    return { success: true };
+  },
+
+  async exportUsers({ ids, keyword, gender, status, certificationStatus } = {}) {
+    const where = {};
+    where.currentRole = 'user';
+
+    if (ids && ids.length > 0) {
+      where.id = { [Op.in]: ids };
+    } else {
+      if (gender !== undefined && gender !== '') where.gender = Number(gender);
+      if (status !== undefined && status !== '') where.status = Number(status);
+      if (certificationStatus) where.certificationStatus = certificationStatus;
+      if (keyword) {
+        where[Op.or] = [
+          { nickname: { [Op.like]: `%${keyword}%` } },
+          { phone: { [Op.like]: `%${keyword}%` } },
+          { username: { [Op.like]: `%${keyword}%` } }
+        ];
+      }
+    }
+
+    const users = await User.findAll({
+      where,
+      attributes: { exclude: ['passwordHash'] },
+      include: [{ association: 'profile', attributes: ['age', 'city', 'education', 'occupation'] }],
+      order: [['created_at', 'DESC']]
+    });
+
+    const genderMap = { 1: '男', 2: '女' };
+    const statusMap = { 0: '禁用', 1: '正常' };
+    const certMap = { none: '未认证', pending: '审核中', approved: '已认证', rejected: '已拒绝' };
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('会员数据');
+
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: '昵称', key: 'nickname', width: 15 },
+      { header: '手机号', key: 'phone', width: 15 },
+      { header: '用户名', key: 'username', width: 15 },
+      { header: '性别', key: 'gender', width: 8 },
+      { header: '年龄', key: 'age', width: 8 },
+      { header: '城市', key: 'city', width: 12 },
+      { header: '学历', key: 'education', width: 12 },
+      { header: '职业', key: 'occupation', width: 15 },
+      { header: '状态', key: 'status', width: 8 },
+      { header: '实名认证', key: 'certificationStatus', width: 12 },
+      { header: '注册时间', key: 'createdAt', width: 20 }
+    ];
+
+    // 表头加粗
+    sheet.getRow(1).font = { bold: true };
+
+    for (const u of users) {
+      sheet.addRow({
+        id: u.id,
+        nickname: u.nickname || '',
+        phone: u.phone || '',
+        username: u.username || '',
+        gender: genderMap[u.gender] || '未设置',
+        age: u.profile?.age || '',
+        city: u.profile?.city || '',
+        education: u.profile?.education || '',
+        occupation: u.profile?.occupation || '',
+        status: statusMap[u.status] || '',
+        certificationStatus: certMap[u.certificationStatus] || '未认证',
+        createdAt: u.createdAt ? u.createdAt.toISOString().replace('T', ' ').slice(0, 19) : ''
+      });
+    }
+
+    return workbook;
+  },
+
   // ==================== Matchmaker Management ====================
 
   async getMatchmakers({ page = 1, pageSize = 20, keyword, certificationStatus, level } = {}) {
@@ -202,6 +291,14 @@ const adminService = {
     await mm.update({ level });
     logger.info(`Admin updated matchmaker ${matchmakerId} level to ${level}`);
     return mm;
+  },
+
+  async deleteMatchmaker(matchmakerId) {
+    const mm = await Matchmaker.findByPk(matchmakerId);
+    if (!mm) return null;
+    await mm.destroy();
+    logger.info(`Admin soft-deleted matchmaker ${matchmakerId}`);
+    return { success: true };
   },
 
   // ==================== Withdrawal Management ====================

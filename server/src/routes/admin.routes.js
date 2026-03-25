@@ -12,15 +12,18 @@ router.get('/dashboard/user-trend', adminController.getUserTrend);
 router.get('/dashboard/order-distribution', adminController.getOrderTypeDistribution);
 
 // User Management
+router.get('/users/export', adminController.exportUsers);
 router.get('/users', adminController.getUsers);
 router.get('/users/:id', adminController.getUserDetail);
 router.put('/users/:id/status', adminController.updateUserStatus);
+router.delete('/users/:id', adminController.deleteUser);
 
 // Matchmaker Management
 router.get('/matchmakers', adminController.getMatchmakers);
 router.get('/matchmakers/:id', adminController.getMatchmakerDetail);
 router.put('/matchmakers/:id/certification', adminController.updateCertification);
 router.put('/matchmakers/:id/level', adminController.updateLevel);
+router.delete('/matchmakers/:id', adminController.deleteMatchmaker);
 
 // Withdrawal Management
 router.get('/withdrawals', adminController.getWithdrawals);

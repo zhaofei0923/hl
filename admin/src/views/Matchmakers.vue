@@ -84,11 +84,12 @@
         <el-table-column label="注册时间" width="170">
           <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="200">
+        <el-table-column label="操作" fixed="right" width="240">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
             <el-button link type="warning" size="small" @click="showCertDialog(row)">认证</el-button>
             <el-button link type="success" size="small" @click="showLevelDialog(row)">调级</el-button>
+            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -158,8 +159,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import { getMatchmakers, getMatchmakerDetail, updateCertification, updateMatchmakerLevel } from '../api/admin'
-import { ElMessage } from 'element-plus'
+import { getMatchmakers, getMatchmakerDetail, updateCertification, updateMatchmakerLevel, deleteMatchmaker } from '../api/admin'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 
 const loading = ref(false)
@@ -277,6 +278,14 @@ const handleLevelUpdate = async () => {
   await updateMatchmakerLevel(levelForm.id, levelForm.level)
   ElMessage.success('等级已更新')
   levelDialogVisible.value = false
+  loadData()
+}
+
+const handleDelete = async (row) => {
+  const name = row.user?.nickname || row.id
+  await ElMessageBox.confirm(`确定要删除红娘 "${name}" 吗？删除后将从列表中移除。`, '删除确认', { type: 'warning' })
+  await deleteMatchmaker(row.id)
+  ElMessage.success('删除成功')
   loadData()
 }
 

@@ -19,6 +19,10 @@ request.interceptors.request.use(config => {
 // Response interceptor - handle errors
 request.interceptors.response.use(
   response => {
+    // Blob responses (e.g. file downloads) bypass JSON parsing
+    if (response.config.responseType === 'blob') {
+      return response.data
+    }
     const { data } = response
     if (data.code !== 0) {
       ElMessage.error(data.message || '请求失败')

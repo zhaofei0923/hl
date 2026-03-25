@@ -40,12 +40,16 @@
         <el-form-item>
           <el-button type="primary" icon="Search" @click="search">搜索</el-button>
           <el-button icon="RefreshRight" @click="resetFilters">重置</el-button>
+          <el-button type="success" icon="Download" @click="handleExport">
+            {{ selectedUsers.length > 0 ? `导出选中(${selectedUsers.length})` : '导出当前筛选' }}
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <el-card shadow="hover" class="users-table-card">
-      <el-table :data="list" v-loading="loading" stripe>
+      <el-table :data="list" v-loading="loading" stripe @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column label="头像" width="70">
           <template #default="{ row }">
@@ -85,11 +89,12 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="160">
+        <el-table-column label="操作" fixed="right" width="200">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
             <el-button v-if="row.status === 1" link type="danger" size="small" @click="toggleStatus(row, 0)">禁用</el-button>
             <el-button v-else link type="success" size="small" @click="toggleStatus(row, 1)">启用</el-button>
+            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -214,7 +219,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getUsers, getUserDetail, updateUserStatus, reviewCertification } from '../api/admin'
+import { getUsers, getUserDetail, updateUserStatus, reviewCertification, deleteUser, exportUsers } from '../api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 
@@ -227,6 +232,7 @@ const showDetail = ref(false)
 const currentUser = ref(null)
 const showRejectDialog = ref(false)
 const rejectReason = ref('')
+const selectedUsers = ref([])
 
 const filters = reactive({
   keyword: '',
@@ -271,6 +277,47 @@ const toggleStatus = async (row, status) => {
   await updateUserStatus(row.id, status)
   ElMessage.success(`已${action}`)
   loadData()
+}
+
+const handleSelectionChange = (selection) => {
+  selectedUsers.value = selection
+}
+
+const handleDelete = async (row) => {
+  await ElMessageBox.confirm(`确定要删除用户 "${row.nickname || row.id}" 吗？删除后该用户将从列表中移除。`, '删除确认', { type: 'warning' })
+  await deleteUser(row.id)
+  ElMessage.success('删除成功')
+  loadData()
+}
+
+const handleExport = async () => {
+  try {
+    const params = {}
+    if (selectedUsers.value.length > 0) {
+      params.ids = selectedUsers.value.map(u => u.id).join(',')
+    } else {
+      Object.assign(params, {
+        keyword: filters.keyword || undefined,
+        gender: filters.gender !== '' ? filters.gender : undefined,
+        status: filters.status !== '' ? filters.status : undefined,
+        certificationStatus: filters.certificationStatus || undefined
+      })
+    }
+    const res = await exportUsers(params)
+    const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const dateStr = dayjs().format('YYYYMMDD')
+    a.download = `会员数据_${dateStr}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (err) {
+    // handled by interceptor
+  }
 }
 
 const certTagType = (status) => {

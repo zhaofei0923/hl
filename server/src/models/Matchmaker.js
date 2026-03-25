@@ -56,11 +56,16 @@ const Matchmaker = sequelize.define('Matchmaker', {
     type: DataTypes.TINYINT,
     defaultValue: 1,
     comment: '0-disabled, 1-active'
+  },
+  deletedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   tableName: 'matchmakers',
   underscored: true,
-  timestamps: true
+  timestamps: true,
+  paranoid: true
 });
 
 module.exports = Matchmaker;

@@ -6,8 +6,24 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const { parseMemberCard } = require('./ocr.parser');
 
+const DEFAULT_OCR_TIMEOUT_MS = 10000;
+
 // Tencent Cloud OCR client (lazy init)
 let ocrClient = null;
+
+function getOcrTimeoutMs() {
+  const configured = Number(process.env.TENCENT_OCR_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_OCR_TIMEOUT_MS;
+}
+
+function withTimeout(promise, timeoutMs, message) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
 
 function getOcrClient() {
   if (!ocrClient) {
@@ -117,9 +133,14 @@ async function saveSourceImage(imageBuffer) {
 async function recognizeMemberCard(imageBuffer) {
   const sourceImageUrl = await saveSourceImage(imageBuffer);
   let detections = [];
+  const ocrTimeoutMs = getOcrTimeoutMs();
 
   try {
-    detections = await recognizeImage(imageBuffer);
+    detections = await withTimeout(
+      recognizeImage(imageBuffer),
+      ocrTimeoutMs,
+      `Tencent OCR timed out after ${ocrTimeoutMs}ms`
+    );
     logger.info(`OCR returned ${detections.length} text detections`);
   } catch (err) {
     logger.warn(`OCR unavailable, saved source image only: ${err.message}`);

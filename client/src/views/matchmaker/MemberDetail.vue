@@ -85,48 +85,25 @@
         </div>
       </section>
 
-      <section v-if="sourceCardPhotos.length > 0" class="card member-section">
+      <section v-if="memberInfoPhotos.length > 0" class="card member-section">
         <div class="member-section__header">
           <div>
-            <span class="brand-label">SOURCE CARD</span>
-            <h3>资料卡原图</h3>
+            <span class="brand-label">MEMBER INFO</span>
+            <h3>会员信息图片</h3>
           </div>
-          <span class="member-section__badge">点击查看大图</span>
-        </div>
-
-        <div class="source-card-grid">
-          <van-image
-            v-for="(photo, index) in sourceCardPhotos"
-            :key="photo"
-            :src="photo"
-            width="100%"
-            height="180"
-            fit="cover"
-            radius="16"
-            @click="previewSourceCard(index)"
-          />
-        </div>
-      </section>
-
-      <section v-if="photoList.length > 0" class="card member-section">
-        <div class="member-section__header">
-          <div>
-            <span class="brand-label">GALLERY</span>
-            <h3>个人相册</h3>
-          </div>
-          <span class="member-section__badge">{{ photoList.length }} 张</span>
+          <span class="member-section__badge">{{ memberInfoPhotos.length }} 张</span>
         </div>
 
         <div class="photo-grid">
           <van-image
-            v-for="(photo, index) in photoList"
+            v-for="(photo, index) in memberInfoPhotos"
             :key="index"
             :src="photo"
             width="100%"
             height="110"
             fit="cover"
             radius="16"
-            @click="previewImage(index)"
+            @click="previewMemberInfoImage(index)"
           />
         </div>
       </section>
@@ -246,23 +223,12 @@ const advisorNotes = computed(() => [
 ])
 
 const allPhotos = computed(() => Array.isArray(member.value?.photos) ? member.value.photos : [])
-const isOcrCardPhoto = (photo) => typeof photo === 'string' && photo.includes('ocr_card_')
-const sourceCardPhotos = computed(() => allPhotos.value.filter(isOcrCardPhoto))
-const photoList = computed(() => allPhotos.value.filter(photo => !isOcrCardPhoto(photo)))
+const memberInfoPhotos = computed(() => allPhotos.value.filter(photo => typeof photo === 'string' && photo))
 
-function previewSourceCard(index) {
-  if (sourceCardPhotos.value.length) {
+function previewMemberInfoImage(index) {
+  if (memberInfoPhotos.value.length) {
     showImagePreview({
-      images: sourceCardPhotos.value,
-      startPosition: index
-    })
-  }
-}
-
-function previewImage(index) {
-  if (photoList.value.length) {
-    showImagePreview({
-      images: photoList.value,
+      images: memberInfoPhotos.value,
       startPosition: index
     })
   }
@@ -480,7 +446,4 @@ onMounted(async () => {
   margin-top: 18px;
 }
 
-.source-card-grid {
-  margin-top: 18px;
-}
 </style>

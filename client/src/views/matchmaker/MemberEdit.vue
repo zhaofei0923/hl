@@ -159,8 +159,8 @@
         />
       </van-cell-group>
 
-      <!-- 会员照片 -->
-      <div class="section-title">会员照片</div>
+      <!-- 会员信息图片 -->
+      <div class="section-title">会员信息图片</div>
       <van-cell-group inset>
         <van-field name="avatar" label="头像">
           <template #input>
@@ -174,7 +174,7 @@
             />
           </template>
         </van-field>
-        <van-field name="photos" label="生活照">
+        <van-field name="photos" label="会员信息">
           <template #input>
             <van-uploader
               v-model="fileList"
@@ -521,7 +521,7 @@ async function afterReadPhoto(file) {
 }
 
 function onOversize() {
-  showToast('生活照大小不能超过 20MB')
+  showToast('会员信息图片大小不能超过 20MB')
 }
 
 function onDeletePhoto() {

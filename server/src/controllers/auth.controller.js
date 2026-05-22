@@ -414,6 +414,39 @@ const authController = {
   },
 
   /**
+   * Reset password via SMS verification code
+   * POST /api/auth/password/reset
+   */
+  async resetPassword(req, res, next) {
+    try {
+      const { phone, code, newPassword } = req.body;
+
+      const user = await User.findOne({ where: { phone } });
+      if (!user) {
+        return error(res, '该手机号未注册', 40400, 404);
+      }
+
+      if (user.status === 0) {
+        return error(res, '账号已被禁用', 40003);
+      }
+
+      const isValid = await authService.verifySmsCode(phone, code, 'reset_password');
+      if (!isValid) {
+        return error(res, '验证码无效或已过期', 40001);
+      }
+
+      const passwordHash = await authService.hashPassword(newPassword);
+      await user.update({ passwordHash });
+
+      logger.info(`User ${user.id} password reset via SMS`);
+
+      return success(res, null, '密码重置成功，请使用新密码登录');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
    * Bind phone number to WeChat-authenticated user
    * POST /api/auth/wechat/bindphone
    */

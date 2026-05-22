@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { validate } = require('../middleware/validate.middleware');
-const { sendSmsValidation, smsLoginValidation, passwordLoginValidation, usernameRegisterValidation, usernameLoginValidation } = require('../validators/auth.validator');
+const { sendSmsValidation, smsLoginValidation, passwordLoginValidation, resetPasswordValidation, usernameRegisterValidation, usernameLoginValidation } = require('../validators/auth.validator');
 const authMiddleware = require('../middleware/auth.middleware');
 
 // Send SMS verification code
@@ -13,6 +13,9 @@ router.post('/sms/login', validate(smsLoginValidation), authController.smsLogin)
 
 // Password login
 router.post('/password/login', validate(passwordLoginValidation), authController.passwordLogin);
+
+// Reset password via SMS verification code
+router.post('/password/reset', validate(resetPasswordValidation), authController.resetPassword);
 
 // WeChat login (stub)
 router.post('/wechat/login', authController.wechatLogin);

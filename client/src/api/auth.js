@@ -21,6 +21,11 @@ export const authApi = {
     return request.post('/auth/password/set', data)
   },
 
+  // 忘记密码：手机号验证码重置密码
+  resetPassword(data) {
+    return request.post('/auth/password/reset', data)
+  },
+
   // 用户名注册
   usernameRegister(data) {
     return request.post('/auth/username/register', data)

@@ -100,7 +100,7 @@
           <div class="login-form">
             <van-field
               v-model="loginForm.username"
-              placeholder="请输入用户名"
+              placeholder="请输入用户名/手机号"
               clearable
               left-icon="manager-o"
             />
@@ -123,6 +123,8 @@
               登录
             </van-button>
             <div class="login-form__tip">
+              <a class="login-form__link" @click="activeTab = 3">忘记密码？</a>
+              <span class="login-form__separator">·</span>
               还没有账号？
               <a class="login-form__link" @click="activeTab = 2">立即注册</a>
             </div>
@@ -196,6 +198,68 @@
             </div>
           </div>
         </van-tab>
+
+        <van-tab title="找回密码">
+          <div class="login-form">
+            <van-field
+              v-model="resetForm.phone"
+              type="tel"
+              maxlength="11"
+              placeholder="请输入注册手机号"
+              clearable
+              left-icon="phone-o"
+            />
+            <van-field
+              v-model="resetForm.code"
+              type="digit"
+              maxlength="6"
+              placeholder="请输入验证码"
+              left-icon="shield-o"
+            >
+              <template #button>
+                <van-button
+                  size="small"
+                  type="primary"
+                  round
+                  :disabled="resetCountdown > 0 || !resetForm.phone"
+                  @click="handleSendResetSms"
+                >
+                  {{ resetCountdown > 0 ? `${resetCountdown}s` : '获取验证码' }}
+                </van-button>
+              </template>
+            </van-field>
+            <van-field
+              v-model="resetForm.password"
+              :type="showResetPwd ? 'text' : 'password'"
+              placeholder="请输入新密码（6位以上）"
+              left-icon="lock"
+              :right-icon="showResetPwd ? 'eye-o' : 'closed-eye'"
+              @click-right-icon="showResetPwd = !showResetPwd"
+            />
+            <van-field
+              v-model="resetForm.confirmPassword"
+              :type="showResetPwd2 ? 'text' : 'password'"
+              placeholder="请再次输入新密码"
+              left-icon="lock"
+              :right-icon="showResetPwd2 ? 'eye-o' : 'closed-eye'"
+              @click-right-icon="showResetPwd2 = !showResetPwd2"
+            />
+            <van-button
+              block
+              round
+              type="primary"
+              class="login-form__submit"
+              :loading="loading"
+              @click="handleResetPassword"
+            >
+              重置密码
+            </van-button>
+            <div class="login-form__tip">
+              想起密码了？
+              <a class="login-form__link" @click="activeTab = 1">去登录</a>
+            </div>
+          </div>
+        </van-tab>
       </van-tabs>
 
       <div class="login-agreement">
@@ -236,12 +300,12 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { showToast } from 'vant'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
-import { validatePhone, validateSmsCode, validatePassword, validateUsername } from '@/utils/validator'
+import { PHONE_REG, validatePhone, validateSmsCode, validatePassword, validateUsername } from '@/utils/validator'
 
 const router = useRouter()
 const route = useRoute()
@@ -252,9 +316,13 @@ const loading = ref(false)
 const showLoginPwd = ref(false)
 const showRegPwd = ref(false)
 const showRegPwd2 = ref(false)
+const showResetPwd = ref(false)
+const showResetPwd2 = ref(false)
 const agreed = ref(false)
 const countdown = ref(0)
+const resetCountdown = ref(0)
 let countdownTimer = null
+let resetCountdownTimer = null
 
 const brandPills = ['红娘严选', '实名资料', '线下可见面']
 const servicePromises = [
@@ -286,6 +354,13 @@ const regForm = reactive({
   role: 'user'
 })
 
+const resetForm = reactive({
+  phone: '',
+  code: '',
+  password: '',
+  confirmPassword: ''
+})
+
 async function handleSendSms() {
   const phoneError = validatePhone(smsForm.phone)
   if (phoneError) {
@@ -302,6 +377,29 @@ async function handleSendSms() {
       if (countdown.value <= 0) {
         clearInterval(countdownTimer)
         countdownTimer = null
+      }
+    }, 1000)
+  } catch (err) {
+    // request interceptor handles error toast
+  }
+}
+
+async function handleSendResetSms() {
+  const phoneError = validatePhone(resetForm.phone)
+  if (phoneError) {
+    showToast(phoneError)
+    return
+  }
+
+  try {
+    await authApi.sendSms({ phone: resetForm.phone, type: 'reset_password' })
+    showToast('验证码已发送')
+    resetCountdown.value = 60
+    resetCountdownTimer = setInterval(() => {
+      resetCountdown.value--
+      if (resetCountdown.value <= 0) {
+        clearInterval(resetCountdownTimer)
+        resetCountdownTimer = null
       }
     }, 1000)
   } catch (err) {
@@ -332,7 +430,14 @@ async function handleSmsLogin() {
 async function handleUsernameLogin() {
   if (!checkAgreement()) return
 
-  const usernameError = validateUsername(loginForm.username)
+  const account = loginForm.username.trim()
+  if (!account) {
+    showToast('请输入用户名/手机号')
+    return
+  }
+
+  const isPhoneLogin = PHONE_REG.test(account)
+  const usernameError = isPhoneLogin ? '' : validateUsername(account)
   if (usernameError) { showToast(usernameError); return }
 
   const passwordError = validatePassword(loginForm.password)
@@ -340,10 +445,48 @@ async function handleUsernameLogin() {
 
   loading.value = true
   try {
-    const data = await userStore.loginByUsername(loginForm.username, loginForm.password)
+    const data = isPhoneLogin
+      ? await userStore.loginByPassword(account, loginForm.password)
+      : await userStore.loginByUsername(account, loginForm.password)
     navigateAfterLogin(data)
   } catch (err) {
     // error handled by interceptor
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleResetPassword() {
+  const phoneError = validatePhone(resetForm.phone)
+  if (phoneError) { showToast(phoneError); return }
+
+  const codeError = validateSmsCode(resetForm.code)
+  if (codeError) { showToast(codeError); return }
+
+  const passwordError = validatePassword(resetForm.password)
+  if (passwordError) { showToast(passwordError); return }
+
+  if (resetForm.password !== resetForm.confirmPassword) {
+    showToast('两次输入的密码不一致')
+    return
+  }
+
+  loading.value = true
+  try {
+    await authApi.resetPassword({
+      phone: resetForm.phone,
+      code: resetForm.code,
+      newPassword: resetForm.password
+    })
+    showToast('密码重置成功，请使用新密码登录')
+    loginForm.username = resetForm.phone
+    loginForm.password = ''
+    resetForm.code = ''
+    resetForm.password = ''
+    resetForm.confirmPassword = ''
+    activeTab.value = 1
+  } catch (err) {
+    // request interceptor handles error toast
   } finally {
     loading.value = false
   }
@@ -401,6 +544,11 @@ function navigateAfterLogin(data) {
     router.replace(path)
   }
 }
+
+onBeforeUnmount(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
+  if (resetCountdownTimer) clearInterval(resetCountdownTimer)
+})
 </script>
 
 <style scoped>
@@ -626,6 +774,11 @@ function navigateAfterLogin(data) {
 .login-form__link {
   color: var(--ifu-gold-700);
   cursor: pointer;
+}
+
+.login-form__separator {
+  margin: 0 6px;
+  color: var(--ifu-text-muted);
 }
 
 .login-agreement {

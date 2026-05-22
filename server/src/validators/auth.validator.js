@@ -27,6 +27,18 @@ const passwordLoginValidation = [
     .isLength({ min: 6, max: 32 }).withMessage('密码长度为6-32位')
 ];
 
+const resetPasswordValidation = [
+  body('phone')
+    .notEmpty().withMessage('手机号不能为空')
+    .matches(/^1[3-9]\d{9}$/).withMessage('手机号格式不正确'),
+  body('code')
+    .notEmpty().withMessage('验证码不能为空')
+    .isLength({ min: 6, max: 6 }).withMessage('验证码必须为6位'),
+  body('newPassword')
+    .notEmpty().withMessage('新密码不能为空')
+    .isLength({ min: 6, max: 32 }).withMessage('密码长度为6-32位')
+];
+
 const usernameRegisterValidation = [
   body('username')
     .notEmpty().withMessage('用户名不能为空')
@@ -51,6 +63,7 @@ module.exports = {
   sendSmsValidation,
   smsLoginValidation,
   passwordLoginValidation,
+  resetPasswordValidation,
   usernameRegisterValidation,
   usernameLoginValidation
 };

@@ -85,6 +85,29 @@
         </div>
       </section>
 
+      <section v-if="sourceCardPhotos.length > 0" class="card member-section">
+        <div class="member-section__header">
+          <div>
+            <span class="brand-label">SOURCE CARD</span>
+            <h3>资料卡原图</h3>
+          </div>
+          <span class="member-section__badge">点击查看大图</span>
+        </div>
+
+        <div class="source-card-grid">
+          <van-image
+            v-for="(photo, index) in sourceCardPhotos"
+            :key="photo"
+            :src="photo"
+            width="100%"
+            height="180"
+            fit="cover"
+            radius="16"
+            @click="previewSourceCard(index)"
+          />
+        </div>
+      </section>
+
       <section v-if="photoList.length > 0" class="card member-section">
         <div class="member-section__header">
           <div>
@@ -222,7 +245,19 @@ const advisorNotes = computed(() => [
   }
 ])
 
-const photoList = computed(() => Array.isArray(member.value?.photos) ? member.value.photos : [])
+const allPhotos = computed(() => Array.isArray(member.value?.photos) ? member.value.photos : [])
+const isOcrCardPhoto = (photo) => typeof photo === 'string' && photo.includes('ocr_card_')
+const sourceCardPhotos = computed(() => allPhotos.value.filter(isOcrCardPhoto))
+const photoList = computed(() => allPhotos.value.filter(photo => !isOcrCardPhoto(photo)))
+
+function previewSourceCard(index) {
+  if (sourceCardPhotos.value.length) {
+    showImagePreview({
+      images: sourceCardPhotos.value,
+      startPosition: index
+    })
+  }
+}
 
 function previewImage(index) {
   if (photoList.value.length) {
@@ -442,6 +477,10 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+  margin-top: 18px;
+}
+
+.source-card-grid {
   margin-top: 18px;
 }
 </style>

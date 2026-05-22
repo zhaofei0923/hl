@@ -46,6 +46,13 @@
           </div>
         </template>
       </van-field>
+      <div v-if="sourceCardUrl" class="ocr-source-card" @click="previewSourceCard">
+        <img :src="sourceCardUrl" alt="资料卡原图" />
+        <div class="ocr-source-card__info">
+          <div class="ocr-source-card__title">资料卡图片已保存</div>
+          <div class="ocr-source-card__desc">确认录入后，会在会员详情中展示原始图片</div>
+        </div>
+      </div>
     </van-cell-group>
 
     <van-form ref="formRef" @submit="handleSubmit">
@@ -355,7 +362,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { showSuccessToast, showFailToast, showToast } from 'vant'
+import { showSuccessToast, showFailToast, showToast, showImagePreview } from 'vant'
 import { memberApi } from '@/api/member'
 
 const router = useRouter()
@@ -364,6 +371,7 @@ const submitting = ref(false)
 const ocrLoading = ref(false)
 const fileList = ref([])
 const avatarList = ref([])
+const sourceCardUrl = ref('')
 
 const showAgePicker = ref(false)
 const showConstellationPicker = ref(false)
@@ -578,6 +586,14 @@ function fuzzyMatch(value, options) {
   return partial || ''
 }
 
+function previewSourceCard() {
+  if (!sourceCardUrl.value) return
+  showImagePreview({
+    images: [sourceCardUrl.value],
+    closeable: true
+  })
+}
+
 async function afterReadOcr(file) {
   const f = Array.isArray(file) ? file[0] : file
   ocrLoading.value = true
@@ -587,11 +603,12 @@ async function afterReadOcr(file) {
     const res = await memberApi.ocrRecognize(formData)
     const data = res.data || res
     const fields = data.fields || {}
-    const photos = data.photos || []
+    const cardUrl = data.sourceImageUrl || data.photos?.find(url => url?.includes('ocr_card_')) || ''
 
     // Fill text fields
+    if (fields.realName) form.realName = fields.realName
+    if (fields.gender) form.gender = Number(fields.gender)
     if (fields.age) form.age = fields.age
-    if (fields.constellation) form.constellation = fields.constellation
     if (fields.height) form.height = fields.height
     if (fields.education) form.education = fuzzyMatch(fields.education, educationOptionValues) || form.education
     if (fields.city) form.city = fields.city
@@ -601,25 +618,16 @@ async function afterReadOcr(file) {
     if (fields.maritalStatus) form.maritalStatus = fuzzyMatch(fields.maritalStatus, maritalOptionValues) || form.maritalStatus
     if (fields.houseStatus) form.houseStatus = fuzzyMatch(fields.houseStatus, houseOptionValues) || form.houseStatus
     if (fields.carStatus) form.carStatus = fuzzyMatch(fields.carStatus, carOptionValues) || form.carStatus
-    if (fields.familySituation) form.familySituation = fields.familySituation
-    if (fields.selfIntro) form.selfIntro = fields.selfIntro
-    if (fields.partnerRequirement) form.partnerRequirement = fields.partnerRequirement
-    if (fields.remark) form.remark = fields.remark
 
-    // Fill photos as life photos
-    if (photos.length > 0) {
-      for (const url of photos) {
-        if (fileList.value.length < 3) {
-          fileList.value.push({ url, status: 'done', message: '' })
-        }
-      }
+    if (cardUrl) {
+      sourceCardUrl.value = cardUrl
     }
 
     const fieldCount = Object.keys(fields).length
-    if (fieldCount === 0 && photos.length === 0) {
-      showToast('未识别到有效信息，请确认图片为会员资料卡')
+    if (fieldCount === 0) {
+      showToast(cardUrl ? '图片已保存，未识别到基础信息，请手动补充' : '未识别到有效信息，请确认图片为会员资料卡')
     } else {
-      showSuccessToast(`识别完成，请检查并补充信息`)
+      showSuccessToast('基础信息已识别，请检查并补充')
     }
   } catch (err) {
     showFailToast(err?.response?.data?.message || '识别失败，请重试')
@@ -631,6 +639,13 @@ async function afterReadOcr(file) {
 async function handleSubmit() {
   submitting.value = true
   try {
+    const photoUrls = fileList.value
+      .filter(f => f.status === 'done' && f.url)
+      .map(f => f.url)
+    if (sourceCardUrl.value && !photoUrls.includes(sourceCardUrl.value)) {
+      photoUrls.unshift(sourceCardUrl.value)
+    }
+
     const payload = {
       phone: form.phone,
       realName: form.realName,
@@ -652,9 +667,7 @@ async function handleSubmit() {
       memberType: form.memberType,
       remark: form.remark || undefined,
       avatarUrl: avatarList.value.find(f => f.status === 'done' && f.url)?.url || undefined,
-      photos: fileList.value
-        .filter(f => f.status === 'done' && f.url)
-        .map(f => f.url)
+      photos: photoUrls
     }
     await memberApi.addManual(payload)
     showSuccessToast('会员录入成功')
@@ -690,6 +703,45 @@ async function handleSubmit() {
 .ocr-hint {
   font-size: 12px;
   color: var(--hl-text-secondary, #999);
+}
+
+.ocr-source-card {
+  display: flex;
+  gap: 12px;
+  margin: 0 16px 14px;
+  padding: 12px;
+  border: 1px solid rgba(187, 143, 74, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 250, 242, 0.86);
+}
+
+.ocr-source-card img {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--hl-bg-muted);
+}
+
+.ocr-source-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ocr-source-card__title {
+  color: var(--hl-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ocr-source-card__desc {
+  margin-top: 4px;
+  color: var(--hl-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 :deep(.van-cell-group--inset) {

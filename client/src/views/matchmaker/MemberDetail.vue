@@ -222,7 +222,21 @@ const advisorNotes = computed(() => [
   }
 ])
 
-const allPhotos = computed(() => Array.isArray(member.value?.photos) ? member.value.photos : [])
+function normalizePhotoList(photos) {
+  if (Array.isArray(photos)) {
+    return photos.filter(photo => typeof photo === 'string' && photo)
+  }
+  if (typeof photos === 'string' && photos) {
+    try {
+      return normalizePhotoList(JSON.parse(photos))
+    } catch (err) {
+      return []
+    }
+  }
+  return []
+}
+
+const allPhotos = computed(() => normalizePhotoList(member.value?.photos))
 const memberInfoPhotos = computed(() => allPhotos.value.filter(photo => typeof photo === 'string' && photo))
 
 function previewMemberInfoImage(index) {

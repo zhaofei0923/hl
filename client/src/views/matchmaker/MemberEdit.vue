@@ -326,6 +326,20 @@ const memberTypeMap = {
   manual_match: '人工牵线'
 }
 
+function normalizePhotoList(photos) {
+  if (Array.isArray(photos)) {
+    return photos.filter(photo => typeof photo === 'string' && photo)
+  }
+  if (typeof photos === 'string' && photos) {
+    try {
+      return normalizePhotoList(JSON.parse(photos))
+    } catch (err) {
+      return []
+    }
+  }
+  return []
+}
+
 async function loadMember() {
   try {
     const res = await memberApi.getDetail(memberId)
@@ -356,9 +370,7 @@ async function loadMember() {
     form.remark = remarkStr.replace(/星座[：:]\s*[^\s|]+\s*\|?\s*/, '').trim()
 
     // Load existing photos
-    if (m.photos && m.photos.length) {
-      fileList.value = m.photos.map(url => ({ url, status: 'done' }))
-    }
+    fileList.value = normalizePhotoList(m.photos).map(url => ({ url, status: 'done' }))
 
     // Load existing avatar
     if (m.avatarUrl) {

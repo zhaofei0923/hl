@@ -83,6 +83,7 @@ services:
       - ./server/src/migrations/add_salon_tables.sql:/docker-entrypoint-initdb.d/02-salon.sql
       - ./server/src/migrations/add_admin_field.sql:/docker-entrypoint-initdb.d/03-admin.sql
       - ./server/src/migrations/add_user_certifications.sql:/docker-entrypoint-initdb.d/04-certifications.sql
+      - ./server/src/migrations/add_deleted_at.sql:/docker-entrypoint-initdb.d/05-deleted-at.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s

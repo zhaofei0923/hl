@@ -19,10 +19,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-vue': ['vue', 'vue-router', 'pinia'],
-          'vendor-vant': ['vant'],
-          'vendor-axios': ['axios'],
+        manualChunks(id) {
+          if (id.includes('/node_modules/vue') || id.includes('/node_modules/@vue') || id.includes('/node_modules/vue-router') || id.includes('/node_modules/pinia')) {
+            return 'vendor-vue'
+          }
+          if (id.includes('/node_modules/vant') || id.includes('/node_modules/@vant')) {
+            return 'vendor-vant'
+          }
+          if (id.includes('/node_modules/axios')) {
+            return 'vendor-axios'
+          }
         }
       }
     },

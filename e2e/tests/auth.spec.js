@@ -70,12 +70,12 @@ test.describe('认证模块', () => {
     await expect(page.locator('.van-tab').nth(1)).toHaveClass(/van-tab--active/);
 
     await page.locator('.login-agreement .van-checkbox__icon').click();
-    const usernameInput = page.locator('input[placeholder="请输入用户名"]');
+    const usernameInput = page.locator('input[placeholder="请输入用户名/手机号"]');
     await usernameInput.waitFor({ state: 'visible', timeout: 5000 });
     await usernameInput.fill(username);
     await page.locator('input[placeholder="请输入密码"]').fill('test123456');
     // 定位包含用户名输入框的 form 内的提交按钮，避免匹配短信登录的同名按钮
-    const accountForm = page.locator('.login-form', { has: page.locator('input[placeholder="请输入用户名"]') });
+    const accountForm = page.locator('.login-form', { has: page.locator('input[placeholder="请输入用户名/手机号"]') });
     await accountForm.locator('.login-form__submit').click();
 
     await page.waitForURL(/\/user\/home/, { timeout: 15000 });
@@ -88,11 +88,11 @@ test.describe('认证模块', () => {
     await page.waitForLoadState('networkidle');
 
     await page.locator('.login-agreement .van-checkbox__icon').click();
-    const usernameInput = page.locator('input[placeholder="请输入用户名"]');
+    const usernameInput = page.locator('input[placeholder="请输入用户名/手机号"]');
     await usernameInput.waitFor({ state: 'visible', timeout: 5000 });
     await usernameInput.fill('nonexistent_user_xyz');
     await page.locator('input[placeholder="请输入密码"]').fill('wrongpassword');
-    const accountForm = page.locator('.login-form', { has: page.locator('input[placeholder="请输入用户名"]') });
+    const accountForm = page.locator('.login-form', { has: page.locator('input[placeholder="请输入用户名/手机号"]') });
     await accountForm.locator('.login-form__submit').click();
 
     await page.locator('.van-toast').waitFor({ timeout: 10000 });
@@ -102,11 +102,11 @@ test.describe('认证模块', () => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
-    const usernameInput = page.locator('input[placeholder="请输入用户名"]');
+    const usernameInput = page.locator('input[placeholder="请输入用户名/手机号"]');
     await usernameInput.waitFor({ state: 'visible', timeout: 5000 });
     await usernameInput.fill('someuser');
     await page.locator('input[placeholder="请输入密码"]').fill('test123456');
-    const accountForm = page.locator('.login-form', { has: page.locator('input[placeholder="请输入用户名"]') });
+    const accountForm = page.locator('.login-form', { has: page.locator('input[placeholder="请输入用户名/手机号"]') });
     await accountForm.locator('.login-form__submit').click();
 
     await waitForToast(page, '请先同意用户协议和隐私政策');
@@ -252,7 +252,7 @@ test.describe('认证模块', () => {
 
     await page.locator('.van-tab').filter({ hasText: '账号登录' }).click();
     await page.waitForTimeout(400);
-    await expect(page.locator('input[placeholder="请输入用户名"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="请输入用户名/手机号"]')).toBeVisible();
 
     await page.locator('.van-tab').filter({ hasText: '注册' }).click();
     await page.waitForTimeout(400);

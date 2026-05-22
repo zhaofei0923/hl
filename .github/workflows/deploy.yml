@@ -34,6 +34,9 @@ jobs:
             echo "========== Building Docker images =========="
             docker compose -f ${{ env.COMPOSE_FILE }} --env-file .env.prod build
 
+            echo "========== Running database migrations =========="
+            docker compose -f ${{ env.COMPOSE_FILE }} --env-file .env.prod run --rm server npm run migrate
+
             echo "========== Starting services =========="
             docker compose -f ${{ env.COMPOSE_FILE }} --env-file .env.prod up -d
 

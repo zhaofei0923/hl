@@ -4,6 +4,38 @@ const authService = require('../services/auth.service');
 const { success, error } = require('../utils/response');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
+const fsPromises = require('fs/promises');
+const sharp = require('sharp');
+
+const allowedImageFormats = new Set(['jpeg', 'png', 'webp']);
+
+function normalizePhotoList(photos) {
+  if (Array.isArray(photos)) {
+    return photos.filter(photo => typeof photo === 'string' && photo.trim());
+  }
+  if (typeof photos === 'string' && photos.trim()) {
+    try {
+      return normalizePhotoList(JSON.parse(photos));
+    } catch (err) {
+      return [];
+    }
+  }
+  return [];
+}
+
+async function isSupportedImage(filePath) {
+  try {
+    const metadata = await sharp(filePath).metadata();
+    return allowedImageFormats.has(metadata.format);
+  } catch (err) {
+    return false;
+  }
+}
+
+async function removeUploadedFile(filePath) {
+  if (!filePath) return;
+  await fsPromises.unlink(filePath).catch(() => {});
+}
 
 const userController = {
   /**
@@ -185,9 +217,14 @@ const userController = {
       if (!req.file) {
         return error(res, '请选择头像文件', 40001);
       }
+      if (!(await isSupportedImage(req.file.path))) {
+        await removeUploadedFile(req.file.path);
+        return error(res, '仅支持 JPG、PNG、WEBP 图片', 40001);
+      }
 
       const user = await User.findByPk(userId);
       if (!user) {
+        await removeUploadedFile(req.file.path);
         return error(res, '用户不存在', 40400, 404);
       }
 
@@ -320,7 +357,7 @@ const userController = {
         marital_status: profile.maritalStatus,
         self_intro: profile.selfIntro,
         partner_requirement: profile.partnerRequirement,
-        photos: profile.photos || []
+        photos: normalizePhotoList(profile.photos)
       });
     } catch (err) {
       next(err);

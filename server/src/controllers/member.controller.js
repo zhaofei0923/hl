@@ -5,6 +5,39 @@ const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const { success, error, paginate } = require('../utils/response');
 const logger = require('../utils/logger');
+const fsPromises = require('fs/promises');
+const sharp = require('sharp');
+
+const allowedImageFormats = new Set(['jpeg', 'png', 'webp']);
+
+function normalizePhotoList(photos) {
+  if (Array.isArray(photos)) {
+    return photos.filter(photo => typeof photo === 'string' && photo.trim());
+  }
+  if (typeof photos === 'string' && photos.trim()) {
+    try {
+      const parsed = JSON.parse(photos);
+      return normalizePhotoList(parsed);
+    } catch (err) {
+      return [];
+    }
+  }
+  return [];
+}
+
+async function isSupportedImage(filePath) {
+  try {
+    const metadata = await sharp(filePath).metadata();
+    return allowedImageFormats.has(metadata.format);
+  } catch (err) {
+    return false;
+  }
+}
+
+async function removeUploadedFile(filePath) {
+  if (!filePath) return;
+  await fsPromises.unlink(filePath).catch(() => {});
+}
 
 const memberController = {
   /**
@@ -124,7 +157,7 @@ const memberController = {
           carStatus: profile.carStatus,
           selfIntro: profile.selfIntro,
           partnerRequirement: profile.partnerRequirement,
-          photos: profile.photos,
+          photos: normalizePhotoList(profile.photos),
         };
       });
 
@@ -315,8 +348,8 @@ const memberController = {
         selfIntro: fullSelfIntro,
         partnerRequirement: partnerRequirement || null
       };
-      if (Array.isArray(photos)) {
-        profileData.photos = photos;
+      if (photos !== undefined) {
+        profileData.photos = normalizePhotoList(photos);
       }
 
       const [profile, profileCreated] = await UserProfile.findOrCreate({
@@ -437,7 +470,7 @@ const memberController = {
           province: profile.province,
           nativePlace: profile.nativePlace,
           maritalStatus: profile.maritalStatus,
-          photos: profile.photos,
+          photos: normalizePhotoList(profile.photos),
         };
       });
 
@@ -540,7 +573,7 @@ const memberController = {
         carStatus: profile.carStatus,
         selfIntro: profile.selfIntro,
         partnerRequirement: profile.partnerRequirement,
-        photos: profile.photos,
+        photos: normalizePhotoList(profile.photos),
         tags: profile.tags,
       };
 
@@ -559,6 +592,10 @@ const memberController = {
       if (!req.file) {
         return error(res, '请选择要上传的图片', 40001);
       }
+      if (!(await isSupportedImage(req.file.path))) {
+        await removeUploadedFile(req.file.path);
+        return error(res, '仅支持 JPG、PNG、WEBP 图片', 40001);
+      }
       const avatarUrl = `/uploads/avatars/${req.file.filename}`;
       return success(res, { url: avatarUrl }, '上传成功');
     } catch (err) {
@@ -574,6 +611,10 @@ const memberController = {
     try {
       if (!req.file) {
         return error(res, '请选择要上传的图片', 40001);
+      }
+      if (!(await isSupportedImage(req.file.path))) {
+        await removeUploadedFile(req.file.path);
+        return error(res, '仅支持 JPG、PNG、WEBP 图片', 40001);
       }
       const photoUrl = `/uploads/photos/${req.file.filename}`;
       return success(res, { url: photoUrl }, '上传成功');
@@ -608,6 +649,9 @@ const memberController = {
         realName, gender, constellation, memberType, remark: memberRemark, avatarUrl,
         ...profileData
       } = req.body;
+      if (profileData.photos !== undefined) {
+        profileData.photos = normalizePhotoList(profileData.photos);
+      }
 
       // Update user-level fields
       if (realName !== undefined || gender !== undefined || avatarUrl !== undefined) {
@@ -991,7 +1035,7 @@ const memberController = {
           province: profile.province,
           nativePlace: profile.nativePlace,
           maritalStatus: profile.maritalStatus,
-          photos: profile.photos,
+          photos: normalizePhotoList(profile.photos),
         };
       });
 
@@ -1046,10 +1090,12 @@ const memberController = {
       if (!req.file) {
         return error(res, '请上传资料卡图片', 40001);
       }
-      const fs = require('fs');
-      const imageBuffer = fs.readFileSync(req.file.path);
-      // Clean up temp file
-      fs.unlinkSync(req.file.path);
+      if (!(await isSupportedImage(req.file.path))) {
+        await removeUploadedFile(req.file.path);
+        return error(res, '仅支持 JPG、PNG、WEBP 图片', 40001);
+      }
+      const imageBuffer = await fsPromises.readFile(req.file.path);
+      await removeUploadedFile(req.file.path);
 
       const result = await ocrService.recognizeMemberCard(imageBuffer);
       const fieldCount = Object.keys(result.fields).length;

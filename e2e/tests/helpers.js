@@ -83,7 +83,7 @@ async function loginViaUI(page, username, password) {
   // 勾选协议
   await page.locator('.login-agreement .van-checkbox__icon').click();
   // 填写用户名和密码
-  await page.fill('input[placeholder="请输入用户名"]', username);
+  await page.fill('input[placeholder="请输入用户名/手机号"]', username);
   await page.fill('input[placeholder="请输入密码"]', password);
   // 点击登录
   await page.locator('.login-form__submit').filter({ hasText: '登录' }).click();

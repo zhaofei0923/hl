@@ -25,10 +25,16 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-vue': ['vue', 'vue-router', 'pinia'],
-          'vendor-element': ['element-plus'],
-          'vendor-echarts': ['echarts'],
+        manualChunks(id) {
+          if (id.includes('/node_modules/vue') || id.includes('/node_modules/@vue') || id.includes('/node_modules/vue-router') || id.includes('/node_modules/pinia')) {
+            return 'vendor-vue'
+          }
+          if (id.includes('/node_modules/element-plus') || id.includes('/node_modules/@element-plus')) {
+            return 'vendor-element'
+          }
+          if (id.includes('/node_modules/echarts') || id.includes('/node_modules/zrender')) {
+            return 'vendor-echarts'
+          }
         }
       }
     }

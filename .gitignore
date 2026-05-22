@@ -4,6 +4,8 @@ node_modules/
 # Build output
 client/dist/
 admin/dist/
+e2e/playwright-report/
+e2e/test-results/
 
 # Environment files
 .env

@@ -391,6 +391,9 @@ const authController = {
       }
       // Flow 2: Set password via SMS code verification
       else if (phone && smsCode) {
+        if (user.phone !== phone) {
+          return error(res, '验证码手机号与当前账号不一致', 40001);
+        }
         const isValid = await authService.verifySmsCode(phone, smsCode, 'reset_password');
         if (!isValid) {
           return error(res, '验证码无效或已过期', 40001);
@@ -421,17 +424,9 @@ const authController = {
     try {
       const { phone, code, newPassword } = req.body;
 
-      const user = await User.findOne({ where: { phone } });
-      if (!user) {
-        return error(res, '该手机号未注册', 40400, 404);
-      }
-
-      if (user.status === 0) {
-        return error(res, '账号已被禁用', 40003);
-      }
-
       const isValid = await authService.verifySmsCode(phone, code, 'reset_password');
-      if (!isValid) {
+      const user = await User.findOne({ where: { phone } });
+      if (!isValid || !user || user.status === 0) {
         return error(res, '验证码无效或已过期', 40001);
       }
 
@@ -460,7 +455,7 @@ const authController = {
       }
 
       // Verify SMS code
-      const isValid = await authService.verifySmsCode(phone, smsCode, 'bindPhone');
+      const isValid = await authService.verifySmsCode(phone, smsCode, 'bind_phone');
       if (!isValid) {
         return error(res, '验证码无效或已过期', 40001);
       }

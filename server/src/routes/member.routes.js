@@ -6,24 +6,26 @@ const memberController = require('../controllers/member.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/role.middleware');
 
+const allowedImageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const allowedImageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+function imageFileFilter(req, file, cb) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  cb(null, allowedImageExtensions.has(ext) && allowedImageMimeTypes.has(file.mimetype));
+}
+
 // Multer configuration for member life photo uploads (max 20MB)
 const upload = multer({
   dest: path.join(__dirname, '../../uploads/photos'),
   limits: { fileSize: 20 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpg|jpeg|png|webp/;
-    cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));
-  }
+  fileFilter: imageFileFilter
 });
 
 // Multer configuration for member avatar uploads (max 5MB)
 const uploadAvatar = multer({
   dest: path.join(__dirname, '../../uploads/avatars'),
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpg|jpeg|png|webp/;
-    cb(null, allowed.test(path.extname(file.originalname).toLowerCase()));
-  }
+  fileFilter: imageFileFilter
 });
 
 // All routes require authentication and matchmaker role

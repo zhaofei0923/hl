@@ -224,6 +224,7 @@
               :max-count="3"
               :max-size="20 * 1024 * 1024"
               @oversize="onOversize"
+              @delete="onDeleteMemberInfoImage"
               multiple
             />
           </template>
@@ -571,6 +572,12 @@ function onOversize() {
   showToast('会员信息图片大小不能超过 20MB')
 }
 
+function onDeleteMemberInfoImage(file) {
+  if (file?.url && file.url === sourceCardUrl.value) {
+    sourceCardUrl.value = ''
+  }
+}
+
 // ========== OCR 智能识别 ==========
 const incomeOptionValues = ['5万以下', '5-10万', '10-20万', '20-50万', '50-100万', '100万+']
 const educationOptionValues = ['高中及以下', '专科', '本科', '硕士', '博士', '其他']
@@ -591,6 +598,32 @@ function previewSourceCard() {
   showImagePreview({
     images: [sourceCardUrl.value],
     closeable: true
+  })
+}
+
+function addSourceCardToMemberInfo(cardUrl) {
+  if (!cardUrl) return
+
+  sourceCardUrl.value = cardUrl
+
+  const existingIndex = fileList.value.findIndex(item => item.url === cardUrl)
+  if (existingIndex >= 0) {
+    const [existing] = fileList.value.splice(existingIndex, 1)
+    fileList.value.unshift({ ...existing, status: 'done', message: '', isOcrSourceCard: true })
+    return
+  }
+
+  const previousSourceIndex = fileList.value.findIndex(item => item.isOcrSourceCard)
+  if (previousSourceIndex >= 0) {
+    fileList.value.splice(previousSourceIndex, 1)
+  }
+
+  fileList.value.unshift({
+    url: cardUrl,
+    status: 'done',
+    message: '',
+    isImage: true,
+    isOcrSourceCard: true
   })
 }
 
@@ -620,7 +653,7 @@ async function afterReadOcr(file) {
     if (fields.carStatus) form.carStatus = fuzzyMatch(fields.carStatus, carOptionValues) || form.carStatus
 
     if (cardUrl) {
-      sourceCardUrl.value = cardUrl
+      addSourceCardToMemberInfo(cardUrl)
     }
 
     const fieldCount = Object.keys(fields).length

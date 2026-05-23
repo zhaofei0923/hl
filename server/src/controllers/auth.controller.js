@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
 const { User, Matchmaker, Member } = require('../models');
+const { Op } = require('sequelize');
 const { success, error } = require('../utils/response');
 const { verifyRefreshToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
@@ -256,10 +257,18 @@ const authController = {
   async usernameLogin(req, res, next) {
     try {
       const { username, password } = req.body;
+      const account = username;
 
-      const user = await User.findOne({ where: { username } });
+      const user = await User.findOne({
+        where: {
+          [Op.or]: [
+            { username: account },
+            { phone: account }
+          ]
+        }
+      });
       if (!user) {
-        return error(res, '用户名或密码错误', 40001);
+        return error(res, '用户名/手机号或密码错误', 40001);
       }
 
       if (!user.passwordHash) {
@@ -268,7 +277,7 @@ const authController = {
 
       const isMatch = await authService.verifyPassword(password, user.passwordHash);
       if (!isMatch) {
-        return error(res, '用户名或密码错误', 40001);
+        return error(res, '用户名/手机号或密码错误', 40001);
       }
 
       if (user.status === 0) {

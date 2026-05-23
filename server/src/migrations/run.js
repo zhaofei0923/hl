@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
 const sequelize = require('../config/database');
 
 const queryInterface = sequelize.getQueryInterface();
@@ -122,6 +123,76 @@ async function updateMatchRecordTypeEnum() {
   console.log('Updated match_records.match_type enum');
 }
 
+async function ensureDefaultAdminUser() {
+  if (!(await tableExists('users'))) return;
+
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'test123456';
+  const adminPhone = process.env.ADMIN_PHONE || '13000000001';
+  const adminNickname = process.env.ADMIN_NICKNAME || '系统管理员';
+
+  const [rows] = await sequelize.query(
+    `SELECT id, username, phone, password_hash AS passwordHash, is_admin AS isAdmin
+     FROM users
+     WHERE username = :username OR phone = :phone
+     ORDER BY username = :username DESC
+     LIMIT 1`,
+    { replacements: { username: adminUsername, phone: adminPhone } }
+  );
+
+  const existingAdmin = rows[0];
+  const shouldSetPassword = !existingAdmin?.passwordHash || process.env.ADMIN_PASSWORD || process.env.ADMIN_RESET_PASSWORD === '1';
+  const passwordHash = shouldSetPassword ? await bcrypt.hash(adminPassword, 10) : null;
+
+  if (existingAdmin) {
+    const updates = [
+      'username = :username',
+      'nickname = COALESCE(NULLIF(nickname, \'\'), :nickname)',
+      'is_admin = 1',
+      'status = 1',
+      'updated_at = NOW()'
+    ];
+    const replacements = {
+      id: existingAdmin.id,
+      username: adminUsername,
+      nickname: adminNickname
+    };
+
+    if (!existingAdmin.phone) {
+      updates.push('phone = :phone');
+      replacements.phone = adminPhone;
+    }
+
+    if (passwordHash) {
+      updates.push('password_hash = :passwordHash');
+      replacements.passwordHash = passwordHash;
+    }
+
+    await sequelize.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = :id`,
+      { replacements }
+    );
+    console.log(`Ensured admin user: ${adminUsername}`);
+    return;
+  }
+
+  await sequelize.query(
+    `INSERT INTO users
+      (username, phone, password_hash, nickname, current_role, is_verified, profile_completion, status, is_admin, created_at, updated_at)
+     VALUES
+      (:username, :phone, :passwordHash, :nickname, 'user', 1, 100, 1, 1, NOW(), NOW())`,
+    {
+      replacements: {
+        username: adminUsername,
+        phone: adminPhone,
+        passwordHash,
+        nickname: adminNickname
+      }
+    }
+  );
+  console.log(`Created default admin user: ${adminUsername}`);
+}
+
 async function migrate() {
   await sequelize.authenticate();
 
@@ -162,15 +233,20 @@ async function migrate() {
   await addIndexIfMissing('users', 'idx_users_deleted_at', ['deleted_at']);
   await addIndexIfMissing('matchmakers', 'idx_matchmakers_deleted_at', ['deleted_at']);
   await updateMatchRecordTypeEnum();
+  await ensureDefaultAdminUser();
 
   console.log('Migrations completed');
 }
 
-migrate()
-  .catch((err) => {
-    console.error('Migration failed:', err);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await sequelize.close();
-  });
+if (require.main === module) {
+  migrate()
+    .catch((err) => {
+      console.error('Migration failed:', err);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await sequelize.close();
+    });
+}
+
+module.exports = { migrate };

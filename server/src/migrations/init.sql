@@ -19,12 +19,14 @@ CREATE TABLE IF NOT EXISTS users (
   is_verified TINYINT DEFAULT 0,
   profile_completion TINYINT DEFAULT 0,
   status TINYINT DEFAULT 1 COMMENT '0-disabled, 1-active',
+  is_admin TINYINT DEFAULT 0 COMMENT '0-normal user, 1-admin',
   last_login_at DATETIME,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_phone (phone),
   INDEX idx_wechat_openid (wechat_openid),
-  INDEX idx_status (status)
+  INDEX idx_status (status),
+  INDEX idx_is_admin (is_admin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- User profiles table

@@ -3,6 +3,7 @@ require('dotenv').config();
 const app = require('./app');
 const sequelize = require('./config/database');
 const logger = require('./utils/logger');
+const { migrate } = require('./migrations/run');
 
 // Import models to register associations
 require('./models');
@@ -33,6 +34,9 @@ async function startServer() {
         logger.info('Database tables already exist, skipping sync');
       }
     }
+
+    await migrate();
+    logger.info('Database migrations checked');
 
     // Start server
     app.listen(PORT, '0.0.0.0', () => {

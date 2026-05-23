@@ -53,6 +53,19 @@
         <p>为认真进入关系的人准备。真实资料、人工撮合、合适再见面。</p>
       </section>
 
+      <section class="login-path-panel" data-testid="login-path-panel">
+        <article
+          v-for="item in pathGuides"
+          :key="item.title"
+          class="login-path-panel__item"
+          @click="handlePathGuide(item)"
+        >
+          <span>{{ item.kicker }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.desc }}</p>
+        </article>
+      </section>
+
       <van-tabs v-model:active="activeTab" shrink animated>
         <van-tab title="短信登录">
           <div class="login-form">
@@ -335,6 +348,11 @@ const socialProof = [
   { value: '98%', label: '资料核验率' },
   { value: '同城', label: '优先线下连接' }
 ]
+const pathGuides = [
+  { kicker: 'LOGIN', title: '已有账号', desc: '回到你的推荐、消息和红娘协作流程。', tab: 1 },
+  { kicker: 'USER', title: '我是用户', desc: '先注册账号，再完成关系资料建档。', tab: 2, role: 'user' },
+  { kicker: 'ADVISOR', title: '我是红娘', desc: '注册后进入会员经营和资源协作工作台。', tab: 2, role: 'matchmaker' }
+]
 
 const smsForm = reactive({
   phone: '',
@@ -525,6 +543,13 @@ async function handleRegister() {
 
 function handleWechatLogin() {
   showToast('微信登录开发中...')
+}
+
+function handlePathGuide(item) {
+  if (item.role) {
+    regForm.role = item.role
+  }
+  activeTab.value = item.tab
 }
 
 function checkAgreement() {
@@ -726,6 +751,41 @@ onBeforeUnmount(() => {
   color: var(--ifu-text);
 }
 
+.login-path-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.login-path-panel__item {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  cursor: pointer;
+}
+
+.login-path-panel__item span {
+  color: var(--ifu-text-muted);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.login-path-panel__item strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 14px;
+}
+
+.login-path-panel__item p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .login-form-wrapper :deep(.van-tabs__nav) {
   padding: 4px;
   border-radius: 18px;
@@ -909,7 +969,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 380px) {
   .login-header__promise-grid,
-  .login-proof-panel {
+  .login-proof-panel,
+  .login-path-panel {
     grid-template-columns: 1fr;
   }
 }

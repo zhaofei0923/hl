@@ -30,13 +30,43 @@
             <h2>{{ userStore.userInfo?.nickname || '婚介用户' }}</h2>
             <span class="brand-chip">婚介</span>
           </div>
+          <p>今天先处理高意向会员、近期活动和收益提醒，把经营动作排到最前面。</p>
           <van-button size="small" round class="matchmaker-hero__switch" @click="handleSwitchRole">
             切换至求偶
           </van-button>
         </div>
       </div>
 
+      <div class="matchmaker-hero__stats">
+        <button
+          v-for="item in statsItems"
+          :key="item.label"
+          type="button"
+          class="matchmaker-hero__stat"
+          @click="handleStatsClick(item)"
+        >
+          <strong>{{ item.value }}</strong>
+          <span>{{ item.label }}</span>
+        </button>
+      </div>
 
+    </section>
+
+    <section class="card matchmaker-queue" data-testid="matchmaker-priority-queue">
+      <div class="matchmaker-card__header">
+        <span class="brand-label">TODAY QUEUE</span>
+        <span>按经营优先级</span>
+      </div>
+      <article v-for="item in priorityQueue" :key="item.title" class="matchmaker-queue__item">
+        <div class="matchmaker-queue__icon" :style="{ color: item.color }">
+          <van-icon :name="item.icon" size="18" />
+        </div>
+        <div>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.desc }}</p>
+        </div>
+        <span>{{ item.tag }}</span>
+      </article>
     </section>
 
     <section class="card matchmaker-card">
@@ -132,6 +162,12 @@ const quickActions = [
 const menuActions = [
   { icon: 'cash-back-record', label: '钱包收益', desc: '查看到账与提现', color: 'var(--ifu-success)', route: '/matchmaker/wallet' },
   { icon: 'service-o', label: '客服中心', desc: '获取平台支持', color: 'var(--ifu-info)', route: '/customer-service' }
+]
+
+const priorityQueue = [
+  { icon: 'friends-o', title: '复核待跟进会员', desc: '先看资料缺口和近期沟通状态，避免会员沉默。', tag: '今日', color: 'var(--ifu-warning)' },
+  { icon: 'apps-o', title: '挑选可互推资源', desc: '从资源池里找同城、年龄和学历更接近的对象。', tag: '高频', color: 'var(--ifu-info)' },
+  { icon: 'calendar-o', title: '确认沙龙席位', desc: '线下活动前核对到场意向，提升见面转化。', tag: '本周', color: 'var(--ifu-gold-700)' }
 ]
 
 function handleStatsClick(item) {
@@ -257,8 +293,9 @@ onMounted(async () => {
 .matchmaker-hero__stat {
   padding: 12px 8px;
   border-radius: 18px;
-  background: rgba(255, 248, 239, 0.12);
   border: 1px solid rgba(255, 248, 239, 0.14);
+  background: rgba(255, 248, 239, 0.12);
+  color: #fff8ef;
   text-align: center;
 }
 
@@ -282,6 +319,51 @@ onMounted(async () => {
   margin-bottom: 14px;
   font-size: 12px;
   color: var(--ifu-text-muted);
+}
+
+.matchmaker-queue__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(233, 221, 204, 0.68);
+}
+
+.matchmaker-queue__item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.matchmaker-queue__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: rgba(246, 235, 221, 0.72);
+}
+
+.matchmaker-queue__item strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ifu-text-strong);
+}
+
+.matchmaker-queue__item p {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ifu-text);
+}
+
+.matchmaker-queue__item > span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .matchmaker-card__grid {

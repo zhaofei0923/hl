@@ -57,6 +57,23 @@
         />
       </div>
 
+      <section class="profile-edit-readiness card" data-testid="profile-edit-readiness">
+        <div class="profile-edit-readiness__head">
+          <div>
+            <span class="brand-label">PROFILE READINESS</span>
+            <h2>资料展示质量</h2>
+          </div>
+          <strong>{{ readinessState }}</strong>
+        </div>
+        <div class="profile-edit-readiness__grid">
+          <article v-for="item in readinessItems" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.hint }}</p>
+          </article>
+        </div>
+      </section>
+
       <!-- 基本信息 -->
       <div class="profile-edit-section">
         <div class="profile-edit-section__title">基本信息</div>
@@ -236,6 +253,47 @@ const form = reactive({
 })
 
 const genderText = computed(() => GENDER_TEXT[form.gender] || '未设置')
+const profileCompletion = computed(() => {
+  const fields = [
+    form.avatarUrl,
+    form.nickname,
+    form.birth_date,
+    form.city,
+    form.height,
+    form.education,
+    form.occupation,
+    form.income_range,
+    form.marital_status,
+    form.self_intro,
+    form.partner_requirement
+  ]
+  const filled = fields.filter(Boolean).length
+  return Math.round((filled / fields.length) * 100)
+})
+
+const readinessState = computed(() => {
+  if (profileCompletion.value >= 80) return '适合展示'
+  if (profileCompletion.value >= 55) return '继续补强'
+  return '先补关键项'
+})
+
+const readinessItems = computed(() => [
+  {
+    label: '完整度',
+    value: `${profileCompletion.value}%`,
+    hint: profileCompletion.value >= 80 ? '资料已经能支撑较完整的推荐判断。' : '继续补齐职业、收入和关系期待。'
+  },
+  {
+    label: '基础识别',
+    value: form.city && form.birth_date ? '已建立' : '待补齐',
+    hint: form.city && form.birth_date ? '城市与年龄信息可以稳定参与筛选。' : '城市和出生日期会影响推荐准确度。'
+  },
+  {
+    label: '表达素材',
+    value: form.self_intro || form.partner_requirement ? '已有' : '待补充',
+    hint: form.self_intro || form.partner_requirement ? '自我介绍和择偶要求能帮助开场。' : '补充文字后，对方更容易理解你。'
+  }
+])
 
 // 日期选择器
 const showDatePicker = ref(false)
@@ -400,15 +458,15 @@ onMounted(() => {
 
 <style scoped>
 .profile-edit-page {
-  background: var(--hl-bg-color);
+  background: var(--ifu-bg);
   min-height: 100vh;
   padding-bottom: 24px;
 }
 
 .nav-save-btn {
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .profile-edit-loading {
@@ -441,7 +499,7 @@ onMounted(() => {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--hl-primary-color);
+  background: var(--ifu-gold-700);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -450,8 +508,69 @@ onMounted(() => {
 
 .profile-edit-avatar__tip {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   margin-top: 8px;
+}
+
+.profile-edit-readiness {
+  margin-top: 12px;
+}
+
+.profile-edit-readiness__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-edit-readiness__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.profile-edit-readiness__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.profile-edit-readiness__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.profile-edit-readiness__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.profile-edit-readiness__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.profile-edit-readiness__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.profile-edit-readiness__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .profile-edit-section {
@@ -461,16 +580,18 @@ onMounted(() => {
 .profile-edit-section__title {
   font-size: 14px;
   font-weight: 500;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   padding: 0 16px;
   margin-bottom: 8px;
 }
 
 .profile-edit-section__group {
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
   margin: 0 16px;
   overflow: hidden;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .profile-edit-section__group :deep(.van-field) {
@@ -482,6 +603,12 @@ onMounted(() => {
 }
 
 .profile-edit-section__group :deep(.van-cell__value) {
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
+}
+
+@media (max-width: 380px) {
+  .profile-edit-readiness__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

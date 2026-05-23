@@ -21,6 +21,23 @@
       </div>
     </section>
 
+    <section class="card orders-focus" data-testid="matchmaker-orders-focus">
+      <div class="orders-focus__head">
+        <div>
+          <span class="brand-label">ORDER FOCUS</span>
+          <h2>当前订单经营判断</h2>
+        </div>
+        <strong>{{ orderFocusState }}</strong>
+      </div>
+      <div class="orders-focus__grid">
+        <article v-for="item in orderFocusItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <section class="card orders-toolbar">
       <div class="orders-toolbar__title">
         <span class="brand-label">ORDER STAGE</span>
@@ -139,6 +156,35 @@ const heroStats = computed(() => {
     }
   ]
 })
+
+const pendingOrders = computed(() => orderList.value.filter(item => item.status === 'pending'))
+const completedOrders = computed(() => orderList.value.filter(item => item.status === 'completed'))
+const pageAmount = computed(() => orderList.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const pendingAmount = computed(() => pendingOrders.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+
+const orderFocusState = computed(() => {
+  if (pendingOrders.value.length > 0) return '优先催付'
+  if (completedOrders.value.length > 0) return '复盘成交'
+  return '等待订单'
+})
+
+const orderFocusItems = computed(() => [
+  {
+    label: '待付款转化',
+    value: `${pendingOrders.value.length} 单`,
+    hint: pendingOrders.value.length > 0 ? `待确认金额 ¥${formatMoney(pendingAmount.value)}，优先联系会员完成支付。` : '当前筛选下暂无待付款压力。'
+  },
+  {
+    label: '成交复盘',
+    value: `${completedOrders.value.length} 单`,
+    hint: completedOrders.value.length > 0 ? '可回看服务类型，沉淀可复用的成交路径。' : '成交样本不足时先跟进高意向会员。'
+  },
+  {
+    label: '当前页金额',
+    value: `¥${formatMoney(pageAmount.value)}`,
+    hint: `${currentStatusLabel.value}视图 · ${orderList.value.length} 条订单`
+  }
+])
 
 function getStatusType(status) {
   const map = {
@@ -299,6 +345,67 @@ onMounted(() => {
   color: #fffdf9;
 }
 
+.orders-focus {
+  margin-top: 12px;
+}
+
+.orders-focus__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.orders-focus__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.orders-focus__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.orders-focus__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.orders-focus__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.orders-focus__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.orders-focus__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.orders-focus__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .orders-toolbar__title,
 .orders-list-shell__header {
   display: flex;
@@ -384,5 +491,13 @@ onMounted(() => {
 
 .order-item__amount {
   color: var(--ifu-gold-700) !important;
+}
+
+@media (max-width: 380px) {
+  .orders-hero__stats,
+  .orders-focus__grid,
+  .order-item__body {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

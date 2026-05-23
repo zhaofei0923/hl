@@ -18,6 +18,23 @@
       </div>
     </section>
 
+    <section class="invite-funnel-card" data-testid="matchmaker-invite-funnel">
+      <div class="invite-funnel-card__head">
+        <div>
+          <span class="brand-label">INVITE FUNNEL</span>
+          <h2>邀请转化判断</h2>
+        </div>
+        <strong>{{ inviteCode ? '可分享' : '生成中' }}</strong>
+      </div>
+      <div class="invite-funnel-card__grid">
+        <article v-for="item in inviteFunnelItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="invite-banner">
       <div class="invite-banner__icon">
         <van-icon name="friends-o" size="48" color="#fff" />
@@ -123,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { showToast } from 'vant'
 import { matchmakerApi } from '@/api/matchmaker'
 import { formatDate } from '@/utils/format'
@@ -136,6 +153,25 @@ const listLoading = ref(false)
 const finished = ref(false)
 const page = ref(1)
 const recordList = ref([])
+const completedInviteCount = computed(() => recordList.value.filter(item => item.status === 'completed').length)
+const pendingInviteCount = computed(() => Math.max(0, recordList.value.length - completedInviteCount.value))
+const inviteFunnelItems = computed(() => [
+  {
+    label: '已完成',
+    value: `${completedInviteCount.value} 人`,
+    hint: completedInviteCount.value ? '可继续跟进首单后的长期合作。' : '先用邀请码建立首批合作线索。'
+  },
+  {
+    label: '待激活',
+    value: `${pendingInviteCount.value} 人`,
+    hint: pendingInviteCount.value ? '适合补一次注册或首单提醒。' : '暂无待激活邀请。'
+  },
+  {
+    label: '分享状态',
+    value: inviteCode.value || '待生成',
+    hint: inviteCode.value ? '复制后可直接发送给潜在合作伙伴。' : '邀请码生成后再分享。'
+  }
+])
 
 async function fetchInviteCode() {
   try {
@@ -214,9 +250,75 @@ onMounted(() => {
 .invite-banner {
   margin: 16px;
   padding: 32px 20px;
-  background: linear-gradient(135deg, var(--hl-accent-color), var(--hl-primary-color));
-  border-radius: var(--hl-radius-lg);
+  background: linear-gradient(135deg, var(--ifu-gold-500), var(--ifu-gold-700));
+  border-radius: var(--ifu-radius-lg);
   text-align: center;
+}
+
+.invite-funnel-card {
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.invite-funnel-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.invite-funnel-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.invite-funnel-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.invite-funnel-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.invite-funnel-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.invite-funnel-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.invite-funnel-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.invite-funnel-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .invite-banner__icon {
@@ -239,8 +341,10 @@ onMounted(() => {
 .invite-code-card {
   margin: 0 16px 16px;
   padding: 20px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .invite-code-card__label {
@@ -259,8 +363,8 @@ onMounted(() => {
 .invite-code-card__code {
   font-size: 28px;
   font-weight: 700;
-  color: var(--hl-primary-color);
-  letter-spacing: 4px;
+  color: var(--ifu-gold-700);
+  letter-spacing: 0;
 }
 
 .invite-code-card__actions {
@@ -270,8 +374,10 @@ onMounted(() => {
 .rules-card {
   margin: 0 16px 16px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .rules-card__title {
@@ -280,7 +386,7 @@ onMounted(() => {
   gap: 6px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 12px;
 }
 
@@ -300,7 +406,7 @@ onMounted(() => {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--hl-primary-color);
+  background: var(--ifu-gold-700);
   color: #fff;
   font-size: 11px;
   font-weight: 600;
@@ -312,7 +418,7 @@ onMounted(() => {
 
 .rule-item__text {
   font-size: 13px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   line-height: 20px;
 }
 
@@ -323,7 +429,7 @@ onMounted(() => {
   padding: 12px 16px 8px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .section-title__count {
@@ -337,8 +443,8 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--hl-card-bg);
-  border-bottom: 1px solid var(--hl-border-color);
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(233, 221, 204, 0.92);
 }
 
 .record-row__info {
@@ -349,12 +455,18 @@ onMounted(() => {
 .record-row__name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 2px;
 }
 
 .record-row__date {
   font-size: 12px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
+}
+
+@media (max-width: 380px) {
+  .invite-funnel-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

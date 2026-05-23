@@ -13,6 +13,20 @@
       </div>
     </section>
 
+    <section class="salon-decision card" data-testid="salon-decision-guide">
+      <div class="salon-decision__head">
+        <span class="brand-label">BOOKING DECISION</span>
+        <strong>报名之前先看三件事</strong>
+      </div>
+      <div class="salon-decision__grid">
+        <article v-for="item in salonPromises" :key="item.title">
+          <span>{{ item.kicker }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.desc }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="salon-tabs-wrap" data-testid="salon-filter-tabs">
       <van-tabs v-model:active="activeTab" @change="onTabChange" sticky>
         <van-tab title="全部活动" name="all" />
@@ -52,6 +66,10 @@
                 <span class="event-card__badge">{{ statusText(getEvent(item).status) }}</span>
               </div>
               <p class="event-card__desc">{{ eventDescription(getEvent(item)) }}</p>
+              <div class="event-card__insights">
+                <span>适合慢热型初识</span>
+                <span>红娘现场协调</span>
+              </div>
               <div class="event-card__info">
                 <van-icon name="clock-o" size="14" />
                 <span>{{ formatDate(getEvent(item).eventDate, 'YYYY-MM-DD HH:mm') }}</span>
@@ -99,6 +117,12 @@ const finished = ref(false)
 const refreshing = ref(false)
 const page = ref(1)
 const pageSize = 10
+
+const salonPromises = [
+  { kicker: 'FIT', title: '是否适合你', desc: '先看氛围、人群和沟通压力。' },
+  { kicker: 'FLOW', title: '活动怎么推进', desc: '优先选择有破冰和自由交流的场次。' },
+  { kicker: 'SEATS', title: '席位是否紧张', desc: '人数接近上限时优先咨询红娘。' }
+]
 
 function statusText(s) {
   return { upcoming: '即将开始', ongoing: '进行中', ended: '已结束', cancelled: '已取消' }[s] || s || '待定'
@@ -219,6 +243,56 @@ function goDetail(id) {
   margin-top: 16px;
 }
 
+.salon-decision {
+  margin-top: 12px;
+}
+
+.salon-decision__head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.salon-decision__head strong {
+  font-size: 21px;
+  color: var(--ifu-text-strong);
+}
+
+.salon-decision__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.salon-decision__grid article {
+  padding: 13px 12px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.salon-decision__grid span {
+  display: block;
+  color: var(--ifu-gold-700);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.salon-decision__grid strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ifu-text-strong);
+}
+
+.salon-decision__grid p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ifu-text-muted);
+}
+
 .salon-tabs-wrap {
   margin: 14px 16px 0;
 }
@@ -309,6 +383,21 @@ function goDetail(id) {
   color: var(--ifu-text);
 }
 
+.event-card__insights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.event-card__insights span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(126, 154, 120, 0.13);
+  color: var(--ifu-success);
+  font-size: 11px;
+}
+
 .event-card__info {
   display: flex;
   align-items: center;
@@ -345,5 +434,11 @@ function goDetail(id) {
   font-size: 14px;
   font-weight: 600;
   color: var(--ifu-success);
+}
+
+@media (max-width: 380px) {
+  .salon-decision__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

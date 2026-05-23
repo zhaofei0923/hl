@@ -23,6 +23,23 @@
       </div>
     </section>
 
+    <section class="salon-form-check card" data-testid="matchmaker-salon-form-check">
+      <div class="salon-form-check__head">
+        <div>
+          <span class="brand-label">PUBLISH CHECK</span>
+          <h2>发布前检查</h2>
+        </div>
+        <strong>{{ publishState }}</strong>
+      </div>
+      <div class="salon-form-check__grid">
+        <article v-for="item in publishItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="form-wrap">
       <van-form @submit="onSubmit">
         <van-cell-group inset>
@@ -154,6 +171,40 @@ const dateValue = ref([
 const timeValue = ref(['10', '00'])
 const selectedDate = ref('')
 const dateDisplay = computed(() => form.eventDate || '')
+const publishScore = computed(() => {
+  const fields = [
+    form.title,
+    form.description,
+    form.location,
+    form.eventDate,
+    form.maxParticipants,
+    form.coverImage
+  ]
+  const filled = fields.filter(Boolean).length
+  return Math.round((filled / fields.length) * 100)
+})
+const publishState = computed(() => {
+  if (publishScore.value >= 80) return '可发布'
+  if (publishScore.value >= 50) return '继续补齐'
+  return '先定框架'
+})
+const publishItems = computed(() => [
+  {
+    label: '信息完整度',
+    value: `${publishScore.value}%`,
+    hint: publishScore.value >= 80 ? '报名页已有清晰基础信息。' : '建议补齐介绍、地点、人数和封面。'
+  },
+  {
+    label: '席位策略',
+    value: form.maxParticipants ? `${form.maxParticipants} 人` : '不限人数',
+    hint: form.maxParticipants ? '可用于控制线下接待和报名节奏。' : '不限人数适合开放式活动。'
+  },
+  {
+    label: '费用说明',
+    value: Number(form.price || 0) > 0 ? `¥${Number(form.price).toFixed(0)}` : '免费',
+    hint: Number(form.price || 0) > 0 ? '建议在描述中说明费用包含内容。' : '免费活动更适合拉新和暖场。'
+  }
+])
 
 const coverFileList = ref([])
 const { beforeRead } = useUpload()
@@ -248,13 +299,80 @@ onMounted(() => {
   padding: 16px 0;
 }
 
+.salon-form-check {
+  margin-top: 12px;
+}
+
+.salon-form-check__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.salon-form-check__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.salon-form-check__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.salon-form-check__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.salon-form-check__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.salon-form-check__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.salon-form-check__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.salon-form-check__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .section-title {
   padding: 16px 32px 8px;
   font-size: 14px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
 .submit-wrap {
   padding: 24px 16px;
+}
+
+@media (max-width: 380px) {
+  .salon-form-check__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

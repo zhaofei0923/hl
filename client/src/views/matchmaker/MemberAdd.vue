@@ -55,6 +55,23 @@
       </div>
     </van-cell-group>
 
+    <section class="member-form-quality card" data-testid="matchmaker-member-add-quality">
+      <div class="member-form-quality__head">
+        <div>
+          <span class="brand-label">PROFILE CHECK</span>
+          <h2>录入质量检查</h2>
+        </div>
+        <strong>{{ qualityState }}</strong>
+      </div>
+      <div class="member-form-quality__grid">
+        <article v-for="item in qualityItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <van-form ref="formRef" @submit="handleSubmit">
       <div class="section-title">基本信息</div>
       <van-cell-group inset>
@@ -361,7 +378,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { showSuccessToast, showFailToast, showToast, showImagePreview } from 'vant'
 import { memberApi } from '@/api/member'
@@ -406,6 +423,51 @@ const form = reactive({
   memberTypeLabel: '无消费',
   remark: ''
 })
+
+const profileScore = computed(() => {
+  const fields = [
+    form.realName,
+    form.phone,
+    form.gender,
+    form.age,
+    form.height,
+    form.education,
+    form.city,
+    form.occupation,
+    form.incomeRange,
+    form.maritalStatus,
+    form.selfIntro,
+    form.partnerRequirement,
+    avatarList.value.length > 0,
+    fileList.value.length > 0
+  ]
+  const filled = fields.filter(Boolean).length
+  return Math.round((filled / fields.length) * 100)
+})
+
+const qualityState = computed(() => {
+  if (profileScore.value >= 75) return '可录入'
+  if (profileScore.value >= 45) return '继续补充'
+  return '先建基础'
+})
+
+const qualityItems = computed(() => [
+  {
+    label: '资料密度',
+    value: `${profileScore.value}%`,
+    hint: profileScore.value >= 75 ? '资料已足够支撑后续推荐。' : '继续补齐职业、收入和择偶要求。'
+  },
+  {
+    label: '识别来源',
+    value: sourceCardUrl.value ? '已保存' : '可上传',
+    hint: sourceCardUrl.value ? '原始资料卡会进入会员详情备查。' : '上传资料卡可减少手动录入误差。'
+  },
+  {
+    label: '匹配边界',
+    value: form.partnerRequirement ? '已填写' : '待梳理',
+    hint: form.partnerRequirement ? '推荐时可先排除明显不匹配对象。' : '建议先补不能接受项和优先条件。'
+  }
+])
 
 const ageOptions = Array.from({ length: 63 }, (_, i) => ({
   text: `${i + 18}岁`,
@@ -718,9 +780,70 @@ async function handleSubmit() {
   padding: 16px 16px 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+}
+
+.member-form-quality {
+  margin-top: 12px;
+}
+
+.member-form-quality__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.member-form-quality__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.member-form-quality__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.member-form-quality__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.member-form-quality__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.member-form-quality__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.member-form-quality__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.member-form-quality__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .form-footer {
@@ -765,16 +888,22 @@ async function handleSubmit() {
 }
 
 .ocr-source-card__title {
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   font-size: 14px;
   font-weight: 600;
 }
 
 .ocr-source-card__desc {
   margin-top: 4px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   font-size: 12px;
   line-height: 1.45;
+}
+
+@media (max-width: 380px) {
+  .member-form-quality__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 :deep(.van-cell-group--inset) {

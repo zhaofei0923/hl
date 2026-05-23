@@ -20,6 +20,23 @@
       </div>
     </section>
 
+    <section class="cert-readiness card" data-testid="cert-readiness-panel">
+      <div class="cert-readiness__head">
+        <div>
+          <span class="brand-label">TRUST CHECK</span>
+          <h2>认证材料检查</h2>
+        </div>
+        <strong>{{ certReadinessState }}</strong>
+      </div>
+      <div class="cert-readiness__grid">
+        <article v-for="item in certReadinessItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="cert-content">
       <!-- 认证状态提示 -->
       <van-notice-bar
@@ -221,6 +238,31 @@ const isFormValid = computed(() => {
   )
 })
 
+const certReadinessState = computed(() => {
+  if (certStatus.value === 'certified') return '信任已建立'
+  if (certStatus.value === 'pending') return '等待复核'
+  if (isFormValid.value) return '可以提交'
+  return '材料待补齐'
+})
+
+const certReadinessItems = computed(() => [
+  {
+    label: '实名信息',
+    value: form.value.realName && idCardPattern.test(form.value.idCard) ? '已填写' : '待完善',
+    hint: form.value.realName && idCardPattern.test(form.value.idCard) ? '姓名和证件号格式已满足提交条件。' : '请确认姓名和 18 位身份证号格式。'
+  },
+  {
+    label: '证件照片',
+    value: idFrontUrl.value && idBackUrl.value ? '已上传' : '待上传',
+    hint: idFrontUrl.value && idBackUrl.value ? '正反面照片已具备审核基础。' : '请上传清晰身份证正反面照片。'
+  },
+  {
+    label: '审核节奏',
+    value: certStatus.value === 'pending' ? '1-3 个工作日' : '人工复核',
+    hint: certStatus.value === 'rejected' ? '请按拒绝原因修正后重新提交。' : '提交后将进入平台人工复核。'
+  }
+])
+
 function maskIdCard(idCard) {
   if (!idCard || idCard.length < 8) return idCard || ''
   return idCard.replace(/^(.{4})(.*)(.{4})$/, '$1**********$3')
@@ -306,11 +348,72 @@ onMounted(() => {
 
 <style scoped>
 .cert-page {
-  background-color: var(--hl-bg-color);
+  background-color: var(--ifu-bg);
 }
 
 .cert-content {
   padding-bottom: 24px;
+}
+
+.cert-readiness {
+  margin-top: 12px;
+}
+
+.cert-readiness__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cert-readiness__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.cert-readiness__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.cert-readiness__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cert-readiness__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.cert-readiness__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.cert-readiness__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.cert-readiness__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 /* 已认证卡片 */
@@ -334,19 +437,19 @@ onMounted(() => {
 .cert-success-card__name {
   font-size: 16px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 4px;
 }
 
 .cert-success-card__id {
   font-size: 14px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   margin-bottom: 4px;
 }
 
 .cert-success-card__time {
   font-size: 12px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
 }
 
 /* 审核中卡片 */
@@ -359,13 +462,13 @@ onMounted(() => {
 
 .cert-pending-card__text {
   font-size: 15px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-top: 12px;
 }
 
 .cert-pending-card__sub {
   font-size: 13px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
   margin-top: 6px;
 }
 
@@ -391,7 +494,7 @@ onMounted(() => {
 .cert-form__title {
   font-size: 15px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 8px;
 }
 
@@ -475,7 +578,7 @@ onMounted(() => {
 .cert-benefits__title {
   font-size: 15px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 12px;
 }
 
@@ -505,13 +608,19 @@ onMounted(() => {
 .cert-benefit-item__name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 2px;
 }
 
 .cert-benefit-item__desc {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+  .cert-readiness__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

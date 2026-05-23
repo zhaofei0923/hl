@@ -10,6 +10,16 @@
           <span>认证审核</span>
           <span>活动排期</span>
         </div>
+        <div class="login-brand-panel__ops" data-testid="admin-login-ops">
+          <article>
+            <strong>先看风险</strong>
+            <p>提现、认证和取消活动优先进入人工复核。</p>
+          </article>
+          <article>
+            <strong>再看转化</strong>
+            <p>订单、红娘等级和会员状态用于判断今日经营动作。</p>
+          </article>
+        </div>
       </div>
 
       <div class="login-card">
@@ -137,6 +147,34 @@ const handleLogin = async () => {
   font-size: 12px;
 }
 
+.login-brand-panel__ops {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.login-brand-panel__ops article {
+  min-height: 132px;
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255, 248, 239, 0.1);
+  border: 1px solid rgba(255, 248, 239, 0.14);
+}
+
+.login-brand-panel__ops strong {
+  display: block;
+  color: #fffdf9;
+  font-size: 18px;
+}
+
+.login-brand-panel__ops p {
+  margin-top: 10px;
+  color: rgba(255, 248, 239, 0.74);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 .login-card {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(233, 221, 204, 0.94);
@@ -156,6 +194,12 @@ const handleLogin = async () => {
 
 @media (max-width: 900px) {
   .login-stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .login-brand-panel__ops {
     grid-template-columns: 1fr;
   }
 }

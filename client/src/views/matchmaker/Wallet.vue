@@ -36,6 +36,23 @@
       @withdraw="$router.push('/matchmaker/withdraw')"
     />
 
+    <section class="card wallet-summary" data-testid="matchmaker-wallet-summary">
+      <div class="wallet-summary__head">
+        <div>
+          <span class="brand-label">SETTLEMENT CHECK</span>
+          <h2>本月结算状态</h2>
+        </div>
+        <strong>{{ settlementState }}</strong>
+      </div>
+      <div class="wallet-summary__grid">
+        <article v-for="item in walletSummaryItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <van-tabs v-model:active="activeTab" @change="handleTabChange">
       <van-tab title="收益记录" name="earnings" />
       <van-tab title="提现记录" name="withdrawals" />
@@ -181,6 +198,39 @@ const currentFilterLabel = computed(() => {
   return EARNING_TYPE_TEXT[filterType.value] || '全部类型'
 })
 
+const recordTotalAmount = computed(() =>
+  recordList.value.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+)
+
+const pendingWithdrawCount = computed(() =>
+  recordList.value.filter(item => [WITHDRAW_STATUS.PENDING, WITHDRAW_STATUS.PROCESSING].includes(item.status)).length
+)
+
+const settlementState = computed(() => {
+  if (activeTab.value === 'withdrawals' && pendingWithdrawCount.value > 0) return '提现处理中'
+  if (!recordList.value.length) return '暂无本月记录'
+  if (Number(walletStore.availableAmount || 0) > 0) return '可发起提现'
+  return '等待收益入账'
+})
+
+const walletSummaryItems = computed(() => [
+  {
+    label: '提现准备',
+    value: `¥${formatMoney(walletStore.availableAmount)}`,
+    hint: Number(walletStore.availableAmount || 0) > 0 ? '余额充足时可进入提现流程' : '余额不足时先观察收益入账'
+  },
+  {
+    label: '本页合计',
+    value: `¥${formatMoney(recordTotalAmount.value)}`,
+    hint: `${currentFilterLabel.value} · ${recordList.value.length} 条记录`
+  },
+  {
+    label: '审核状态',
+    value: activeTab.value === 'withdrawals' ? `${pendingWithdrawCount.value} 笔` : currentMonth.value,
+    hint: activeTab.value === 'withdrawals' ? '待处理提现需要持续关注' : '按月份核对收益和转入'
+  }
+])
+
 function getWithdrawStatusType(status) {
   const map = {
     [WITHDRAW_STATUS.PENDING]: 'warning',
@@ -269,13 +319,77 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.wallet-summary {
+  margin-top: 12px;
+}
+
+.wallet-summary__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.wallet-summary__head h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--ifu-text-strong);
+}
+
+.wallet-summary__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.wallet-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.wallet-summary__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.wallet-summary__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.wallet-summary__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 18px;
+}
+
+.wallet-summary__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .wallet-filter {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: var(--hl-card-bg);
-  border-bottom: 1px solid var(--hl-border-color);
+  margin: 12px 16px 0;
+  border-radius: 18px 18px 0 0;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  border-bottom: 0;
 }
 
 .wallet-filter__left,
@@ -284,7 +398,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   cursor: pointer;
 }
 
@@ -293,8 +407,10 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  background: var(--hl-card-bg);
-  border-bottom: 1px solid var(--hl-border-color);
+  margin: 0 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(233, 221, 204, 0.78);
+  border-top: 0;
 }
 
 .record-item__left {
@@ -304,13 +420,13 @@ onMounted(() => {
 
 .record-item__title {
   font-size: 14px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 4px;
 }
 
 .record-item__time {
   font-size: 12px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
 }
 
 .record-item__right {
@@ -326,10 +442,16 @@ onMounted(() => {
 }
 
 .record-item__amount--plus {
-  color: #E84D5F;
+  color: var(--ifu-danger);
 }
 
 .record-item__amount--minus {
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
+}
+
+@media (max-width: 380px) {
+  .wallet-summary__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

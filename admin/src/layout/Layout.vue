@@ -31,9 +31,13 @@
           <div class="header-title">
             <span class="brand-label">TODAY'S CONTROL PANEL</span>
             <h1>{{ currentTitle }}</h1>
+            <p>{{ currentDesc }}</p>
           </div>
         </div>
         <div class="header-right">
+          <div class="header-insights" aria-label="后台运营原则">
+            <span v-for="item in headerInsights" :key="item">{{ item }}</span>
+          </div>
           <div class="header-user">
             <el-avatar :size="36" icon="UserFilled" />
             <div>
@@ -79,10 +83,12 @@ const menuItems = [
 ]
 
 const currentRoute = computed(() => route.path)
+const currentMenu = computed(() => menuItems.find(m => m.path === route.path))
 const currentTitle = computed(() => {
-  const item = menuItems.find(m => m.path === route.path)
-  return item?.title || '数据概览'
+  return currentMenu.value?.title || '数据概览'
 })
+const currentDesc = computed(() => currentMenu.value?.desc || '总览与优先级')
+const headerInsights = ['人工复核优先', '关键状态前置', '品牌体验一致']
 
 const handleCommand = (command) => {
   if (command === 'logout') {
@@ -207,6 +213,31 @@ const handleCommand = (command) => {
   color: var(--ifu-text-strong);
 }
 
+.header-title p {
+  margin-top: 5px;
+  color: var(--ifu-text-muted);
+  font-size: 12px;
+}
+
+.header-insights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-insights span {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(246, 235, 221, 0.58);
+  border: 1px solid rgba(233, 221, 204, 0.78);
+  color: var(--ifu-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .header-user {
   display: flex;
   align-items: center;
@@ -234,5 +265,17 @@ const handleCommand = (command) => {
   padding: 0;
   background: transparent;
   overflow-y: auto;
+}
+
+@media (max-width: 1200px) {
+  .header-insights {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .header-user {
+    display: none;
+  }
 }
 </style>

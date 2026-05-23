@@ -30,6 +30,23 @@
       </div>
     </section>
 
+    <section class="team-coach-card" data-testid="matchmaker-team-coach">
+      <div class="team-coach-card__head">
+        <div>
+          <span class="brand-label">COACHING FOCUS</span>
+          <h2>团队带教重点</h2>
+        </div>
+        <strong>{{ teamHealth }}</strong>
+      </div>
+      <div class="team-coach-card__grid">
+        <article v-for="item in coachItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="team-overview">
       <div class="team-overview__name">
         <van-icon name="cluster-o" size="22" color="#fff" />
@@ -106,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { matchmakerApi } from '@/api/matchmaker'
 import { formatMoney, formatDate } from '@/utils/format'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -125,6 +142,34 @@ const listLoading = ref(false)
 const finished = ref(false)
 const page = ref(1)
 const memberList = ref([])
+const averagePerformance = computed(() => {
+  const count = Number(teamInfo.memberCount || memberList.value.length || 0)
+  if (!count) return 0
+  return Number(teamInfo.monthPerformance || 0) / count
+})
+const activeMemberCount = computed(() => memberList.value.filter(item => Number(item.performance || 0) > 0).length)
+const teamHealth = computed(() => {
+  if (!teamInfo.memberCount) return '待组建'
+  if (Number(teamInfo.monthPerformance || 0) > 0) return '有产出'
+  return '待激活'
+})
+const coachItems = computed(() => [
+  {
+    label: '人均月产出',
+    value: `¥${formatMoney(averagePerformance.value)}`,
+    hint: averagePerformance.value ? '可复盘高产成员的获客和跟进方法。' : '先推动成员完成首批服务动作。'
+  },
+  {
+    label: '活跃成员',
+    value: `${activeMemberCount.value} 人`,
+    hint: activeMemberCount.value ? '优先沉淀可复制的协作方式。' : '成员列表暂无明确业绩记录。'
+  },
+  {
+    label: '团队规模',
+    value: `${teamInfo.memberCount || memberList.value.length || 0} 人`,
+    hint: teamInfo.memberCount ? '人数稳定后重点看持续产出。' : '可通过邀请好友扩展顾问网络。'
+  }
+])
 
 function getLevelColor(level) {
   const map = {
@@ -196,8 +241,74 @@ onMounted(() => {
 .team-overview {
   margin: 16px;
   padding: 20px;
-  background: linear-gradient(135deg, var(--hl-accent-color), var(--hl-primary-color));
-  border-radius: var(--hl-radius-lg);
+  background: linear-gradient(135deg, var(--ifu-gold-500), var(--ifu-gold-700));
+  border-radius: var(--ifu-radius-lg);
+}
+
+.team-coach-card {
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.team-coach-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.team-coach-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.team-coach-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.team-coach-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.team-coach-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.team-coach-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.team-coach-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.team-coach-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .team-overview__name {
@@ -245,7 +356,7 @@ onMounted(() => {
   padding: 12px 16px 8px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .section-title__count {
@@ -259,8 +370,8 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  background: var(--hl-card-bg);
-  border-bottom: 1px solid var(--hl-border-color);
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(233, 221, 204, 0.92);
 }
 
 .member-row__info {
@@ -278,12 +389,12 @@ onMounted(() => {
 .member-row__name {
   font-size: 15px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .member-row__meta {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .member-row__performance {
@@ -294,11 +405,17 @@ onMounted(() => {
 .member-row__amount {
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
 }
 
 .member-row__label {
   font-size: 11px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
+}
+
+@media (max-width: 380px) {
+  .team-coach-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

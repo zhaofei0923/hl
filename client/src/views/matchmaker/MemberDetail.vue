@@ -41,6 +41,23 @@
         </div>
       </section>
 
+      <section class="card member-followup" data-testid="matchmaker-member-followup">
+        <div class="member-followup__head">
+          <div>
+            <span class="brand-label">FOLLOW-UP STAGE</span>
+            <h2>下一步经营判断</h2>
+          </div>
+          <strong>{{ followUpStage }}</strong>
+        </div>
+        <div class="member-followup__grid">
+          <article v-for="item in followUpSignals" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.hint }}</p>
+          </article>
+        </div>
+      </section>
+
       <section class="card member-section" data-testid="matchmaker-member-profile">
         <div class="member-section__header">
           <div>
@@ -167,6 +184,30 @@ const heroStats = computed(() => [
     label: '沟通优先级',
     value: profileCompletion.value >= 70 ? '可推进' : '待补齐',
     hint: '先补资料还是直接约聊'
+  }
+])
+
+const followUpStage = computed(() => {
+  if (profileCompletion.value < 70) return '先补资料'
+  if (partnerRequirementText.value === '暂无择偶要求') return '梳理择偶边界'
+  return '可进入匹配'
+})
+
+const followUpSignals = computed(() => [
+  {
+    label: '资料准备',
+    value: `${profileCompletion.value}%`,
+    hint: profileCompletion.value >= 70 ? '基础资料可支撑推荐理由。' : '优先补职业、收入和择偶要求。'
+  },
+  {
+    label: '沟通切口',
+    value: careerText.value,
+    hint: careerText.value === '职业待补充' ? '先确认工作节奏，避免推荐理由空泛。' : '可从职业节奏和城市生活展开约聊。'
+  },
+  {
+    label: '匹配边界',
+    value: partnerRequirementText.value === '暂无择偶要求' ? '待梳理' : '已明确',
+    hint: partnerRequirementText.value === '暂无择偶要求' ? '先问不能接受项和优先考虑项。' : '推荐前先排除明显不匹配人选。'
   }
 ])
 
@@ -371,6 +412,67 @@ onMounted(async () => {
   color: #fffdf9;
 }
 
+.member-followup {
+  margin-top: 12px;
+}
+
+.member-followup__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.member-followup__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.member-followup__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.member-followup__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.member-followup__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.member-followup__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.member-followup__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.member-followup__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .member-section__header {
   display: flex;
   justify-content: space-between;
@@ -458,6 +560,15 @@ onMounted(async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-top: 18px;
+}
+
+@media (max-width: 380px) {
+  .member-hero__stats,
+  .member-followup__grid,
+  .member-profile-grid,
+  .photo-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 </style>

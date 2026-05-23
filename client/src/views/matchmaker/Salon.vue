@@ -14,6 +14,23 @@
       <van-tab title="我的报名" name="registered" />
     </van-tabs>
 
+    <section class="salon-ops-card" data-testid="matchmaker-salon-ops">
+      <div class="salon-ops-card__head">
+        <div>
+          <span class="brand-label">SALON OPS</span>
+          <h2>{{ activeTab === 'registered' ? '报名跟进视角' : '活动运营视角' }}</h2>
+        </div>
+        <strong>{{ currentList.length }} 项</strong>
+      </div>
+      <div class="salon-ops-card__grid">
+        <article v-for="item in salonInsightItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <!-- 活动列表 -->
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <van-list
@@ -119,6 +136,28 @@ const eventList = ref([])
 const registrationList = ref([])
 
 const currentList = computed(() => activeTab.value === 'registered' ? registrationList.value : eventList.value)
+const upcomingCount = computed(() => currentList.value.filter(item => (item.event?.status || item.status) === 'upcoming').length)
+const activeParticipantCount = computed(() => currentList.value.reduce((sum, item) => {
+  const event = item.event || item
+  return sum + Number(event.currentParticipants || 0)
+}, 0))
+const salonInsightItems = computed(() => [
+  {
+    label: activeTab.value === 'registered' ? '待参加' : '可运营活动',
+    value: `${upcomingCount.value} 场`,
+    hint: upcomingCount.value ? '优先确认时间、地点和参会提醒。' : '当前没有可推进的即将开始活动。'
+  },
+  {
+    label: '报名热度',
+    value: `${activeParticipantCount.value} 人`,
+    hint: activeParticipantCount.value ? '可结合名单做邀约和二次触达。' : '先补活动亮点或主动邀请会员。'
+  },
+  {
+    label: '当前视图',
+    value: activeTab.value === 'all' ? '全部' : activeTab.value === 'mine' ? '我创建' : '我报名',
+    hint: activeTab.value === 'mine' ? '重点关注自己负责活动的执行状态。' : '切换标签可分开看运营和报名。'
+  }
+])
 
 function statusType(s) {
   return { upcoming: 'primary', ongoing: 'success', ended: 'default', cancelled: 'danger' }[s] || 'default'
@@ -195,12 +234,79 @@ onMounted(() => {
   padding: 12px 16px;
 }
 
+.salon-ops-card {
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.salon-ops-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.salon-ops-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.salon-ops-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.salon-ops-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.salon-ops-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.salon-ops-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.salon-ops-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.salon-ops-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .event-card {
   margin-bottom: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .event-card__cover-fallback {
@@ -227,7 +333,7 @@ onMounted(() => {
 .event-card__title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   flex: 1;
   line-height: 1.3;
 }
@@ -243,11 +349,17 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .event-card__meta-item .price {
-  color: var(--hl-accent-color);
+  color: var(--ifu-gold-700);
   font-weight: 600;
+}
+
+@media (max-width: 380px) {
+  .salon-ops-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

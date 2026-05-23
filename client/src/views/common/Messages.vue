@@ -13,6 +13,23 @@
       <p class="messages-hero__desc">高意向与近期活跃会被排在更前面，先把对的人留在你的注意力里。</p>
     </section>
 
+    <section class="messages-focus card" data-testid="messages-focus-panel">
+      <div class="messages-focus__head">
+        <div>
+          <span class="brand-label">INBOX FOCUS</span>
+          <h2>今天的沟通优先级</h2>
+        </div>
+        <strong>{{ inboxState }}</strong>
+      </div>
+      <div class="messages-focus__grid">
+        <article v-for="item in inboxFocusItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <section class="starter-panel">
       <div class="starter-panel__title">
         <span>推荐开场白</span>
@@ -163,6 +180,33 @@ const normalizedConversations = computed(() => {
 })
 
 const priorityCount = computed(() => normalizedConversations.value.filter(item => item.intentLevel > 0).length)
+const totalUnreadCount = computed(() => normalizedConversations.value.reduce((sum, item) => sum + item.unreadCount, 0))
+const recentActiveCount = computed(() => normalizedConversations.value.filter(item => item.intentLevel === 1).length)
+const quietCount = computed(() => normalizedConversations.value.filter(item => item.intentLevel === 0).length)
+
+const inboxState = computed(() => {
+  if (totalUnreadCount.value > 0) return '先回未读'
+  if (recentActiveCount.value > 0) return '维护热度'
+  return '等待新对话'
+})
+
+const inboxFocusItems = computed(() => [
+  {
+    label: '未读消息',
+    value: `${totalUnreadCount.value} 条`,
+    hint: totalUnreadCount.value > 0 ? '先回复未读对话，避免关系热度断掉。' : '当前没有未读压力。'
+  },
+  {
+    label: '近期活跃',
+    value: `${recentActiveCount.value} 个`,
+    hint: recentActiveCount.value > 0 ? '适合用轻话题继续推进了解。' : '近期活跃会话较少，可主动打开开场白。'
+  },
+  {
+    label: '待唤醒',
+    value: `${quietCount.value} 个`,
+    hint: quietCount.value > 0 ? '沉默会话可用低压力问候重新开启。' : '当前会话都保持在较新节奏。'
+  }
+])
 
 function formatTime(timestamp) {
   if (!timestamp) return ''
@@ -252,6 +296,67 @@ onMounted(() => {
   font-size: 13px;
   line-height: 1.7;
   color: var(--ifu-text);
+}
+
+.messages-focus {
+  margin-top: 12px;
+}
+
+.messages-focus__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.messages-focus__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.messages-focus__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.messages-focus__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.messages-focus__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.messages-focus__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.messages-focus__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.messages-focus__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .starter-panel {
@@ -394,5 +499,11 @@ onMounted(() => {
 
 .conversation-empty {
   margin: 0;
+}
+
+@media (max-width: 380px) {
+  .messages-focus__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

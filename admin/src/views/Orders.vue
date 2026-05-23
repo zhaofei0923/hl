@@ -21,6 +21,26 @@
       </article>
     </div>
 
+    <section class="orders-insight-grid" data-testid="admin-orders-insights">
+      <article class="orders-insight-card orders-insight-card--primary">
+        <div class="orders-insight-card__head">
+          <div>
+            <span class="brand-label">PAYMENT SIGNALS</span>
+            <strong>支付链路观察</strong>
+          </div>
+          <span>{{ pendingCount }} 笔待支付</span>
+        </div>
+        <p>先排查待支付与退款订单，再看已完成服务占比，避免收入判断被未完成订单稀释。</p>
+      </article>
+      <article class="orders-insight-card">
+        <span class="brand-label">SERVICE MIX</span>
+        <strong>服务结构提示</strong>
+        <div class="orders-service-tags">
+          <span v-for="item in serviceMixHints" :key="item">{{ item }}</span>
+        </div>
+      </article>
+    </section>
+
     <el-card shadow="hover" class="filter-card orders-toolbar" data-testid="admin-orders-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="关键词">
@@ -191,6 +211,12 @@ const overviewItems = computed(() => [
   }
 ])
 
+const serviceMixHints = computed(() => [
+  dominantTypeLabel.value,
+  pendingCount.value > 0 ? '待支付需跟进' : '支付链路稳定',
+  completedCount.value > 0 ? '已有完成订单' : '完成订单待生成'
+])
+
 const loadData = async () => {
   loading.value = true
   try {
@@ -260,6 +286,73 @@ onMounted(() => loadData())
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 18px;
+}
+
+.orders-insight-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.orders-insight-card {
+  padding: 22px;
+  border-radius: 30px;
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.orders-insight-card--primary {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(246, 235, 221, 0.84)),
+    #fffdf9;
+}
+
+.orders-insight-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.orders-insight-card__head span:last-child {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(194, 139, 78, 0.14);
+  color: var(--ifu-warning);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.orders-insight-card strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 24px;
+}
+
+.orders-insight-card p {
+  margin-top: 12px;
+  color: var(--ifu-text);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.orders-service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.orders-service-tags span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.14);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
 }
 
 .orders-stat-card {
@@ -338,8 +431,16 @@ onMounted(() => loadData())
 }
 
 @media (max-width: 1280px) {
-  .orders-page__stats {
+  .orders-page__stats,
+  .orders-insight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .orders-page__stats,
+  .orders-insight-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

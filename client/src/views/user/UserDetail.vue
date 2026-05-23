@@ -61,6 +61,23 @@
         </div>
       </section>
 
+      <section class="detail-next card" data-testid="detail-next-step">
+        <div class="detail-next__head">
+          <div>
+            <span class="brand-label">NEXT STEP</span>
+            <h2>关系推进判断</h2>
+          </div>
+          <strong>{{ primaryNextStep }}</strong>
+        </div>
+        <div class="detail-next__grid">
+          <article v-for="item in decisionSignals" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.hint }}</p>
+          </article>
+        </div>
+      </section>
+
       <section class="detail-summary card">
         <div class="detail-summary__item">
           <span class="label">身高</span>
@@ -227,6 +244,30 @@ const openingSuggestion = computed(() => {
   }
   return '建议先从周末安排、最近的兴趣体验或城市生活偏好开始，轻松但不空泛。'
 })
+
+const primaryNextStep = computed(() => {
+  if (!userDetail.verified || profileCompletion.value < 60) return '先确认资料'
+  if (profileCompletion.value >= 80 && userDetail.city) return '适合打招呼'
+  return '轻话题开场'
+})
+
+const decisionSignals = computed(() => [
+  {
+    label: '信任基础',
+    value: trustLevelText.value,
+    hint: userDetail.verified ? '已完成基础认证，可进入沟通判断。' : '建议先确认认证和关键资料。'
+  },
+  {
+    label: '见面成本',
+    value: userDetail.city || '待确认城市',
+    hint: userDetail.city ? '同城信息清晰，后续见面安排更容易落地。' : '先通过聊天确认城市和线下节奏。'
+  },
+  {
+    label: '开场方向',
+    value: userDetail.occupation || userDetail.education || '生活偏好',
+    hint: userDetail.occupation ? '从工作体验切入，比直接问条件更自然。' : '先从周末安排和城市生活偏好开始。'
+  }
+])
 
 const heroBackgroundStyle = computed(() => {
   const cover = userDetail.photos?.[0] || userDetail.avatarUrl
@@ -432,6 +473,67 @@ onMounted(() => {
   font-size: 11px;
 }
 
+.detail-next {
+  margin-top: 12px;
+}
+
+.detail-next__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.detail-next__head h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--ifu-text-strong);
+}
+
+.detail-next__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.detail-next__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.detail-next__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.detail-next__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.detail-next__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.detail-next__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .detail-summary {
   margin-top: 12px;
   display: grid;
@@ -571,6 +673,11 @@ onMounted(() => {
 @media (max-width: 360px) {
   .detail-hero {
     margin: 0 10px;
+  }
+
+  .detail-next__grid,
+  .detail-summary {
+    grid-template-columns: 1fr;
   }
 
   .detail-action-bar {

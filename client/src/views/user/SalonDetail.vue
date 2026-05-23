@@ -31,6 +31,23 @@
         </div>
       </section>
 
+      <section class="salon-detail-decision card" data-testid="salon-detail-decision">
+        <div class="salon-detail-decision__head">
+          <div>
+            <span class="brand-label">ATTENDANCE CHECK</span>
+            <h2>报名前快速判断</h2>
+          </div>
+          <strong>{{ attendanceState }}</strong>
+        </div>
+        <div class="salon-detail-decision__grid">
+          <article v-for="item in bookingSignals" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.hint }}</p>
+          </article>
+        </div>
+      </section>
+
       <section class="salon-detail-section card">
         <div class="salon-detail-section__title">
           <van-icon name="notes-o" size="16" />
@@ -180,6 +197,42 @@ const bookingHint = computed(() => {
     return '名额已满时建议先联系红娘，确认是否有候补席位或更适合的活动。'
   }
   return '如果你正处于从线上沟通过渡到线下认识的阶段，这类活动通常比直接单独见面更自然。'
+})
+
+const isFull = computed(() =>
+  Boolean(event.value?.maxParticipants && event.value.currentParticipants >= event.value.maxParticipants)
+)
+
+const attendanceState = computed(() => {
+  if (!event.value) return ''
+  if (isRegistered.value) return '已报名'
+  if (event.value.status !== 'upcoming') return statusText(event.value.status)
+  return isFull.value ? '候补优先' : '适合报名'
+})
+
+const bookingSignals = computed(() => {
+  if (!event.value) return []
+  const current = Number(event.value.currentParticipants || 0)
+  const max = Number(event.value.maxParticipants || 0)
+  const price = Number(event.value.price || 0)
+
+  return [
+    {
+      label: '名额状态',
+      value: max > 0 ? `${current}/${max}` : '不限名额',
+      hint: isFull.value ? '建议先联系红娘确认候补席位。' : '仍有报名空间，适合尽早锁定时间。'
+    },
+    {
+      label: '活动节奏',
+      value: statusText(event.value.status),
+      hint: event.value.status === 'upcoming' ? '活动尚未开始，可提前准备交流预期。' : '先确认活动状态再安排后续动作。'
+    },
+    {
+      label: '参与成本',
+      value: price > 0 ? `¥${price.toFixed(2)}` : '免费活动',
+      hint: price > 0 ? '付费活动更适合明确参与意愿后报名。' : '低门槛参与，适合作为线下认识的第一步。'
+    }
+  ]
 })
 
 const heroCoverStyle = computed(() => {
@@ -332,6 +385,67 @@ onMounted(() => {
   margin-top: 12px;
 }
 
+.salon-detail-decision {
+  margin-top: 12px;
+}
+
+.salon-detail-decision__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.salon-detail-decision__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.salon-detail-decision__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.salon-detail-decision__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.salon-detail-decision__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.salon-detail-decision__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.salon-detail-decision__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.salon-detail-decision__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .salon-detail-section__title {
   display: inline-flex;
   align-items: center;
@@ -433,5 +547,12 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+@media (max-width: 380px) {
+  .salon-detail-hero__meta,
+  .salon-detail-decision__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

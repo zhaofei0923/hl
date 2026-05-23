@@ -14,12 +14,29 @@
           <h1>{{ conversationTitle }}</h1>
           <p>{{ conversationHint }}</p>
         </div>
-        <span class="utility-chip utility-chip--soft">已读回执开启</span>
+        <span class="utility-chip utility-chip--soft">{{ conversationStatus }}</span>
       </div>
       <div class="utility-hero__chips">
         <span class="utility-chip">真诚开场</span>
         <span class="utility-chip">节奏友好</span>
         <span class="utility-chip">红娘可协助</span>
+      </div>
+    </section>
+
+    <section class="chat-guides" data-testid="chat-reply-guides">
+      <div class="chat-guides__head">
+        <span>轻量回复建议</span>
+        <small>{{ messages.length ? '延续当前节奏' : '先打开话题' }}</small>
+      </div>
+      <div class="chat-guides__chips">
+        <button
+          v-for="guide in replyGuides"
+          :key="guide"
+          type="button"
+          @click="handleReplyGuide(guide)"
+        >
+          {{ guide }}
+        </button>
       </div>
     </section>
 
@@ -115,6 +132,13 @@ const conversationHint = computed(() =>
     ? `和 ${otherUser.value.nickname} 保持自然沟通，系统会为你保留稳定的沟通记录。`
     : '从轻松问候开始，保持真实表达，建立更自然的了解节奏。'
 )
+const conversationStatus = computed(() => messages.value.length > 0 ? `${messages.value.length} 条记录` : '等待开场')
+const replyGuides = computed(() => {
+  const name = otherUser.value.nickname || '你'
+  return messages.value.length > 0
+    ? ['我理解你的想法，可以多聊一点吗？', '这个点挺有意思，你平时也是这样安排吗？', '我们可以慢慢聊，不急着下判断。']
+    : [`你好 ${name}，看到你的资料想认识一下。`, '你平时周末更喜欢安静还是外出？', '我也在认真找对象，想先聊几句。']
+})
 
 async function fetchMessages(isLoadMore = false) {
   if (!isLoadMore) {
@@ -206,6 +230,10 @@ function handleScroll() {
   }
 }
 
+function handleReplyGuide(text) {
+  inputText.value = text
+}
+
 function scrollToBottom() {
   nextTick(() => {
     if (messageListRef.value) {
@@ -246,6 +274,52 @@ onMounted(async () => {
   margin-bottom: 12px;
 }
 
+.chat-guides {
+  margin: 0 14px 12px;
+  padding: 12px 14px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 247, 240, 0.9));
+  border: 1px solid rgba(233, 221, 204, 0.9);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.chat-guides__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-guides__head span {
+  color: var(--ifu-text-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chat-guides__head small {
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.chat-guides__chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.chat-guides__chips button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(166, 124, 82, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ifu-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .chat-loading {
   display: flex;
   justify-content: center;
@@ -280,23 +354,25 @@ onMounted(async () => {
 
 .chat-bubble__content {
   padding: 10px 14px;
-  border-radius: var(--hl-radius-md);
+  border-radius: 18px;
   font-size: 15px;
   line-height: 1.5;
   word-break: break-word;
-  background: var(--hl-card-bg);
-  color: var(--hl-text-primary);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ifu-text-strong);
+  border: 1px solid rgba(233, 221, 204, 0.82);
   position: relative;
 }
 
 .chat-bubble--self .chat-bubble__content {
-  background: var(--hl-primary-color);
+  background: linear-gradient(135deg, var(--ifu-gold-700), var(--ifu-gold-500));
   color: #fff;
+  border-color: transparent;
 }
 
 .chat-bubble__time {
   font-size: 11px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
   margin-top: 4px;
   padding: 0 4px;
 }
@@ -316,8 +392,8 @@ onMounted(async () => {
 
 .chat-input-bar__field {
   flex: 1;
-  background: var(--hl-bg-color);
-  border-radius: var(--hl-radius-sm);
+  background: rgba(251, 247, 241, 0.9);
+  border-radius: 16px;
   padding: 6px 12px;
 }
 

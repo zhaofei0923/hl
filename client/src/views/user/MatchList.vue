@@ -18,6 +18,20 @@
       </div>
     </section>
 
+    <section class="match-guide card" data-testid="match-guide">
+      <div class="match-guide__head">
+        <span class="brand-label">COMPARE BY SIGNALS</span>
+        <strong>先比较关系信号，再决定是否打招呼</strong>
+      </div>
+      <div class="match-guide__grid">
+        <article v-for="item in discoveryGuides" :key="item.title">
+          <span>{{ item.value }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.desc }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="match-filter">
       <div class="match-filter__item" @click="showAgePicker = true">
         <span :class="{ 'match-filter__item--active': filterAge }">{{ filterAge || '年龄' }}</span>
@@ -79,12 +93,17 @@
                 />
               </div>
               <div class="match-card__tags">
-                <van-tag plain round size="medium">{{ item.age || '?' }}岁</van-tag>
-                <van-tag plain round size="medium">{{ item.city || '未知' }}</van-tag>
-                <van-tag plain round size="medium">{{ item.education || '未填写' }}</van-tag>
+                <span class="brand-chip brand-chip--ghost">{{ item.age || '?' }}岁</span>
+                <span class="brand-chip brand-chip--ghost">{{ item.city || '未知' }}</span>
+                <span class="brand-chip brand-chip--ghost">{{ item.education || '未填写' }}</span>
               </div>
               <div class="match-card__desc">{{ item.intro || '这个人很懒，什么都没写~' }}</div>
             </div>
+          </div>
+          <div class="match-card__signals">
+            <span>城市距离更近</span>
+            <span>资料信息可比</span>
+            <span>适合轻量开场</span>
           </div>
           <div class="match-card__footer">
             <div class="match-card__score">
@@ -161,6 +180,12 @@ const matchList = ref([])
 const filterAge = ref('')
 const filterCity = ref('')
 const filterEducation = ref('')
+
+const discoveryGuides = [
+  { value: '01', title: '同城优先', desc: '降低第一次见面成本。' },
+  { value: '02', title: '资料完整', desc: '避免只凭头像做决定。' },
+  { value: '03', title: '轻量开场', desc: '先建立自然沟通节奏。' }
+]
 
 // 年龄筛选
 const showAgePicker = ref(false)
@@ -267,17 +292,70 @@ onMounted(() => {
 
 <style scoped>
 .match-list-page {
-  background: var(--hl-bg-color);
+  background: var(--ifu-bg);
   min-height: 100vh;
+}
+
+.match-guide {
+  margin-top: 12px;
+}
+
+.match-guide__head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.match-guide__head strong {
+  font-size: 21px;
+  line-height: 1.35;
+  color: var(--ifu-text-strong);
+}
+
+.match-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.match-guide__grid article {
+  padding: 13px 12px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.match-guide__grid span {
+  color: var(--ifu-gold-700);
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 18px;
+}
+
+.match-guide__grid strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ifu-text-strong);
+}
+
+.match-guide__grid p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ifu-text-muted);
 }
 
 .match-filter {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  background: var(--hl-card-bg);
-  border-bottom: 1px solid var(--hl-border-color);
+  margin: 12px 16px 0;
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  box-shadow: var(--ifu-shadow-soft);
   overflow-x: auto;
 }
 
@@ -285,11 +363,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  min-height: 34px;
+  padding: 0 12px;
   font-size: 13px;
-  color: var(--hl-text-secondary);
-  background: var(--hl-bg-color);
-  border-radius: 16px;
+  color: var(--ifu-text-muted);
+  background: rgba(255, 252, 248, 0.9);
+  border: 1px solid rgba(233, 221, 204, 0.76);
+  border-radius: 999px;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s;
@@ -300,7 +380,7 @@ onMounted(() => {
 }
 
 .match-filter__item--active {
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   font-weight: 500;
 }
 
@@ -310,16 +390,18 @@ onMounted(() => {
   gap: 2px;
   padding: 6px 10px;
   font-size: 12px;
-  color: var(--hl-accent-color);
+  color: var(--ifu-gold-700);
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .match-card {
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 244, 0.94));
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  border-radius: 28px;
   margin: 12px 16px;
-  padding: 16px;
+  padding: 18px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .match-card__header {
@@ -341,9 +423,9 @@ onMounted(() => {
 }
 
 .match-card__name {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .match-card__tags {
@@ -355,10 +437,25 @@ onMounted(() => {
 
 .match-card__desc {
   font-size: 13px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.match-card__signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.match-card__signals span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(126, 154, 120, 0.13);
+  color: var(--ifu-success);
+  font-size: 11px;
 }
 
 .match-card__footer {
@@ -366,7 +463,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: 12px;
-  border-top: 1px solid var(--hl-border-color);
+  border-top: 1px solid rgba(233, 221, 204, 0.76);
 }
 
 .match-card__score {
@@ -374,7 +471,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  color: var(--hl-accent-color);
+  color: var(--ifu-gold-700);
   font-weight: 500;
 }
 
@@ -393,23 +490,29 @@ onMounted(() => {
 .city-popup__title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .city-popup__cancel {
   font-size: 14px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   cursor: pointer;
 }
 
 .city-popup__confirm {
   font-size: 14px;
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   font-weight: 500;
   cursor: pointer;
 }
 
 .city-popup__content {
   padding: 16px;
+}
+
+@media (max-width: 380px) {
+  .match-guide__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

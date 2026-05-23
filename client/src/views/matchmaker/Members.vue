@@ -34,6 +34,22 @@
       </div>
     </section>
 
+    <section class="card members-focus" data-testid="matchmaker-members-focus">
+      <div class="members-focus__head">
+        <div>
+          <span class="brand-label">FOLLOW-UP FOCUS</span>
+          <h2>先判断会员该进入哪一步</h2>
+        </div>
+        <span>{{ activeFilterCount }} 个筛选</span>
+      </div>
+      <div class="members-focus__grid">
+        <article v-for="item in followUpFocus" :key="item.title">
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.desc }}</p>
+        </article>
+      </div>
+    </section>
+
     <section class="card members-list-shell">
       <div class="members-list-shell__header">
         <div>
@@ -41,6 +57,9 @@
           <h3>{{ currentTypeLabel }}会员池</h3>
         </div>
         <span class="members-list-shell__count">当前展示 {{ memberList.length }} 条</span>
+      </div>
+      <div v-if="activeFilterTags.length" class="members-list-shell__tags">
+        <span v-for="tag in activeFilterTags" :key="tag">{{ tag }}</span>
       </div>
 
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
@@ -304,6 +323,12 @@ const activeFilterTags = computed(() => {
     activeFilters.city ? `${activeFilters.city} 城市` : ''
   ].filter(Boolean)
 })
+
+const followUpFocus = [
+  { title: '资料补齐', desc: '资料不完整时先补关键字段，再进入推荐。' },
+  { title: '沟通唤醒', desc: '近期未响应会员优先安排轻量触达。' },
+  { title: '互推候选', desc: '条件清晰会员可进入资源池互推。' }
+]
 
 async function fetchStats() {
   try {
@@ -586,6 +611,61 @@ onMounted(() => {
   color: #fffdf9;
 }
 
+.members-focus {
+  margin-top: 12px;
+}
+
+.members-focus__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.members-focus__head h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--ifu-text-strong);
+}
+
+.members-focus__head > span {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.members-focus__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.members-focus__grid article {
+  padding: 13px 12px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.members-focus__grid strong {
+  display: block;
+  font-size: 13px;
+  color: var(--ifu-text-strong);
+}
+
+.members-focus__grid p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ifu-text-muted);
+}
+
 .members-list-shell__header {
   display: flex;
   justify-content: space-between;
@@ -606,6 +686,21 @@ onMounted(() => {
 .members-list-shell__count {
   color: var(--ifu-text-muted);
   font-size: 13px;
+}
+
+.members-list-shell__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+
+.members-list-shell__tags span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(126, 154, 120, 0.13);
+  color: var(--ifu-success);
+  font-size: 11px;
 }
 
 .search-popup {
@@ -763,5 +858,12 @@ onMounted(() => {
 
 .invite-link-card__actions {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 380px) {
+  .members-focus__grid,
+  .members-hero__stats {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

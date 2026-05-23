@@ -23,6 +23,23 @@
       <div class="balance-card__amount">{{ formatMoney(walletStore.availableAmount) }}</div>
     </div>
 
+    <section class="withdraw-review card" data-testid="matchmaker-withdraw-review">
+      <div class="withdraw-review__head">
+        <div>
+          <span class="brand-label">PAYOUT CHECK</span>
+          <h2>提交前确认</h2>
+        </div>
+        <strong>{{ withdrawState }}</strong>
+      </div>
+      <div class="withdraw-review__grid">
+        <article v-for="item in withdrawReviewItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="card">
       <div class="amount-section">
         <div class="amount-section__label">提现金额</div>
@@ -109,6 +126,33 @@ const canSubmit = computed(() => {
   const val = Number(amount.value)
   return val >= 10 && val <= walletStore.availableAmount
 })
+const feeAmount = computed(() => Number(amount.value || 0) * 0.01)
+const actualAmount = computed(() => Math.max(0, Number(amount.value || 0) - feeAmount.value))
+const withdrawState = computed(() => {
+  const val = Number(amount.value || 0)
+  if (!val) return '填写金额'
+  if (val < 10) return '低于最低额'
+  if (val > walletStore.availableAmount) return '超过余额'
+  return '可以提交'
+})
+
+const withdrawReviewItems = computed(() => [
+  {
+    label: '到账预估',
+    value: `¥${formatMoney(actualAmount.value)}`,
+    hint: amount.value ? `已扣除 1% 手续费 ¥${formatMoney(feeAmount.value)}` : '输入金额后自动估算到账。'
+  },
+  {
+    label: '提现渠道',
+    value: withdrawMethod.value === 'wechat' ? '微信' : '银行卡',
+    hint: withdrawMethod.value === 'wechat' ? '适合小额快速提现。' : '适合较大金额或对账需要。'
+  },
+  {
+    label: '余额校验',
+    value: `¥${formatMoney(walletStore.availableAmount)}`,
+    hint: canSubmit.value ? '当前金额满足余额和最低提现规则。' : '请确认金额不少于 10 元且不超过余额。'
+  }
+])
 
 function handleWithdrawAll() {
   amount.value = String(walletStore.availableAmount || 0)
@@ -162,10 +206,10 @@ onMounted(() => {
 
 <style scoped>
 .balance-card {
-  background: linear-gradient(135deg, var(--hl-accent-color), var(--hl-primary-color));
+  background: linear-gradient(135deg, var(--ifu-gold-500), var(--ifu-gold-700));
   margin: 16px;
   padding: 24px;
-  border-radius: var(--hl-radius-lg);
+  border-radius: var(--ifu-radius-lg);
   text-align: center;
 }
 
@@ -181,11 +225,74 @@ onMounted(() => {
   color: #fff;
 }
 
+.withdraw-review {
+  margin-top: 12px;
+}
+
+.withdraw-review__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.withdraw-review__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.withdraw-review__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.withdraw-review__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.withdraw-review__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.withdraw-review__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.withdraw-review__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.withdraw-review__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .card {
   margin: 12px 16px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .amount-section__label {
@@ -222,7 +329,7 @@ onMounted(() => {
 .amount-section__all {
   flex-shrink: 0;
   font-size: 13px;
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   cursor: pointer;
   padding-left: 8px;
 }
@@ -251,8 +358,10 @@ onMounted(() => {
 .rules-card {
   margin: 12px 16px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .rules-card__title {
@@ -275,5 +384,11 @@ onMounted(() => {
 
 .submit-wrap {
   padding: 24px 16px;
+}
+
+@media (max-width: 380px) {
+  .withdraw-review__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

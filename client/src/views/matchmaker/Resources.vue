@@ -1,5 +1,5 @@
 <template>
-  <div class="page utility-page">
+  <div class="page utility-page resources-page">
     <van-nav-bar :title="`会员展示 (${totalCount})`" left-arrow :border="false" @click-left="$router.back()">
       <template #right>
         <div style="display:flex;align-items:center;gap:14px;">
@@ -24,6 +24,20 @@
         <span class="brand-chip">{{ totalCount }} 位资源</span>
         <span class="brand-chip">{{ activeFilterCount }} 个筛选</span>
         <span class="brand-chip">互推协作</span>
+      </div>
+    </section>
+
+    <section class="card resource-guide" data-testid="matchmaker-resource-guide">
+      <div class="resource-guide__head">
+        <span class="brand-label">RECOMMENDATION LOGIC</span>
+        <strong>互推前先确认三类信号</strong>
+      </div>
+      <div class="resource-guide__grid">
+        <article v-for="item in resourceGuides" :key="item.title">
+          <span>{{ item.kicker }}</span>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.desc }}</p>
+        </article>
       </div>
     </section>
 
@@ -75,7 +89,7 @@
                 plain
                 round
                 size="medium"
-                color="var(--hl-primary-color)"
+                color="var(--ifu-gold-700)"
               >
                 {{ item.education }}
               </van-tag>
@@ -295,6 +309,12 @@ const activeFilterCount = computed(() =>
   Object.values(activeFilters).filter(v => v !== '').length
 )
 
+const resourceGuides = [
+  { kicker: 'FIT', title: '会员适配', desc: '年龄、城市和资料完整度先过一遍。' },
+  { kicker: 'CONTEXT', title: '红娘上下文', desc: '互推前先确认对方红娘能接得住。' },
+  { kicker: 'PACE', title: '沟通节奏', desc: '优先选择容易自然开场的组合。' }
+]
+
 const showRecommendPopup = ref(false)
 const recommendTarget = ref(null)
 const myMembers = ref([])
@@ -416,13 +436,72 @@ async function confirmRecommend(myMember) {
 </script>
 
 <style scoped>
+.resources-page {
+  background: var(--ifu-bg);
+  min-height: 100vh;
+}
+
+.resource-guide {
+  margin-top: 12px;
+}
+
+.resource-guide__head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.resource-guide__head strong {
+  color: var(--ifu-text-strong);
+  font-size: 21px;
+  line-height: 1.35;
+}
+
+.resource-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.resource-guide__grid article {
+  padding: 13px 12px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.resource-guide__grid span {
+  display: block;
+  color: var(--ifu-gold-700);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.resource-guide__grid strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ifu-text-strong);
+}
+
+.resource-guide__grid p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ifu-text-muted);
+}
+
 .resource-card {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin: 12px 16px;
   padding: 14px 16px;
-  background: var(--hl-card-bg);
-  border-bottom: 1px solid var(--hl-border-color);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 244, 0.94));
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .resource-card__avatar {
@@ -451,23 +530,23 @@ async function confirmRecommend(myMember) {
 }
 
 .resource-card__name {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--hl-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ifu-text-strong);
 }
 
 .resource-card__info {
   display: flex;
   gap: 8px;
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   margin-bottom: 6px;
 }
 
 .resource-card__info span::after {
   content: '|';
   margin-left: 8px;
-  color: var(--hl-border-color);
+  color: var(--ifu-border);
 }
 
 .resource-card__info span:last-child::after {
@@ -490,12 +569,12 @@ async function confirmRecommend(myMember) {
 .resource-card__match-value {
   font-size: 18px;
   font-weight: 700;
-  color: var(--hl-accent-color);
+  color: var(--ifu-gold-700);
 }
 
 .resource-card__match-label {
   font-size: 10px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .recommend-btn {
@@ -548,18 +627,18 @@ async function confirmRecommend(myMember) {
 .popup-form__title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .recommend-popup__target {
   padding: 12px 16px;
   font-size: 13px;
-  color: var(--hl-text-secondary);
-  background: var(--hl-bg-color);
+  color: var(--ifu-text-muted);
+  background: var(--ifu-bg);
 }
 
 .recommend-popup__name {
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   font-weight: 500;
 }
 
@@ -594,14 +673,20 @@ async function confirmRecommend(myMember) {
 
 .my-member-item__name {
   font-size: 15px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 2px;
 }
 
 .my-member-item__meta {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   display: flex;
   gap: 8px;
+}
+
+@media (max-width: 380px) {
+  .resource-guide__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

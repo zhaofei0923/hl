@@ -29,6 +29,33 @@
       </el-form>
     </el-card>
 
+    <section class="withdrawals-risk-grid" data-testid="admin-withdrawals-risk-grid">
+      <article class="withdrawals-risk-card withdrawals-risk-card--primary">
+        <div class="withdrawals-risk-card__head">
+          <div>
+            <span class="brand-label">RISK SUMMARY</span>
+            <strong>本页待处理风险</strong>
+          </div>
+          <span class="withdrawals-risk-card__badge">{{ pendingRows.length }} 笔待审</span>
+        </div>
+        <div class="withdrawals-risk-card__stats">
+          <article v-for="item in riskStats" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.note }}</p>
+          </article>
+        </div>
+      </article>
+
+      <article class="withdrawals-risk-card withdrawals-risk-card--notes">
+        <span class="brand-label">REVIEW CHECKLIST</span>
+        <strong>审批前检查</strong>
+        <ul>
+          <li v-for="item in reviewChecklist" :key="item">{{ item }}</li>
+        </ul>
+      </article>
+    </section>
+
     <el-card shadow="hover" class="withdrawals-table-card">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="id" label="ID" width="70" />
@@ -101,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { getWithdrawals, approveWithdrawal, rejectWithdrawal } from '../api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
@@ -116,6 +143,16 @@ const rejectReason = ref('')
 const rejectId = ref(null)
 
 const filters = reactive({ status: '' })
+
+const pendingRows = computed(() => list.value.filter(item => item.status === 'pending'))
+const pendingAmount = computed(() => pendingRows.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const largestPendingAmount = computed(() => Math.max(0, ...pendingRows.value.map(item => Number(item.amount || 0))))
+const riskStats = computed(() => [
+  { label: '待审笔数', value: `${pendingRows.value.length} 笔`, note: `当前筛选共 ${total.value || list.value.length} 条记录` },
+  { label: '待审金额', value: `¥${pendingAmount.value.toFixed(2)}`, note: '先核对冻结余额和账户实名' },
+  { label: '最高单笔', value: `¥${largestPendingAmount.value.toFixed(2)}`, note: '高金额建议二次复核' }
+])
+const reviewChecklist = ['账户姓名与提现渠道一致', '冻结余额已完成扣减', '异常大额优先电话确认']
 
 const formatDate = (d) => d ? dayjs(d).format('YYYY-MM-DD HH:mm') : '-'
 const statusText = (s) => ({ pending: '待审核', processing: '处理中', completed: '已完成', success: '已到账', rejected: '已拒绝' }[s] || s)
@@ -211,6 +248,114 @@ onMounted(() => loadData())
   position: relative;
 }
 
+.withdrawals-risk-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.withdrawals-risk-card {
+  padding: 22px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.withdrawals-risk-card--primary {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(246, 235, 221, 0.84)),
+    #fffdf9;
+}
+
+.withdrawals-risk-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.withdrawals-risk-card__head strong,
+.withdrawals-risk-card--notes > strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 24px;
+}
+
+.withdrawals-risk-card__badge {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(194, 139, 78, 0.14);
+  color: var(--ifu-warning);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.withdrawals-risk-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.withdrawals-risk-card__stats article {
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(233, 221, 204, 0.84);
+}
+
+.withdrawals-risk-card__stats span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 12px;
+}
+
+.withdrawals-risk-card__stats strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 26px;
+}
+
+.withdrawals-risk-card__stats p {
+  margin-top: 8px;
+  color: var(--ifu-text);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.withdrawals-risk-card--notes ul {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.withdrawals-risk-card--notes li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--ifu-text);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.withdrawals-risk-card--notes li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ifu-gold-500);
+}
+
 .withdrawals-toolbar::before,
 .withdrawals-table-card::before {
   content: '';
@@ -240,5 +385,17 @@ onMounted(() => loadData())
 
 .text-muted {
   color: #c0c4cc;
+}
+
+@media (max-width: 1200px) {
+  .withdrawals-risk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .withdrawals-risk-card__stats {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -18,6 +18,23 @@
       </div>
     </section>
 
+    <section class="cs-routing card" data-testid="customer-service-routing">
+      <div class="cs-routing__head">
+        <div>
+          <span class="brand-label">SUPPORT ROUTING</span>
+          <h2>先判断问题类型</h2>
+        </div>
+        <strong>9:00-21:00</strong>
+      </div>
+      <div class="cs-routing__grid">
+        <article v-for="item in supportRoutes" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="cs-content">
       <!-- 常见问题 -->
       <div class="cs-section">
@@ -134,6 +151,11 @@ import { ref } from 'vue'
 import { showToast } from 'vant'
 
 const activeNames = ref([])
+const supportRoutes = [
+  { label: '规则问题', value: '先看 FAQ', hint: '提现、认证、会员权益可先在常见问题中定位。' },
+  { label: '紧急问题', value: '电话优先', hint: '账号风险、支付异常建议直接拨打客服电话。' },
+  { label: '关系服务', value: '在线咨询', hint: '红娘协助、推荐节奏和资料问题适合在线沟通。' }
+]
 
 function handleCall() {
   window.location.href = 'tel:400-888-9999'
@@ -147,7 +169,68 @@ function handleOnlineService() {
 <style scoped>
 .cs-page {
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
-  background-color: var(--hl-bg-color);
+  background-color: var(--ifu-bg);
+}
+
+.cs-routing {
+  margin-top: 12px;
+}
+
+.cs-routing__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cs-routing__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.cs-routing__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.cs-routing__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cs-routing__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.cs-routing__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.cs-routing__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.cs-routing__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .cs-content {
@@ -165,16 +248,21 @@ function handleOnlineService() {
   padding: 12px 16px;
   font-size: 15px;
   font-weight: 500;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .cs-collapse {
-  background: var(--hl-card-bg);
+  margin: 0 16px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .cs-collapse :deep(.van-collapse-item__title) {
   font-size: 14px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   padding: 14px 16px;
 }
 
@@ -185,14 +273,16 @@ function handleOnlineService() {
 .cs-answer {
   font-size: 13px;
   line-height: 1.8;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
 .cs-contact-card {
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
   margin: 0 16px;
   overflow: hidden;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .cs-contact-card :deep(.van-cell) {
@@ -201,12 +291,12 @@ function handleOnlineService() {
 
 .cs-contact-card :deep(.van-cell__title) {
   font-size: 14px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .cs-contact-card :deep(.van-cell__value) {
   font-size: 14px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
 }
 
 .cs-cell-icon {
@@ -220,13 +310,20 @@ function handleOnlineService() {
   right: 0;
   padding: 12px 16px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  background: var(--hl-card-bg);
-  border-top: 1px solid var(--hl-border-color);
+  background: rgba(251, 247, 241, 0.94);
+  border-top: 1px solid rgba(233, 221, 204, 0.92);
+  box-shadow: var(--ifu-shadow-float);
 }
 
 .cs-bottom-bar :deep(.van-button) {
   height: 44px;
   font-size: 16px;
   font-weight: 500;
+}
+
+@media (max-width: 380px) {
+  .cs-routing__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -21,6 +21,20 @@
       </article>
     </div>
 
+    <section class="matchmakers-insight-grid" data-testid="admin-matchmakers-insights">
+      <article v-for="item in insightItems" :key="item.title" class="matchmakers-insight-card">
+        <div class="matchmakers-insight-card__top">
+          <span>{{ item.eyebrow }}</span>
+          <strong>{{ item.metric }}</strong>
+        </div>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.desc }}</p>
+        <div class="matchmakers-insight-card__tags">
+          <span v-for="tag in item.tags" :key="tag">{{ tag }}</span>
+        </div>
+      </article>
+    </section>
+
     <el-card shadow="hover" class="filter-card matchmakers-toolbar" data-testid="admin-matchmakers-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="关键词">
@@ -190,8 +204,16 @@ const approvedCount = computed(() =>
   list.value.filter(item => item.certificationStatus === 2).length
 )
 
+const pendingCertCount = computed(() =>
+  list.value.filter(item => item.certificationStatus === 1).length
+)
+
 const highLevelCount = computed(() =>
   list.value.filter(item => Number(item.level || 1) >= 4).length
+)
+
+const juniorCount = computed(() =>
+  list.value.filter(item => Number(item.level || 1) <= 2).length
 )
 
 const dominantCertLabel = computed(() => {
@@ -225,6 +247,30 @@ const overviewItems = computed(() => [
     label: '总成功数',
     value: successTotal.value,
     hint: '观察当前顾问网络的成交表现'
+  }
+])
+
+const insightItems = computed(() => [
+  {
+    eyebrow: '认证审核',
+    metric: `${pendingCertCount.value} 人`,
+    title: pendingCertCount.value > 0 ? '先处理审核中顾问' : '认证队列暂稳',
+    desc: pendingCertCount.value > 0 ? '优先复核资料完整度和服务介绍，减少待审红娘卡在入驻环节。' : '当前筛选范围内没有待审压力，可保持抽查节奏。',
+    tags: [dominantCertLabel.value, pendingCertCount.value > 0 ? '需复核材料' : '保持巡检']
+  },
+  {
+    eyebrow: '等级调度',
+    metric: `${highLevelCount.value}/${list.value.length || 0}`,
+    title: highLevelCount.value > 0 ? '高等级顾问可承接重点单' : '需要培养高等级顾问',
+    desc: juniorCount.value > highLevelCount.value ? '低等级顾问占比较高，适合先看成交记录再决定调级。' : '高等级顾问储备充足，可以优先分配高价值会员服务。',
+    tags: [`低等级 ${juniorCount.value}`, `成功数 ${successTotal.value}`]
+  },
+  {
+    eyebrow: '服务能力',
+    metric: successTotal.value,
+    title: successTotal.value > 0 ? '已有成交能力样本' : '成交样本待沉淀',
+    desc: successTotal.value > 0 ? '进入详情时重点查看团队、门店和服务介绍是否与成交能力匹配。' : '可从认证、门店归属和服务介绍完整度开始建立运营基线。',
+    tags: [`已认证 ${approvedCount.value}`, '详情核查']
   }
 ])
 
@@ -361,6 +407,70 @@ onMounted(() => loadData())
   line-height: 1.5;
 }
 
+.matchmakers-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.matchmakers-insight-card {
+  min-height: 176px;
+  padding: 18px;
+  border-radius: var(--ifu-radius-md);
+  border: 1px solid rgba(233, 221, 204, 0.9);
+  background:
+    radial-gradient(circle at right top, rgba(200, 169, 119, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 250, 244, 0.9));
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.matchmakers-insight-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.matchmakers-insight-card__top span {
+  color: var(--ifu-text-muted);
+  font-size: 12px;
+}
+
+.matchmakers-insight-card__top strong {
+  color: var(--ifu-gold-700);
+  font-size: 20px;
+}
+
+.matchmakers-insight-card h3 {
+  margin-top: 16px;
+  color: var(--ifu-text-strong);
+  font-size: 18px;
+}
+
+.matchmakers-insight-card p {
+  min-height: 44px;
+  margin-top: 8px;
+  color: var(--ifu-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.matchmakers-insight-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.matchmakers-insight-card__tags span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(126, 154, 120, 0.12);
+  color: var(--ifu-success);
+  font-size: 12px;
+}
+
 .matchmakers-toolbar,
 .matchmakers-table-card {
   position: relative;
@@ -393,8 +503,15 @@ onMounted(() => loadData())
 }
 
 @media (max-width: 1280px) {
-  .matchmakers-page__stats {
+  .matchmakers-page__stats,
+  .matchmakers-insight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .matchmakers-insight-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -52,6 +52,23 @@
         </div>
       </div>
 
+      <section class="salon-execution-card" data-testid="matchmaker-salon-execution">
+        <div class="salon-execution-card__head">
+          <div>
+            <span class="brand-label">EXECUTION CHECK</span>
+            <h2>活动执行判断</h2>
+          </div>
+          <strong>{{ executionState }}</strong>
+        </div>
+        <div class="salon-execution-card__grid">
+          <article v-for="item in executionItems" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.hint }}</p>
+          </article>
+        </div>
+      </section>
+
       <!-- 描述 -->
       <div v-if="event.description" class="desc-card">
         <div class="section-title">活动介绍</div>
@@ -235,6 +252,32 @@ const isOrganizer = computed(() => event.value?.organizerId === userStore.userIn
 const isRegistered = computed(() =>
   registrations.value.some(r => r.userId === userStore.userInfo?.id)
 )
+const participantLimit = computed(() => Number(event.value?.maxParticipants || 0))
+const participantCount = computed(() => Number(event.value?.currentParticipants || registrations.value.length || 0))
+const remainingSeats = computed(() => participantLimit.value ? Math.max(0, participantLimit.value - participantCount.value) : null)
+const executionState = computed(() => {
+  if (!event.value) return '加载中'
+  if (event.value.status !== 'upcoming') return statusText(event.value.status)
+  if (participantLimit.value && remainingSeats.value === 0) return '已满员'
+  return isOrganizer.value ? '可邀约' : isRegistered.value ? '已报名' : '可报名'
+})
+const executionItems = computed(() => [
+  {
+    label: '报名席位',
+    value: participantLimit.value ? `${participantCount.value}/${participantLimit.value}` : `${participantCount.value} 人`,
+    hint: participantLimit.value ? `剩余 ${remainingSeats.value} 个席位。` : '当前活动未设置人数上限。'
+  },
+  {
+    label: '组织动作',
+    value: isOrganizer.value ? '可邀请' : '参与视角',
+    hint: isOrganizer.value ? '可从会员池中邀请合适会员参加。' : '关注报名状态和活动信息即可。'
+  },
+  {
+    label: '费用状态',
+    value: Number(event.value?.price || 0) > 0 ? `¥${Number(event.value.price).toFixed(0)}` : '免费',
+    hint: Number(event.value?.price || 0) > 0 ? '建议提前确认费用说明与退款口径。' : '免费活动适合做关系暖场和线下破冰。'
+  }
+])
 
 const showActions = ref(false)
 const actionOptions = [
@@ -370,9 +413,11 @@ onMounted(() => {
 
 .info-card {
   padding: 16px;
-  background: var(--hl-card-bg);
+  background: rgba(255, 255, 255, 0.92);
   margin: 12px 16px;
-  border-radius: var(--hl-radius-md);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .info-card__header {
@@ -385,7 +430,7 @@ onMounted(() => {
 .info-card__title {
   font-size: 20px;
   font-weight: 700;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   flex: 1;
   margin: 0;
   line-height: 1.3;
@@ -397,32 +442,100 @@ onMounted(() => {
   gap: 8px;
   padding: 6px 0;
   font-size: 14px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text);
 }
 
 .info-row .price {
-  color: var(--hl-accent-color);
+  color: var(--ifu-gold-700);
   font-weight: 600;
   font-size: 16px;
+}
+
+.salon-execution-card {
+  margin: 0 16px 12px;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.salon-execution-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.salon-execution-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.salon-execution-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.salon-execution-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.salon-execution-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.salon-execution-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.salon-execution-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.salon-execution-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .desc-card {
   margin: 0 16px 12px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 10px;
 }
 
 .desc-text {
   font-size: 14px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -430,8 +543,10 @@ onMounted(() => {
 .member-card {
   margin: 0 16px 12px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .member-list {
@@ -445,7 +560,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 4px 10px 4px 4px;
-  background: var(--hl-bg-color);
+  background: rgba(249, 241, 230, 0.72);
   border-radius: 20px;
 }
 
@@ -457,7 +572,7 @@ onMounted(() => {
 
 .member-name {
   font-size: 13px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .bottom-bar {
@@ -467,8 +582,9 @@ onMounted(() => {
   right: 0;
   padding: 12px 16px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  background: var(--hl-card-bg);
-  box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.06);
+  background: rgba(251, 247, 241, 0.94);
+  border-top: 1px solid rgba(233, 221, 204, 0.92);
+  box-shadow: var(--ifu-shadow-float);
   z-index: 100;
 }
 
@@ -484,6 +600,12 @@ onMounted(() => {
   align-items: center;
   padding: 16px;
   border-bottom: 1px solid var(--hl-border-color);
+}
+
+@media (max-width: 380px) {
+  .salon-execution-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .invite-title {

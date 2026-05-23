@@ -42,6 +42,37 @@
       </div>
     </section>
 
+    <section class="profile-status card" data-testid="profile-status-card">
+      <div class="profile-status__head">
+        <div>
+          <span class="brand-label">RELATION READINESS</span>
+          <h3>关系准备度</h3>
+        </div>
+        <span class="profile-status__mark">建议优先</span>
+      </div>
+      <p>把资料、认证和沟通入口放在同一张卡片里，先补齐影响推荐质量的部分。</p>
+      <div class="profile-status__stats">
+        <article v-for="item in readinessStats" :key="item.label">
+          <strong>{{ item.value }}</strong>
+          <span>{{ item.label }}</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="profile-journey card" data-testid="profile-journey-card">
+      <div class="profile-journey__head">
+        <span class="brand-label">NEXT MOVES</span>
+        <strong>本周可推进的三件事</strong>
+      </div>
+      <article v-for="step in journeySteps" :key="step.title" class="profile-journey__item">
+        <div class="profile-journey__dot"></div>
+        <div>
+          <strong>{{ step.title }}</strong>
+          <p>{{ step.desc }}</p>
+        </div>
+      </article>
+    </section>
+
     <section class="profile-nav card">
       <div class="profile-actions__grid">
         <button v-for="action in heroActions" :key="action.label" type="button" class="profile-actions__item" @click="$router.push(action.route)">
@@ -125,6 +156,18 @@ const heroActions = computed(() => [
   { label: '推荐匹配', desc: '查看更多推荐', icon: 'like-o', color: 'var(--ifu-warning)', route: '/user/match-list' },
   { label: '我的消息', desc: unreadText.value || '查看最近对话', icon: 'chat-o', color: 'var(--ifu-info)', route: '/messages' }
 ])
+
+const readinessStats = computed(() => [
+  { label: '资料完整度', value: `${completionPercent.value}%` },
+  { label: '未读消息', value: messageStore.totalUnread || 0 },
+  { label: '高频入口', value: '3' }
+])
+
+const journeySteps = [
+  { title: '补充生活节奏', desc: '把作息、周末安排和见面偏好写清楚，红娘更容易给出有效建议。' },
+  { title: '完成可信认证', desc: '认证会优先影响资料可信度，也会提升推荐卡片里的展示权重。' },
+  { title: '主动回应沟通', desc: '先回复近期对话，再决定是否让红娘协助安排下一步。' }
+]
 
 const menuItems = [
   { label: '沙龙活动', desc: '报名同城线下活动', icon: 'calendar-o', color: 'var(--ifu-warning)', route: '/user/salon' },
@@ -248,6 +291,107 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.profile-status__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-status__head h3 {
+  margin-top: 6px;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.profile-status__mark {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(194, 139, 78, 0.14);
+  color: var(--ifu-warning);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.profile-status p {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ifu-text);
+}
+
+.profile-status__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.profile-status__stats article {
+  padding: 14px 10px;
+  border-radius: 18px;
+  background: rgba(255, 252, 248, 0.9);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+  text-align: center;
+}
+
+.profile-status__stats strong {
+  display: block;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 22px;
+  color: var(--ifu-text-strong);
+}
+
+.profile-status__stats span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--ifu-text-muted);
+}
+
+.profile-journey__head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.profile-journey__head strong {
+  font-size: 20px;
+  color: var(--ifu-text-strong);
+}
+
+.profile-journey__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(233, 221, 204, 0.68);
+}
+
+.profile-journey__dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--ifu-gold-500);
+  box-shadow: 0 0 0 6px rgba(200, 169, 119, 0.14);
+}
+
+.profile-journey__item strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ifu-text-strong);
+}
+
+.profile-journey__item p {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--ifu-text);
+}
+
 .profile-actions__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -362,7 +506,8 @@ onMounted(() => {
 }
 
 @media (max-width: 380px) {
-  .profile-actions__grid {
+  .profile-actions__grid,
+  .profile-status__stats {
     grid-template-columns: 1fr;
   }
 }

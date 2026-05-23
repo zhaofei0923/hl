@@ -21,6 +21,26 @@
       </article>
     </div>
 
+    <section class="salons-planning-grid" data-testid="admin-salons-planning">
+      <article class="salons-planning-card salons-planning-card--primary">
+        <div class="salons-planning-card__head">
+          <div>
+            <span class="brand-label">EVENT READINESS</span>
+            <strong>活动准备度</strong>
+          </div>
+          <span>{{ upcomingCount }} 场待开始</span>
+        </div>
+        <p>优先检查即将开始活动的席位占用、组织者和报名名单，临近活动要先确认到场意向。</p>
+      </article>
+      <article class="salons-planning-card">
+        <span class="brand-label">PLANNING CHECKS</span>
+        <strong>排期检查</strong>
+        <div class="salons-planning-tags">
+          <span v-for="item in planningHints" :key="item">{{ item }}</span>
+        </div>
+      </article>
+    </section>
+
     <el-card shadow="hover" class="filter-card salons-toolbar" data-testid="admin-salons-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="状态">
@@ -232,6 +252,12 @@ const overviewItems = computed(() => [
   }
 ])
 
+const planningHints = computed(() => [
+  dominantStatusLabel.value,
+  cancelledCount.value > 0 ? '存在取消活动需复盘' : '取消风险较低',
+  seatTotal.value > 0 ? `席位占用 ${currentParticipantsTotal.value}/${seatTotal.value}` : '席位待配置'
+])
+
 const loadData = async () => {
   loading.value = true
   try {
@@ -342,6 +368,73 @@ onMounted(() => loadData())
   margin-bottom: 18px;
 }
 
+.salons-planning-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.salons-planning-card {
+  padding: 22px;
+  border-radius: 30px;
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.salons-planning-card--primary {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(246, 235, 221, 0.84)),
+    #fffdf9;
+}
+
+.salons-planning-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.salons-planning-card__head span:last-child {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(126, 154, 120, 0.14);
+  color: var(--ifu-success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.salons-planning-card strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 24px;
+}
+
+.salons-planning-card p {
+  margin-top: 12px;
+  color: var(--ifu-text);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.salons-planning-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.salons-planning-tags span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.14);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
 .salons-stat-card {
   padding: 18px;
   border-radius: var(--ifu-radius-md);
@@ -392,8 +485,16 @@ onMounted(() => loadData())
 }
 
 @media (max-width: 1280px) {
-  .salons-page__stats {
+  .salons-page__stats,
+  .salons-planning-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .salons-page__stats,
+  .salons-planning-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

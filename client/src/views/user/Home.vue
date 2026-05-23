@@ -67,6 +67,25 @@
       </div>
     </section>
 
+    <section class="home-journey card" data-testid="home-journey">
+      <div class="home-journey__head">
+        <div>
+          <span class="brand-label">MATCH JOURNEY</span>
+          <h2>把认识推进到下一步</h2>
+        </div>
+        <span class="home-journey__badge">红娘协同</span>
+      </div>
+      <div class="home-journey__steps">
+        <article v-for="(step, index) in relationSteps" :key="step.title" class="home-journey__step">
+          <span class="home-journey__index">0{{ index + 1 }}</span>
+          <div>
+            <strong>{{ step.title }}</strong>
+            <p>{{ step.desc }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section class="home-filter">
       <button type="button" class="filter-chip" :class="{ 'filter-chip--active': !!filterAgeRange }" @click="showAgePicker = true">
         <span>{{ filterAgeLabel || '年龄段' }}</span>
@@ -338,6 +357,12 @@ const curationHighlights = [
   { title: '同城优先', desc: '先把见面成本降下来' },
   { title: '资料完整', desc: '减少只凭头像判断' },
   { title: '节奏更稳', desc: '让红娘筛掉无效打扰' }
+]
+
+const relationSteps = [
+  { title: '先看匹配理由', desc: '用城市、教育和资料完整度判断是否值得继续。' },
+  { title: '再轻量打招呼', desc: '从低压力开场开始，避免一上来就交换太多信息。' },
+  { title: '由红娘协助推进', desc: '有意向后再安排更具体的沟通和线下见面节奏。' }
 ]
 
 const heroStats = computed(() => ({
@@ -691,6 +716,74 @@ function handleSayHi() {
   font-size: 11px;
   line-height: 1.6;
   color: var(--ifu-text-muted);
+}
+
+.home-journey {
+  margin-top: 12px;
+}
+
+.home-journey__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-journey__head h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.home-journey__badge {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(126, 154, 120, 0.14);
+  color: var(--ifu-success);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.home-journey__steps {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.home-journey__step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.92), rgba(249, 241, 230, 0.78));
+  border: 1px solid rgba(233, 221, 204, 0.88);
+}
+
+.home-journey__index {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(200, 169, 119, 0.18);
+  color: var(--ifu-gold-700);
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 13px;
+}
+
+.home-journey__step strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ifu-text-strong);
+}
+
+.home-journey__step p {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--ifu-text);
 }
 
 .home-filter {

@@ -6,6 +6,24 @@
       <div class="utility-hero__top">
         <div>
           <span class="brand-label">ADVISOR NETWORK</span>
+
+      <section class="advisor-focus-card" data-testid="my-matchmakers-focus">
+        <div class="advisor-focus-card__head">
+          <div>
+            <span class="brand-label">COLLABORATION</span>
+            <h2>协作贡献判断</h2>
+          </div>
+          <strong>{{ advisorState }}</strong>
+        </div>
+        <div class="advisor-focus-card__grid">
+          <article v-for="item in advisorItems" :key="item.label">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.hint }}</p>
+          </article>
+        </div>
+      </section>
+
           <h1>把合作红娘做成可追踪的协作列表</h1>
           <p>先看成员数量、业绩和加入时间，再决定重点维护哪位顾问的协作关系。</p>
         </div>
@@ -78,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { matchmakerApi } from '@/api/matchmaker'
 import { formatMoney, formatDate, maskPhone } from '@/utils/format'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -90,6 +108,26 @@ const listLoading = ref(false)
 const finished = ref(false)
 const page = ref(1)
 const matchmakerList = ref([])
+const totalMembers = computed(() => matchmakerList.value.reduce((sum, item) => sum + Number(item.memberCount || 0), 0))
+const totalPerformance = computed(() => matchmakerList.value.reduce((sum, item) => sum + Number(item.performance || 0), 0))
+const advisorState = computed(() => matchmakerList.value.length ? '可复盘' : '待同步')
+const advisorItems = computed(() => [
+  {
+    label: '协作红娘',
+    value: `${matchmakerList.value.length} 位`,
+    hint: matchmakerList.value.length ? '可按会员数和业绩判断重点协作对象。' : '暂无协作红娘数据。'
+  },
+  {
+    label: '会员覆盖',
+    value: `${totalMembers.value} 人`,
+    hint: totalMembers.value ? '成员资源越清晰，互推越容易落地。' : '等待红娘会员数据同步。'
+  },
+  {
+    label: '协作业绩',
+    value: `¥${formatMoney(totalPerformance.value)}`,
+    hint: totalPerformance.value ? '优先复盘高贡献顾问的服务路径。' : '暂未形成明确业绩贡献。'
+  }
+])
 
 function getLevelColor(level) {
   const map = {
@@ -146,8 +184,76 @@ function onRefresh() {
 .matchmaker-card {
   margin: 10px 16px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.advisor-focus-card {
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.advisor-focus-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.advisor-focus-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.advisor-focus-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.advisor-focus-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.advisor-focus-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.advisor-focus-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.advisor-focus-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.advisor-focus-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .matchmaker-card__top {
@@ -172,19 +278,19 @@ function onRefresh() {
 .matchmaker-card__name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
 }
 
 .matchmaker-card__phone {
   font-size: 13px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .matchmaker-card__bottom {
   display: flex;
   align-items: center;
   padding-top: 14px;
-  border-top: 1px solid var(--hl-border-color);
+  border-top: 1px solid rgba(233, 221, 204, 0.92);
 }
 
 .matchmaker-card__stat {
@@ -196,18 +302,24 @@ function onRefresh() {
   display: block;
   font-size: 15px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 2px;
 }
 
 .matchmaker-card__stat-label {
   font-size: 11px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .matchmaker-card__stat-divider {
   width: 1px;
   height: 24px;
-  background: var(--hl-border-color);
+  background: rgba(233, 221, 204, 0.92);
+}
+
+@media (max-width: 380px) {
+  .advisor-focus-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

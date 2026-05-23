@@ -18,6 +18,23 @@
       </div>
     </section>
 
+    <section v-if="!loading" class="member-maintenance card" data-testid="matchmaker-member-edit-quality">
+      <div class="member-maintenance__head">
+        <div>
+          <span class="brand-label">MAINTENANCE CHECK</span>
+          <h2>维护质量检查</h2>
+        </div>
+        <strong>{{ qualityState }}</strong>
+      </div>
+      <div class="member-maintenance__grid">
+        <article v-for="item in qualityItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <van-loading v-if="loading" class="page-loading" size="24px" vertical>加载中...</van-loading>
 
     <van-form v-if="!loading" ref="formRef" @submit="handleSubmit">
@@ -274,7 +291,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showSuccessToast, showFailToast, showToast } from 'vant'
 import { memberApi } from '@/api/member'
@@ -319,6 +336,50 @@ const form = reactive({
   memberTypeLabel: '无消费',
   remark: ''
 })
+
+const profileScore = computed(() => {
+  const fields = [
+    form.realName,
+    form.gender,
+    form.age,
+    form.height,
+    form.education,
+    form.city,
+    form.occupation,
+    form.incomeRange,
+    form.maritalStatus,
+    form.selfIntro,
+    form.partnerRequirement,
+    avatarList.value.length > 0,
+    fileList.value.length > 0
+  ]
+  const filled = fields.filter(Boolean).length
+  return Math.round((filled / fields.length) * 100)
+})
+
+const qualityState = computed(() => {
+  if (profileScore.value >= 75) return '资料清晰'
+  if (profileScore.value >= 45) return '继续补齐'
+  return '信息偏弱'
+})
+
+const qualityItems = computed(() => [
+  {
+    label: '资料完整度',
+    value: `${profileScore.value}%`,
+    hint: profileScore.value >= 75 ? '适合进入推荐和互推判断。' : '建议补齐职业、收入、相册和介绍。'
+  },
+  {
+    label: '偏好边界',
+    value: form.partnerRequirement ? '已明确' : '待补充',
+    hint: form.partnerRequirement ? '后续跟进有明确筛选依据。' : '建议补不能接受项和重点偏好。'
+  },
+  {
+    label: '展示素材',
+    value: `${avatarList.value.length + fileList.value.length} 张`,
+    hint: fileList.value.length ? '资料展示有图像支撑。' : '补充头像或资料图可提升沟通效率。'
+  }
+])
 
 const memberTypeMap = {
   no_consumption: '无消费',
@@ -593,9 +654,70 @@ onMounted(() => {
   padding: 16px 16px 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+}
+
+.member-maintenance {
+  margin-top: 12px;
+}
+
+.member-maintenance__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.member-maintenance__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.member-maintenance__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.member-maintenance__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.member-maintenance__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.member-maintenance__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.member-maintenance__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.member-maintenance__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .form-footer {
@@ -632,5 +754,11 @@ onMounted(() => {
 
 :deep(.van-picker__cancel) {
   color: var(--ifu-text-muted, #9a8a78);
+}
+
+@media (max-width: 380px) {
+  .member-maintenance__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

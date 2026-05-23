@@ -17,6 +17,23 @@
       </div>
     </section>
 
+    <section v-if="!loading" class="store-trust-card" data-testid="matchmaker-store-trust">
+      <div class="store-trust-card__head">
+        <div>
+          <span class="brand-label">TRUST CHECK</span>
+          <h2>门店信任检查</h2>
+        </div>
+        <strong>{{ storeTrustState }}</strong>
+      </div>
+      <div class="store-trust-card__grid">
+        <article v-for="item in storeTrustItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <van-loading v-if="loading" class="page-loading" size="24px" vertical>加载中...</van-loading>
 
     <!-- 无门店：申请开通 -->
@@ -201,7 +218,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { showToast, showImagePreview } from 'vant'
 import { matchmakerApi } from '@/api/matchmaker'
 
@@ -231,6 +248,42 @@ const applyForm = reactive({
   address: '',
   phone: ''
 })
+
+const storeTrustScore = computed(() => {
+  if (!hasStore.value) return 0
+  const fields = [
+    storeData.value.name,
+    storeData.value.address,
+    storeData.value.phone,
+    storeData.value.status === 'approved',
+    storeData.value.photos?.length > 0,
+    storeData.value.license
+  ]
+  return Math.round((fields.filter(Boolean).length / fields.length) * 100)
+})
+const storeTrustState = computed(() => {
+  if (!hasStore.value) return '待申请'
+  if (storeData.value.status === 'approved') return '已通过'
+  if (storeData.value.status === 'rejected') return '需重提'
+  return '审核中'
+})
+const storeTrustItems = computed(() => [
+  {
+    label: '可信完整度',
+    value: hasStore.value ? `${storeTrustScore.value}%` : '待开通',
+    hint: hasStore.value ? '门店资料越完整，线下转化越稳定。' : '先提交门店名称、地址和电话。'
+  },
+  {
+    label: '审核状态',
+    value: hasStore.value ? getStoreStatusText(storeData.value.status) : '未申请',
+    hint: hasStore.value ? '审核状态会影响门店对外展示。' : '申请后等待平台审核。'
+  },
+  {
+    label: '展示素材',
+    value: hasStore.value ? `${storeData.value.photos?.length || 0} 张` : '待上传',
+    hint: hasStore.value && storeData.value.photos?.length ? '照片可辅助建立线下信任。' : '建议补门店照片和营业执照。'
+  }
+])
 
 function getStoreStatusText(status) {
   const map = {
@@ -319,8 +372,76 @@ onMounted(() => {
   align-items: center;
   margin: 40px 16px;
   padding: 40px 24px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-lg);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.store-trust-card {
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.store-trust-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.store-trust-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.store-trust-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.store-trust-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.store-trust-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.store-trust-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.store-trust-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.store-trust-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .apply-card__icon {
@@ -330,13 +451,13 @@ onMounted(() => {
 .apply-card__title {
   font-size: 20px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 8px;
 }
 
 .apply-card__desc {
   font-size: 13px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   text-align: center;
   margin-bottom: 24px;
   line-height: 1.5;
@@ -349,8 +470,10 @@ onMounted(() => {
 .info-card {
   margin: 12px 16px;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .info-card__header {
@@ -363,14 +486,14 @@ onMounted(() => {
 .info-card__title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   padding-left: 8px;
-  border-left: 3px solid var(--hl-primary-color);
+  border-left: 3px solid var(--ifu-gold-700);
 }
 
 .info-card__edit {
   font-size: 13px;
-  color: var(--hl-primary-color);
+  color: var(--ifu-gold-700);
   cursor: pointer;
 }
 
@@ -384,7 +507,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--hl-border-color);
+  border-bottom: 1px solid rgba(233, 221, 204, 0.92);
 }
 
 .info-row:last-child {
@@ -393,14 +516,14 @@ onMounted(() => {
 
 .info-row__label {
   font-size: 13px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
   flex-shrink: 0;
   margin-right: 16px;
 }
 
 .info-row__value {
   font-size: 13px;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   text-align: right;
   word-break: break-all;
 }
@@ -419,7 +542,7 @@ onMounted(() => {
   padding: 20px 0;
   text-align: center;
   font-size: 13px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
 }
 
 .form-actions {
@@ -433,8 +556,14 @@ onMounted(() => {
 .apply-popup__title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   text-align: center;
   padding-bottom: 16px;
+}
+
+@media (max-width: 380px) {
+  .store-trust-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

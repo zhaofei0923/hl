@@ -25,6 +25,23 @@
       background="#FFF7F0"
     />
 
+    <section class="payment-guard-card" data-testid="matchmaker-qrcode-guard">
+      <div class="payment-guard-card__head">
+        <div>
+          <span class="brand-label">PAYMENT GUARD</span>
+          <h2>现场收款检查</h2>
+        </div>
+        <strong>{{ qrCodeUrl ? '可展示' : '待生成' }}</strong>
+      </div>
+      <div class="payment-guard-card__grid">
+        <article v-for="item in paymentGuardItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <div class="qrcode-section">
       <div class="qrcode-card">
         <div class="qrcode-card__title">扫码向我付款</div>
@@ -93,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { showToast } from 'vant'
 import { formatMoney } from '@/utils/format'
 
@@ -104,6 +121,24 @@ const stats = reactive({
   todayCount: 0,
   totalAmount: 0
 })
+
+const paymentGuardItems = computed(() => [
+  {
+    label: '今日收款',
+    value: `¥${formatMoney(stats.todayAmount)}`,
+    hint: stats.todayAmount ? '现场成交后可用今日金额做快速核对。' : '今日暂无收款记录。'
+  },
+  {
+    label: '今日笔数',
+    value: `${stats.todayCount || 0} 笔`,
+    hint: stats.todayCount ? '收款笔数可与会员付款记录互相确认。' : '完成收款后这里会展示笔数。'
+  },
+  {
+    label: '收款码状态',
+    value: qrCodeUrl.value ? '已生成' : '待接入',
+    hint: qrCodeUrl.value ? '可现场展示或保存分享。' : '二维码 API 接入后可直接使用。'
+  }
+])
 
 function handleSave() {
   if (!qrCodeUrl.value) {
@@ -133,12 +168,79 @@ onMounted(() => {
   padding: 24px 16px 0;
 }
 
+.payment-guard-card {
+  margin: 12px 16px 0;
+  padding: 16px;
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.payment-guard-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.payment-guard-card__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.payment-guard-card__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.payment-guard-card__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.payment-guard-card__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.payment-guard-card__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.payment-guard-card__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.payment-guard-card__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .qrcode-card {
   width: 100%;
   max-width: 320px;
   padding: 24px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-lg);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
   text-align: center;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
@@ -146,7 +248,7 @@ onMounted(() => {
 .qrcode-card__title {
   font-size: 18px;
   font-weight: 600;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 20px;
 }
 
@@ -165,22 +267,22 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: var(--hl-bg-color);
-  border: 2px dashed var(--hl-border-color);
-  border-radius: var(--hl-radius-md);
+  background: rgba(249, 241, 230, 0.72);
+  border: 2px dashed rgba(233, 221, 204, 0.92);
+  border-radius: 18px;
   font-size: 13px;
-  color: var(--hl-text-placeholder);
+  color: var(--ifu-text-muted);
 }
 
 .qrcode-card__image {
-  border: 1px solid var(--hl-border-color);
-  border-radius: var(--hl-radius-sm);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 14px;
   padding: 8px;
 }
 
 .qrcode-card__tip {
   font-size: 12px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .stats-section {
@@ -191,8 +293,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16px;
-  background: var(--hl-card-bg);
-  border-radius: var(--hl-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  border-radius: 24px;
+  box-shadow: var(--ifu-shadow-soft);
 }
 
 .stats-row__item {
@@ -204,19 +308,19 @@ onMounted(() => {
   display: block;
   font-size: 17px;
   font-weight: 700;
-  color: var(--hl-text-primary);
+  color: var(--ifu-text-strong);
   margin-bottom: 4px;
 }
 
 .stats-row__label {
   font-size: 11px;
-  color: var(--hl-text-secondary);
+  color: var(--ifu-text-muted);
 }
 
 .stats-row__divider {
   width: 1px;
   height: 28px;
-  background: var(--hl-border-color);
+  background: rgba(233, 221, 204, 0.92);
 }
 
 .action-section {
@@ -228,5 +332,11 @@ onMounted(() => {
 
 .action-section__share {
   margin-top: 0;
+}
+
+@media (max-width: 380px) {
+  .payment-guard-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

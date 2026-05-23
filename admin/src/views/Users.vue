@@ -12,6 +12,14 @@
       </div>
     </div>
 
+    <div class="users-page__stats" data-testid="admin-users-overview">
+      <article v-for="item in overviewItems" :key="item.label" class="users-stat-card">
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+        <small>{{ item.hint }}</small>
+      </article>
+    </div>
+
     <el-card shadow="hover" class="filter-card users-toolbar" data-testid="admin-users-toolbar">
       <el-form :inline="true" :model="filters">
         <el-form-item label="关键词">
@@ -218,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { getUsers, getUserDetail, updateUserStatus, reviewCertification, deleteUser, exportUsers } from '../api/admin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
@@ -241,6 +249,45 @@ const filters = reactive({
   role: 'user',
   certificationStatus: ''
 })
+
+const approvedCount = computed(() =>
+  list.value.filter(item => item.certificationStatus === 'approved').length
+)
+
+const pendingCount = computed(() =>
+  list.value.filter(item => item.certificationStatus === 'pending').length
+)
+
+const disabledCount = computed(() =>
+  list.value.filter(item => item.status === 0).length
+)
+
+const activeCityCount = computed(() =>
+  new Set(list.value.map(item => item.profile?.city).filter(Boolean)).size
+)
+
+const overviewItems = computed(() => [
+  {
+    label: '当前页会员',
+    value: list.value.length,
+    hint: `总筛选结果 ${total.value || 0} 人`
+  },
+  {
+    label: '已认证',
+    value: approvedCount.value,
+    hint: '可优先进入高质量推荐池'
+  },
+  {
+    label: '待审核',
+    value: pendingCount.value,
+    hint: '需要人工核验证件与资料一致性'
+  },
+  {
+    label: '覆盖城市',
+    value: activeCityCount.value,
+    hint: disabledCount.value > 0 ? `${disabledCount.value} 个账号处于禁用状态` : '当前页账号状态正常'
+  }
+])
 
 const formatDate = (d) => d ? dayjs(d).format('YYYY-MM-DD HH:mm') : '-'
 
@@ -383,6 +430,41 @@ onMounted(() => loadData())
   color: var(--ifu-gold-700);
 }
 
+.users-page__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.users-stat-card {
+  padding: 18px;
+  border-radius: var(--ifu-radius-md);
+  border: 1px solid rgba(233, 221, 204, 0.92);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 251, 246, 0.92));
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.users-stat-card span {
+  display: block;
+  font-size: 12px;
+  color: var(--ifu-text-muted);
+}
+
+.users-stat-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 26px;
+  color: var(--ifu-text-strong);
+}
+
+.users-stat-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-muted);
+  line-height: 1.5;
+}
+
 .users-toolbar,
 .users-table-card {
   position: relative;
@@ -402,5 +484,11 @@ onMounted(() => loadData())
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+@media (max-width: 1280px) {
+  .users-page__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

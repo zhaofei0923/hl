@@ -43,6 +43,43 @@
       </el-col>
     </el-row>
 
+    <section class="decision-grid" data-testid="admin-decision-grid">
+      <article class="decision-card decision-card--focus">
+        <div class="decision-card__head">
+          <div>
+            <span class="brand-label">APPROVAL FLOW</span>
+            <strong>审批工作台</strong>
+          </div>
+          <span class="decision-card__pill">按风险优先</span>
+        </div>
+        <div class="decision-list">
+          <article v-for="item in approvalFocus" :key="item.title" class="decision-list__item">
+            <div>
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.desc }}</p>
+            </div>
+            <span :class="['decision-list__tag', `decision-list__tag--${item.state}`]">{{ item.tag }}</span>
+          </article>
+        </div>
+      </article>
+
+      <article class="decision-card">
+        <div class="decision-card__head">
+          <div>
+            <span class="brand-label">OPERATION RHYTHM</span>
+            <strong>今日运营节奏</strong>
+          </div>
+        </div>
+        <div class="rhythm-list">
+          <article v-for="item in operationRhythm" :key="item.label" class="rhythm-list__item">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+            <p>{{ item.note }}</p>
+          </article>
+        </div>
+      </article>
+    </section>
+
     <el-row :gutter="20">
       <el-col :span="15">
         <el-card shadow="hover" class="dashboard-card">
@@ -149,6 +186,33 @@ const priorityItems = computed(() => [
     value: `${stats.value.todayNewUsers || 0} 人`,
     note: '关注活跃转化与匹配效率'
   }
+])
+
+const approvalFocus = computed(() => [
+  {
+    title: '提现复核',
+    desc: `${stats.value.pendingWithdrawals || 0} 笔申请等待处理，优先核对冻结余额和账户信息。`,
+    tag: (stats.value.pendingWithdrawals || 0) > 0 ? '待处理' : '已清空',
+    state: (stats.value.pendingWithdrawals || 0) > 0 ? 'warning' : 'success'
+  },
+  {
+    title: '红娘新增',
+    desc: `${stats.value.todayNewMatchmakers || 0} 位红娘今日进入协作网络，建议同步检查认证资料。`,
+    tag: '人工确认',
+    state: 'info'
+  },
+  {
+    title: '用户增长',
+    desc: `${stats.value.todayNewUsers || 0} 位新用户进入推荐池，关注资料完整度和首聊转化。`,
+    tag: '观察中',
+    state: 'success'
+  }
+])
+
+const operationRhythm = computed(() => [
+  { label: '上午', value: '审核', note: '集中处理提现、认证和异常订单。' },
+  { label: '下午', value: '转化', note: '关注新增用户资料完善和红娘跟进。' },
+  { label: '傍晚', value: '复盘', note: `今日订单金额 ¥${(stats.value.todayOrderAmount || 0).toFixed(0)}。` }
 ])
 
 const loadStats = async () => {
@@ -323,6 +387,136 @@ onBeforeUnmount(() => {
   margin-bottom: 20px;
 }
 
+.decision-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(320px, 0.72fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.decision-card {
+  padding: 22px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(233, 221, 204, 0.96);
+  box-shadow: var(--ifu-shadow-soft);
+}
+
+.decision-card--focus {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(246, 235, 221, 0.86)),
+    #fffdf9;
+}
+
+.decision-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.decision-card__head strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 24px;
+  color: var(--ifu-text-strong);
+}
+
+.decision-card__pill {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(168, 93, 82, 0.1);
+  color: var(--ifu-danger);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.decision-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.decision-list__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(233, 221, 204, 0.82);
+}
+
+.decision-list__item strong {
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.decision-list__item p {
+  margin-top: 6px;
+  color: var(--ifu-text);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.decision-list__tag {
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.decision-list__tag--warning {
+  background: rgba(194, 139, 78, 0.14);
+  color: var(--ifu-warning);
+}
+
+.decision-list__tag--success {
+  background: rgba(126, 154, 120, 0.14);
+  color: var(--ifu-success);
+}
+
+.decision-list__tag--info {
+  background: rgba(140, 154, 168, 0.14);
+  color: var(--ifu-info);
+}
+
+.rhythm-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.rhythm-list__item {
+  padding: 15px 16px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffdf9, #f8efe3);
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.rhythm-list__item span {
+  display: block;
+  font-size: 12px;
+  color: var(--ifu-text-muted);
+}
+
+.rhythm-list__item strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 22px;
+  color: var(--ifu-text-strong);
+}
+
+.rhythm-list__item p {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--ifu-text);
+}
+
 .stat-content {
   display: flex;
   justify-content: space-between;
@@ -391,7 +585,8 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1200px) {
-  .priority-panel {
+  .priority-panel,
+  .decision-grid {
     grid-template-columns: 1fr;
   }
 }

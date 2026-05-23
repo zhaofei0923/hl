@@ -13,6 +13,23 @@
       </div>
     </section>
 
+    <section class="settings-status card" data-testid="settings-status-panel">
+      <div class="settings-status__head">
+        <div>
+          <span class="brand-label">ACCOUNT STATUS</span>
+          <h2>安全与沟通状态</h2>
+        </div>
+        <strong>{{ accountState }}</strong>
+      </div>
+      <div class="settings-status__grid">
+        <article v-for="item in statusItems" :key="item.label">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </article>
+      </div>
+    </section>
+
     <section class="settings-section" data-testid="settings-account-shell">
       <div class="settings-section__title">账户</div>
       <van-cell-group :border="false" class="settings-section__group">
@@ -114,6 +131,26 @@ const maskedPhone = computed(() => {
   const phone = userStore.userInfo?.phone || ''
   return phone ? maskPhone(phone) : '未绑定'
 })
+
+const accountState = computed(() => userStore.userInfo?.phone ? '基础安全已建立' : '先绑定手机号')
+
+const statusItems = computed(() => [
+  {
+    label: '手机号',
+    value: maskedPhone.value,
+    hint: userStore.userInfo?.phone ? '账号找回和身份确认已有基础。' : '建议先绑定手机号，降低账号风险。'
+  },
+  {
+    label: '消息提醒',
+    value: settings.messageNotify && settings.newMessageAlert ? '已开启' : '需确认',
+    hint: settings.messageNotify && settings.newMessageAlert ? '重要沟通不容易错过。' : '关闭提醒可能影响回复节奏。'
+  },
+  {
+    label: '在线状态',
+    value: settings.hideOnlineStatus ? '已隐藏' : '正常展示',
+    hint: settings.hideOnlineStatus ? '更偏隐私，但互动信号会变弱。' : '在线状态有助于对方判断沟通时机。'
+  }
+])
 
 function onSettingChange() {
   showToast('设置已保存')
@@ -258,6 +295,67 @@ onMounted(() => {
   margin-top: 16px;
 }
 
+.settings-status {
+  margin-top: 12px;
+}
+
+.settings-status__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.settings-status__head h2 {
+  margin-top: 6px;
+  color: var(--ifu-text-strong);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.settings-status__head strong {
+  flex-shrink: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(200, 169, 119, 0.16);
+  color: var(--ifu-gold-700);
+  font-size: 12px;
+}
+
+.settings-status__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.settings-status__grid article {
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(249, 241, 230, 0.76));
+  border: 1px solid rgba(233, 221, 204, 0.86);
+}
+
+.settings-status__grid span {
+  display: block;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+}
+
+.settings-status__grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ifu-text-strong);
+  font-size: 16px;
+}
+
+.settings-status__grid p {
+  margin-top: 6px;
+  color: var(--ifu-text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .settings-section {
   margin-top: 12px;
 }
@@ -298,5 +396,11 @@ onMounted(() => {
   color: var(--ifu-gold-700);
   border-color: rgba(166, 124, 82, 0.32);
   background: rgba(255, 255, 255, 0.92);
+}
+
+@media (max-width: 380px) {
+  .settings-status__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

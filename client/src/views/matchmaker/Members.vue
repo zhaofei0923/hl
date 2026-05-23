@@ -334,7 +334,7 @@ async function loadMembers(isRefresh = false) {
     const params = {
       page: page.value,
       pageSize: 10,
-      type: memberType.value === 'all' ? undefined : memberType.value,
+      memberType: memberType.value === 'all' ? undefined : memberType.value,
       keyword: searchKeyword.value || undefined,
       gender: activeFilters.gender || undefined,
       ageMin: ageMin || undefined,

@@ -5,6 +5,17 @@ const { Op } = require('sequelize');
 const { Conversation, Message, User } = require('../models');
 const logger = require('../utils/logger');
 
+function httpError(message, statusCode = 400) {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  return err;
+}
+
+function isParticipant(conversation, userId) {
+  const currentUserId = Number(userId);
+  return Number(conversation.userAId) === currentUserId || Number(conversation.userBId) === currentUserId;
+}
+
 const messageService = {
   /**
    * Get paginated conversations for a user.
@@ -68,7 +79,15 @@ const messageService = {
    * Get paginated messages within a conversation.
    * Ordered by created_at descending so the client receives newest first.
    */
-  async getMessages(conversationId, page = 1, pageSize = 20) {
+  async getMessages(conversationId, userId, page = 1, pageSize = 20) {
+    const conversation = await messageService.getConversationById(conversationId);
+    if (!conversation) {
+      throw httpError('会话不存在', 404);
+    }
+    if (!isParticipant(conversation, userId)) {
+      throw httpError('无权访问该会话', 403);
+    }
+
     const { count, rows } = await Message.findAndCountAll({
       where: { conversationId },
       include: [
@@ -79,9 +98,14 @@ const messageService = {
       order: [['created_at', 'DESC']]
     });
 
+    const otherUser = Number(conversation.userAId) === Number(userId)
+      ? conversation.userB
+      : conversation.userA;
+
     return {
       total: count,
       list: rows,
+      otherUser,
       page: Number(page),
       pageSize: Number(pageSize)
     };
@@ -95,23 +119,29 @@ const messageService = {
    */
   async sendMessage(senderId, receiverId, content, contentType = 'text') {
     if (!content) {
-      throw new Error('消息内容不能为空');
+      throw httpError('消息内容不能为空', 400);
     }
 
-    if (senderId === receiverId) {
-      throw new Error('不能给自己发送消息');
+    const normalizedSenderId = Number(senderId);
+    const normalizedReceiverId = Number(receiverId);
+    if (!Number.isFinite(normalizedReceiverId)) {
+      throw httpError('接收用户不能为空', 400);
+    }
+
+    if (normalizedSenderId === normalizedReceiverId) {
+      throw httpError('不能给自己发送消息', 400);
     }
 
     // Verify receiver exists
-    const receiver = await User.findByPk(receiverId);
+    const receiver = await User.findByPk(normalizedReceiverId);
     if (!receiver) {
-      throw new Error('接收用户不存在');
+      throw httpError('接收用户不存在', 404);
     }
 
     // Conversation ordering: smaller ID is always userA
-    const [userAId, userBId] = senderId < receiverId
-      ? [senderId, receiverId]
-      : [receiverId, senderId];
+    const [userAId, userBId] = normalizedSenderId < normalizedReceiverId
+      ? [normalizedSenderId, normalizedReceiverId]
+      : [normalizedReceiverId, normalizedSenderId];
 
     const [conversation] = await Conversation.findOrCreate({
       where: { userAId, userBId },
@@ -120,8 +150,8 @@ const messageService = {
 
     const message = await Message.create({
       conversationId: conversation.id,
-      senderId,
-      receiverId,
+      senderId: normalizedSenderId,
+      receiverId: normalizedReceiverId,
       content,
       contentType
     });
@@ -132,8 +162,24 @@ const messageService = {
       lastMessageAt: new Date()
     });
 
-    logger.info(`Message sent: ${message.id}, from ${senderId} to ${receiverId}`);
+    logger.info(`Message sent: ${message.id}, from ${normalizedSenderId} to ${normalizedReceiverId}`);
     return message;
+  },
+
+  async sendMessageToConversation(senderId, conversationId, content, contentType = 'text') {
+    const conversation = await messageService.getConversationById(conversationId);
+    if (!conversation) {
+      throw httpError('会话不存在', 404);
+    }
+    if (!isParticipant(conversation, senderId)) {
+      throw httpError('无权访问该会话', 403);
+    }
+
+    const receiverId = Number(conversation.userAId) === Number(senderId)
+      ? conversation.userBId
+      : conversation.userAId;
+
+    return messageService.sendMessage(senderId, receiverId, content, contentType);
   },
 
   /**

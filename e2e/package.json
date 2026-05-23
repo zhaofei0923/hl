@@ -11,8 +11,8 @@
     "test:user": "npx playwright test tests/user-home.spec.js tests/user-profile.spec.js",
     "test:matchmaker": "npx playwright test tests/matchmaker.spec.js",
     "test:match": "npx playwright test tests/match.spec.js",
-    "test:message": "npx playwright test tests/message.spec.js",
-    "test:wallet": "npx playwright test tests/wallet.spec.js",
+    "test:message": "npx playwright test tests/message-wallet.spec.js",
+    "test:wallet": "npx playwright test tests/message-wallet.spec.js",
     "test:salon": "npx playwright test tests/salon.spec.js",
     "report": "npx playwright show-report"
   },

@@ -32,7 +32,7 @@ const MatchRecord = sequelize.define('MatchRecord', {
     }
   },
   matchType: {
-    type: DataTypes.ENUM('system', 'manual', 'speed'),
+    type: DataTypes.ENUM('system', 'manual', 'speed', 'recommend'),
     allowNull: false
   },
   compatibilityScore: {

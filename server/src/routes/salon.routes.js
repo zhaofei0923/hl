@@ -1,11 +1,30 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
 const salonController = require('../controllers/salon.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/role.middleware');
 
+const allowedImageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const allowedImageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+function imageFileFilter(req, file, cb) {
+	const ext = path.extname(file.originalname).toLowerCase();
+	cb(null, allowedImageExtensions.has(ext) && allowedImageMimeTypes.has(file.mimetype));
+}
+
+const upload = multer({
+	dest: path.join(__dirname, '../../uploads/photos'),
+	limits: { fileSize: 5 * 1024 * 1024 },
+	fileFilter: imageFileFilter
+});
+
 // All routes require authentication
 router.use(authMiddleware);
+
+// Upload salon cover image
+router.post('/upload-cover', requireRole('matchmaker'), upload.single('cover'), salonController.uploadCover);
 
 // List salon events (all authenticated users)
 router.get('/events', salonController.getEvents);

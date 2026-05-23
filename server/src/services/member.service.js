@@ -23,7 +23,11 @@ const memberService = {
       attributes: ['id', 'phone', 'nickname', 'avatarUrl', 'gender'],
       include: [{
         association: 'profile',
-        attributes: ['realName', 'age', 'height', 'education', 'occupation', 'province', 'city', 'maritalStatus', 'photos']
+        attributes: [
+          'realName', 'age', 'height', 'education', 'occupation', 'incomeRange',
+          'province', 'city', 'nativePlace', 'maritalStatus', 'houseStatus',
+          'carStatus', 'selfIntro', 'partnerRequirement', 'photos'
+        ]
       }]
     };
 

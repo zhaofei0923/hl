@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS match_records (
   user_a_id BIGINT NOT NULL,
   user_b_id BIGINT NOT NULL,
   matchmaker_id BIGINT,
-  match_type ENUM('system', 'manual', 'speed') NOT NULL,
+  match_type ENUM('system', 'manual', 'speed', 'recommend') NOT NULL,
   compatibility_score TINYINT UNSIGNED,
   status ENUM('pending', 'accepted_a', 'accepted_b', 'mutual', 'rejected', 'expired') DEFAULT 'pending',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -25,9 +25,7 @@ export function useUpload(options = {}) {
     uploading.value = true
     progress.value = 0
     try {
-      const formData = new FormData()
-      formData.append('avatar', file.file || file)
-      const res = await userApi.uploadAvatar(formData)
+      const res = await userApi.uploadAvatar(file.file || file)
       progress.value = 100
       return res.data?.avatarUrl || res.avatarUrl
     } catch (err) {
@@ -43,7 +41,6 @@ export function useUpload(options = {}) {
     try {
       const formData = new FormData()
       formData.append(fieldName, file.file || file)
-      // Generic upload endpoint - can be customized
       const res = await userApi.uploadAvatar(formData)
       return res.data?.url || res.url || ''
     } catch (err) {

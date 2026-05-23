@@ -23,8 +23,10 @@ export const userApi = {
 
   // 上传头像
   uploadAvatar(file) {
-    const formData = new FormData()
-    formData.append('avatar', file)
+    const formData = file instanceof FormData ? file : new FormData()
+    if (!(file instanceof FormData)) {
+      formData.append('avatar', file)
+    }
     return request.post('/user/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })

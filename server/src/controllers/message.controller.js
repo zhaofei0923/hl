@@ -25,9 +25,10 @@ const messageController = {
    */
   async getMessages(req, res, next) {
     try {
+      const { userId } = req.user;
       const { page = 1, pageSize = 20 } = req.query;
 
-      const result = await messageService.getMessages(req.params.id, page, pageSize);
+      const result = await messageService.getMessages(req.params.id, userId, page, pageSize);
       return paginate(res, result);
     } catch (err) {
       next(err);
@@ -41,9 +42,11 @@ const messageController = {
   async sendMessage(req, res, next) {
     try {
       const { userId } = req.user;
-      const { receiverId, content, contentType } = req.body;
+      const { receiverId, conversationId, content, contentType } = req.body;
 
-      const message = await messageService.sendMessage(userId, receiverId, content, contentType);
+      const message = conversationId
+        ? await messageService.sendMessageToConversation(userId, conversationId, content, contentType)
+        : await messageService.sendMessage(userId, receiverId, content, contentType);
       return success(res, message, '消息发送成功');
     } catch (err) {
       next(err);

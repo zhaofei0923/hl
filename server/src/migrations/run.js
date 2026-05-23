@@ -113,6 +113,15 @@ async function createUserCertificationsTable() {
   console.log('Created table user_certifications');
 }
 
+async function updateMatchRecordTypeEnum() {
+  if (!(await tableExists('match_records'))) return;
+  await queryInterface.changeColumn('match_records', 'match_type', {
+    type: DataTypes.ENUM('system', 'manual', 'speed', 'recommend'),
+    allowNull: false
+  });
+  console.log('Updated match_records.match_type enum');
+}
+
 async function migrate() {
   await sequelize.authenticate();
 
@@ -152,6 +161,7 @@ async function migrate() {
   });
   await addIndexIfMissing('users', 'idx_users_deleted_at', ['deleted_at']);
   await addIndexIfMissing('matchmakers', 'idx_matchmakers_deleted_at', ['deleted_at']);
+  await updateMatchRecordTypeEnum();
 
   console.log('Migrations completed');
 }

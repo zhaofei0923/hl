@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { User, SalonEvent, SalonRegistration, Member, Matchmaker } = require('../models');
 const messageService = require('./message.service');
 const logger = require('../utils/logger');
+const sequelize = require('../config/database');
 
 const salonService = {
   /**
@@ -63,49 +64,63 @@ const salonService = {
    * Checks capacity and prevents duplicate registration
    */
   async registerForEvent(eventId, userId) {
-    // Verify event exists and is upcoming
-    const event = await SalonEvent.findByPk(eventId);
-    if (!event) {
-      throw new Error('活动不存在');
-    }
-
-    if (event.status !== 'upcoming') {
-      throw new Error('活动当前不可报名');
-    }
-
-    // Check capacity (0 means unlimited)
-    if (event.maxParticipants > 0 && event.currentParticipants >= event.maxParticipants) {
-      throw new Error('活动名额已满');
-    }
-
-    // Check for existing registration
-    const existing = await SalonRegistration.findOne({
-      where: { eventId, userId, status: 'registered' }
-    });
-
-    if (existing) {
-      throw new Error('您已报名该活动');
-    }
-
-    // Check for cancelled registration and reactivate
-    const cancelled = await SalonRegistration.findOne({
-      where: { eventId, userId, status: 'cancelled' }
-    });
-
+    const t = await sequelize.transaction();
+    let event;
     let registration;
-    if (cancelled) {
-      await cancelled.update({ status: 'registered' });
-      registration = cancelled;
-    } else {
-      registration = await SalonRegistration.create({
-        eventId,
-        userId,
-        status: 'registered'
+    try {
+      // Verify event exists and lock it while checking/updating capacity.
+      event = await SalonEvent.findByPk(eventId, {
+        transaction: t,
+        lock: t.LOCK.UPDATE
       });
-    }
+      if (!event) {
+        throw new Error('活动不存在');
+      }
 
-    // Increment participant count
-    await event.increment('currentParticipants');
+      if (event.status !== 'upcoming') {
+        throw new Error('活动当前不可报名');
+      }
+
+      // Check capacity (0 means unlimited)
+      if (event.maxParticipants > 0 && event.currentParticipants >= event.maxParticipants) {
+        throw new Error('活动名额已满');
+      }
+
+      // Check for existing registration
+      const existing = await SalonRegistration.findOne({
+        where: { eventId, userId, status: 'registered' },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      });
+
+      if (existing) {
+        throw new Error('您已报名该活动');
+      }
+
+      // Check for cancelled registration and reactivate
+      const cancelled = await SalonRegistration.findOne({
+        where: { eventId, userId, status: 'cancelled' },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      });
+
+      if (cancelled) {
+        await cancelled.update({ status: 'registered' }, { transaction: t });
+        registration = cancelled;
+      } else {
+        registration = await SalonRegistration.create({
+          eventId,
+          userId,
+          status: 'registered'
+        }, { transaction: t });
+      }
+
+      await event.increment('currentParticipants', { by: 1, transaction: t });
+      await t.commit();
+    } catch (err) {
+      await t.rollback();
+      throw err;
+    }
 
     // Notify the organizer
     try {

@@ -25,9 +25,7 @@
       <el-form :inline="true" :model="filters">
         <el-form-item label="状态">
           <el-select v-model="filters.status" placeholder="全部" clearable>
-            <el-option label="草稿" value="draft" />
-            <el-option label="报名中" value="registering" />
-            <el-option label="已满员" value="full" />
+            <el-option label="即将开始" value="upcoming" />
             <el-option label="进行中" value="ongoing" />
             <el-option label="已结束" value="ended" />
             <el-option label="已取消" value="cancelled" />
@@ -51,10 +49,10 @@
         </el-table-column>
         <el-table-column prop="location" label="地点" width="160" />
         <el-table-column label="人数" width="110">
-          <template #default="{ row }">{{ row.currentCount || 0 }}/{{ row.maxParticipants || '-' }}</template>
+          <template #default="{ row }">{{ row.currentParticipants || 0 }}/{{ row.maxParticipants || '-' }}</template>
         </el-table-column>
         <el-table-column label="费用" width="90">
-          <template #default="{ row }">{{ row.fee > 0 ? `¥${row.fee}` : '免费' }}</template>
+          <template #default="{ row }">{{ row.price > 0 ? `¥${row.price}` : '免费' }}</template>
         </el-table-column>
         <el-table-column label="状态" width="110">
           <template #default="{ row }">
@@ -90,8 +88,8 @@
           <el-descriptions-item label="组织者">{{ current.organizer?.nickname }} ({{ current.organizer?.phone }})</el-descriptions-item>
           <el-descriptions-item label="活动时间">{{ formatDate(current.eventDate) }}</el-descriptions-item>
           <el-descriptions-item label="地点">{{ current.location }}</el-descriptions-item>
-          <el-descriptions-item label="人数">{{ current.currentCount || 0 }}/{{ current.maxParticipants }}</el-descriptions-item>
-          <el-descriptions-item label="费用">{{ current.fee > 0 ? `¥${current.fee}` : '免费' }}</el-descriptions-item>
+          <el-descriptions-item label="人数">{{ current.currentParticipants || 0 }}/{{ current.maxParticipants }}</el-descriptions-item>
+          <el-descriptions-item label="费用">{{ current.price > 0 ? `¥${current.price}` : '免费' }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="statusType(current.status)">{{ statusText(current.status) }}</el-tag>
           </el-descriptions-item>
@@ -130,8 +128,8 @@
         <el-form-item label="最大人数" prop="maxParticipants">
           <el-input-number v-model="salonForm.maxParticipants" :min="2" :max="500" />
         </el-form-item>
-        <el-form-item label="费用" prop="fee">
-          <el-input-number v-model="salonForm.fee" :min="0" :precision="2" />
+        <el-form-item label="费用" prop="price">
+          <el-input-number v-model="salonForm.price" :min="0" :precision="2" />
         </el-form-item>
         <el-form-item label="简介">
           <el-input v-model="salonForm.description" type="textarea" :rows="3" />
@@ -170,7 +168,7 @@ const salonForm = reactive({
   eventDate: '',
   location: '',
   maxParticipants: 20,
-  fee: 0,
+  price: 0,
   description: ''
 })
 
@@ -181,19 +179,19 @@ const rules = {
 }
 
 const formatDate = (d) => d ? dayjs(d).format('YYYY-MM-DD HH:mm') : '-'
-const statusText = (s) => ({ draft: '草稿', registering: '报名中', full: '已满员', ongoing: '进行中', ended: '已结束', cancelled: '已取消' }[s] || s)
-const statusType = (s) => ({ draft: 'info', registering: 'primary', full: 'warning', ongoing: 'success', ended: '', cancelled: 'danger' }[s] || 'info')
+const statusText = (s) => ({ upcoming: '即将开始', ongoing: '进行中', ended: '已结束', cancelled: '已取消' }[s] || s)
+const statusType = (s) => ({ upcoming: 'primary', ongoing: 'success', ended: '', cancelled: 'danger' }[s] || 'info')
 
 const seatTotal = computed(() =>
   list.value.reduce((sum, item) => sum + Number(item.maxParticipants || 0), 0)
 )
 
 const currentParticipantsTotal = computed(() =>
-  list.value.reduce((sum, item) => sum + Number(item.currentCount || 0), 0)
+  list.value.reduce((sum, item) => sum + Number(item.currentParticipants || 0), 0)
 )
 
-const registeringCount = computed(() =>
-  list.value.filter(item => item.status === 'registering').length
+const upcomingCount = computed(() =>
+  list.value.filter(item => item.status === 'upcoming').length
 )
 
 const cancelledCount = computed(() =>
@@ -218,8 +216,8 @@ const overviewItems = computed(() => [
     hint: '当前筛选条件下的线下活动数量'
   },
   {
-    label: '报名中',
-    value: registeringCount.value,
+    label: '即将开始',
+    value: upcomingCount.value,
     hint: '适合优先观察报名与转化'
   },
   {
@@ -259,7 +257,7 @@ const viewDetail = async (row) => {
 const showCreate = () => {
   isEdit.value = false
   editId.value = null
-  Object.assign(salonForm, { title: '', eventDate: '', location: '', maxParticipants: 20, fee: 0, description: '' })
+  Object.assign(salonForm, { title: '', eventDate: '', location: '', maxParticipants: 20, price: 0, description: '' })
   dialogVisible.value = true
 }
 
@@ -271,7 +269,7 @@ const showEdit = (row) => {
     eventDate: row.eventDate,
     location: row.location,
     maxParticipants: row.maxParticipants,
-    fee: row.fee || 0,
+    price: row.price || 0,
     description: row.description || ''
   })
   dialogVisible.value = true
@@ -285,7 +283,7 @@ const handleSave = async () => {
       await updateSalon(editId.value, { ...salonForm })
       ElMessage.success('更新成功')
     } else {
-      await createSalon({ ...salonForm, status: 'registering' })
+      await createSalon({ ...salonForm, status: 'upcoming' })
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false

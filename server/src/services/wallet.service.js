@@ -353,7 +353,7 @@ const walletService = {
       }
 
       // Move from frozen to withdrawn
-      await Wallet.update(
+      const [affectedRows] = await Wallet.update(
         {
           frozenAmount: sequelize.literal(`frozen_amount - ${Number(record.amount)}`),
           totalWithdrawn: sequelize.literal(`total_withdrawn + ${Number(record.actualAmount)}`),
@@ -364,6 +364,10 @@ const walletService = {
           transaction: t
         }
       );
+
+      if (affectedRows === 0) {
+        throw new Error('操作冲突，请重试');
+      }
 
       await record.update({ status: 'success', processedAt: new Date() }, { transaction: t });
 
@@ -403,7 +407,7 @@ const walletService = {
       }
 
       // Move from frozen back to available
-      await Wallet.update(
+      const [affectedRows] = await Wallet.update(
         {
           frozenAmount: sequelize.literal(`frozen_amount - ${Number(record.amount)}`),
           availableAmount: sequelize.literal(`available_amount + ${Number(record.amount)}`),
@@ -414,6 +418,10 @@ const walletService = {
           transaction: t
         }
       );
+
+      if (affectedRows === 0) {
+        throw new Error('操作冲突，请重试');
+      }
 
       await record.update({
         status: 'rejected',

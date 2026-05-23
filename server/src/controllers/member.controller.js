@@ -93,7 +93,11 @@ const memberController = {
 
       const profileInclude = {
         association: 'profile',
-        attributes: ['realName', 'age', 'height', 'education', 'occupation', 'incomeRange', 'province', 'city', 'nativePlace', 'maritalStatus', 'photos'],
+        attributes: [
+          'realName', 'age', 'height', 'education', 'occupation', 'incomeRange',
+          'province', 'city', 'nativePlace', 'maritalStatus', 'houseStatus',
+          'carStatus', 'selfIntro', 'partnerRequirement', 'photos'
+        ],
         ...(Object.keys(profileWhere).length > 0 ? { where: profileWhere } : {})
       };
 
@@ -1003,8 +1007,10 @@ const memberController = {
         };
       }
 
-      // Show all members in the system (resource pool for all matchmakers)
-      const memberWhere = {};
+      const memberWhere = {
+        matchmakerId: { [Op.ne]: matchmaker.id },
+        status: 1
+      };
 
       const { count, rows } = await Member.findAndCountAll({
         where: memberWhere,
@@ -1031,6 +1037,7 @@ const memberController = {
           education: profile.education,
           occupation: profile.occupation,
           incomeRange: profile.incomeRange,
+          income: profile.incomeRange,
           city: profile.city,
           province: profile.province,
           nativePlace: profile.nativePlace,

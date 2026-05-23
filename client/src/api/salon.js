@@ -19,6 +19,15 @@ export const salonApi = {
   },
 
   // === 红娘专属接口 ===
+  uploadCover(file) {
+    const formData = file instanceof FormData ? file : new FormData()
+    if (!(file instanceof FormData)) {
+      formData.append('cover', file.file || file)
+    }
+    return request.post('/salon/upload-cover', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
   createEvent(data) {
     return request.post('/salon/events', data)
   },

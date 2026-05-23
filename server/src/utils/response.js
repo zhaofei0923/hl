@@ -18,7 +18,7 @@ const error = (res, message = 'error', code = 40000, statusCode = 400) => {
   });
 };
 
-const paginate = (res, { list, total, page, pageSize }) => {
+const paginate = (res, { list, total, page, pageSize, ...extra }) => {
   return res.status(200).json({
     code: 0,
     message: 'success',
@@ -29,7 +29,8 @@ const paginate = (res, { list, total, page, pageSize }) => {
         page: Number(page),
         pageSize: Number(pageSize),
         totalPages: Math.ceil(total / pageSize)
-      }
+      },
+      ...extra
     }
   });
 };

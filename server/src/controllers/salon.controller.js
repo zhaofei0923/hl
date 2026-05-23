@@ -1,8 +1,50 @@
 const salonService = require('../services/salon.service');
 const { success, error, paginate } = require('../utils/response');
 const logger = require('../utils/logger');
+const fsPromises = require('fs/promises');
+const sharp = require('sharp');
+
+const allowedImageFormats = new Set(['jpeg', 'png', 'webp']);
+
+async function isSupportedImage(filePath) {
+  try {
+    const metadata = await sharp(filePath).metadata();
+    return allowedImageFormats.has(metadata.format);
+  } catch (err) {
+    return false;
+  }
+}
+
+async function removeUploadedFile(filePath) {
+  if (!filePath) return;
+  await fsPromises.unlink(filePath).catch(() => {});
+}
 
 const salonController = {
+  /**
+   * Upload salon cover image
+   * POST /api/salon/upload-cover
+   */
+  async uploadCover(req, res, next) {
+    try {
+      if (!req.file) {
+        return error(res, '请选择封面图片', 40001);
+      }
+
+      if (!(await isSupportedImage(req.file.path))) {
+        await removeUploadedFile(req.file.path);
+        return error(res, '仅支持 JPG、PNG、WEBP 图片', 40001);
+      }
+
+      const url = `/uploads/photos/${req.file.filename}`;
+      logger.info(`Salon cover uploaded by user ${req.user.userId}: ${url}`);
+
+      return success(res, { url }, '封面上传成功');
+    } catch (err) {
+      next(err);
+    }
+  },
+
   /**
    * List salon events
    * GET /api/salon/events

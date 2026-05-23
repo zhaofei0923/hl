@@ -11,6 +11,31 @@ const {
   EarningRecord
 } = require('../models');
 const logger = require('../utils/logger');
+const walletService = require('./wallet.service');
+
+const salonStatusMap = {
+  draft: 'upcoming',
+  registering: 'upcoming',
+  full: 'upcoming',
+  completed: 'ended'
+};
+
+function normalizeSalonPayload(data = {}) {
+  const payload = { ...data };
+  if (payload.fee !== undefined && payload.price === undefined) {
+    payload.price = payload.fee;
+  }
+  if (payload.currentCount !== undefined && payload.currentParticipants === undefined) {
+    payload.currentParticipants = payload.currentCount;
+  }
+  delete payload.fee;
+  delete payload.currentCount;
+
+  if (payload.status) {
+    payload.status = salonStatusMap[payload.status] || payload.status;
+  }
+  return payload;
+}
 
 const adminService = {
   // ==================== Dashboard ====================
@@ -297,6 +322,7 @@ const adminService = {
     const mm = await Matchmaker.findByPk(matchmakerId);
     if (!mm) return null;
     await mm.destroy();
+    await User.update({ currentRole: 'user' }, { where: { id: mm.userId, currentRole: 'matchmaker' } });
     logger.info(`Admin soft-deleted matchmaker ${matchmakerId}`);
     return { success: true };
   },
@@ -323,28 +349,25 @@ const adminService = {
   },
 
   async approveWithdrawal(withdrawId) {
-    const record = await WithdrawRecord.findByPk(withdrawId);
-    if (!record) return null;
-    if (record.status !== 'pending') return { error: '该提现记录状态不可操作' };
-    await record.update({ status: 'processing', processedAt: new Date() });
-    logger.info(`Admin approved withdrawal ${withdrawId}`);
-    return record;
+    try {
+      const record = await walletService.completeWithdrawal(withdrawId);
+      logger.info(`Admin approved withdrawal ${withdrawId}`);
+      return record;
+    } catch (err) {
+      if (err.message === '提现记录不存在') return null;
+      return { error: err.message };
+    }
   },
 
   async rejectWithdrawal(withdrawId, rejectReason) {
-    const record = await WithdrawRecord.findByPk(withdrawId);
-    if (!record) return null;
-    if (record.status !== 'pending') return { error: '该提现记录状态不可操作' };
-
-    // Refund to wallet
-    const wallet = await Wallet.findOne({ where: { userId: record.userId } });
-    if (wallet) {
-      await wallet.increment('availableAmount', { by: Number(record.amount) });
+    try {
+      const record = await walletService.rejectWithdrawal(withdrawId, rejectReason);
+      logger.info(`Admin rejected withdrawal ${withdrawId}, reason: ${rejectReason}`);
+      return record;
+    } catch (err) {
+      if (err.message === '提现记录不存在') return null;
+      return { error: err.message };
     }
-
-    await record.update({ status: 'rejected', rejectReason, processedAt: new Date() });
-    logger.info(`Admin rejected withdrawal ${withdrawId}, reason: ${rejectReason}`);
-    return record;
   },
 
   // ==================== Order Management ====================
@@ -388,7 +411,7 @@ const adminService = {
 
   async getSalons({ page = 1, pageSize = 20, status } = {}) {
     const where = {};
-    if (status && status !== 'all') where.status = status;
+    if (status && status !== 'all') where.status = salonStatusMap[status] || status;
 
     const { count, rows } = await SalonEvent.findAndCountAll({
       where,
@@ -416,7 +439,9 @@ const adminService = {
   },
 
   async createSalon(data) {
-    const event = await SalonEvent.create(data);
+    const payload = normalizeSalonPayload(data);
+    if (!payload.status) payload.status = 'upcoming';
+    const event = await SalonEvent.create(payload);
     logger.info(`Admin created salon event ${event.id}: ${data.title}`);
     return event;
   },
@@ -424,7 +449,7 @@ const adminService = {
   async updateSalon(salonId, data) {
     const event = await SalonEvent.findByPk(salonId);
     if (!event) return null;
-    await event.update(data);
+    await event.update(normalizeSalonPayload(data));
     logger.info(`Admin updated salon event ${salonId}`);
     return event;
   },
@@ -432,8 +457,9 @@ const adminService = {
   async updateSalonStatus(salonId, status) {
     const event = await SalonEvent.findByPk(salonId);
     if (!event) return null;
-    await event.update({ status });
-    logger.info(`Admin updated salon ${salonId} status to ${status}`);
+    const normalizedStatus = salonStatusMap[status] || status;
+    await event.update({ status: normalizedStatus });
+    logger.info(`Admin updated salon ${salonId} status to ${normalizedStatus}`);
     return event;
   },
 

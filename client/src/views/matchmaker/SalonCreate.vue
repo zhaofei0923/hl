@@ -156,13 +156,14 @@ const selectedDate = ref('')
 const dateDisplay = computed(() => form.eventDate || '')
 
 const coverFileList = ref([])
-const { beforeRead, uploadAvatar } = useUpload()
+const { beforeRead } = useUpload()
 
 async function afterRead(file) {
   file.status = 'uploading'
   file.message = '上传中...'
   try {
-    const url = await uploadAvatar(file)
+    const res = await salonApi.uploadCover(file.file || file)
+    const url = res.data?.url || res.url
     form.coverImage = url
     file.status = 'done'
     file.message = ''
